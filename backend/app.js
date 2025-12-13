@@ -3,6 +3,7 @@ import cors from 'cors';
 import propertiesRoutes from './routes/propertiesRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import userRoutes from "./routes/userRoutes.js";
+import hostRoutes from "./routes/hostRoutes.js";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 app.use("/properties", propertiesRoutes);
 app.use("/properties", reviewRoutes );
 app.use("/users", userRoutes);
+app.use("/hosts", hostRoutes);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
