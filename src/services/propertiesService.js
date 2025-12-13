@@ -1,22 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import axios from "axios";
 
-const prisma = new PrismaClient();
-
-export async function getAllProperties() {
-    return prisma.property.findMany({
-        include:{
-            host: true,
-            reviews: true,
-        },
-    });
-}
+const API_URL = "http://localhost:3000";
 
 export async function getPropertyById(id) {
-    return prisma.property.findUnique({
-        where: { id },
-        include: {
-            host: true,
-            reviews: true,
-        },
-});
+  const response = await axios.get(`${API_URL}/properties/${id}`);
+  return response.data;
 }
