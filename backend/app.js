@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import propertiesRoutes from './routes/propertiesRoutes.js';
-
+import reviewRoutes from './routes/reviewRoutes.js';
 const app = express();
 
 app.use(cors()); // ✅ voeg dit toe
@@ -12,6 +12,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/properties", propertiesRoutes);
+app.use("/properties", reviewRoutes );
 
 const PORT = process.env.PORT || 3000;
 
