@@ -1,37 +1,32 @@
 {
-  "name": "express-bookings",
-  "version": "1.0.0",
+  "name": "bed-final-project-boilerplate",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "description": "Your REST API for managing bookings",
-  "main": "src/main.js",
   "scripts": {
-    "dev": "nodemon src/main.js",
-    "test-positive": "newman run \"./postman/collections/Bookings API.json\" -e \"./postman/environments/Local.postman_environment.json\"",
-    "test-negative": "newman run \"./postman/collections/Bookings API Negative.json\" -e \"./postman/environments/Local.postman_environment.json\"",
-    "test": "npm run test-positive && npm run test-negative",
-    "reset-db": "npx prisma db push --force-reset && npx prisma db seed",
-    "clean-start": "npx prisma db push --force-reset && npx prisma db seed && npm run dev"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.7.0",
-    "@sentry/node": "^7.64.0",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.1",
-    "uuid": "^9.0.0",
-    "winston": "^3.10.0"
+    "@chakra-ui/react": "^2.7.1",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "framer-motion": "^7.6.16",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
-    "newman": "^6.0.0",
-    "nodemon": "^3.0.1",
-    "prisma": "^6.7.0"
-  },
-  "engines": {
-    "node": ">=18 <19"
-  },
-  "prisma": {
-  "seed": "node prisma/seed.js"
-}
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "vite": "^7.2.4"
+  }
 }

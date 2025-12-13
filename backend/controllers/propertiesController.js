@@ -7,7 +7,7 @@ export async function getProperties(req, res){
 
     }catch(error){
         console.error ('Error fetching properties:', error);
-        res.satatus (500).json({ error: 'Failed to fetch properties'});
+        res.status (500).json({ error: 'Failed to fetch properties'});
     }
 }
 
