@@ -3,12 +3,15 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getPropertyById } from "../services/propertiesService";
 import { getReviewsByPropertyId } from "../services/reviews";
+import { useNavigate } from "react-router-dom";
+
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
 
   const [property, setProperty] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const navigate = useNavigate();
 
   // ✅ Fetch property
   useEffect(() => {
@@ -34,6 +37,13 @@ export default function PropertyDetailPage() {
 console.log("Property object:", property);
   return (
     <Box>
+     <Text
+  onClick={() => navigate("/")}
+  cursor="pointer"
+  textDecoration="underline"
+>
+  ← Terug naar overzicht
+</Text> 
       {/* ✅ Property info */}
       <Heading>{property.title}</Heading>
       <Text>{property.description}</Text>
@@ -41,6 +51,7 @@ console.log("Property object:", property);
 
       {/* ✅ Reviews */}
       <Box mt={10}>
+        
         <Heading size="md" mb={4}>Reviews</Heading>
 
         {reviews.length === 0 && (
