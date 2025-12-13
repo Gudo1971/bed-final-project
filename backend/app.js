@@ -4,6 +4,7 @@ import propertiesRoutes from './routes/propertiesRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import userRoutes from "./routes/userRoutes.js";
 import hostRoutes from "./routes/hostRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use("/properties", propertiesRoutes);
 app.use("/properties", reviewRoutes );
 app.use("/users", userRoutes);
 app.use("/hosts", hostRoutes);
+app.use("/bookings", bookingRoutes);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
