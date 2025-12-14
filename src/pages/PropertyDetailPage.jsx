@@ -5,6 +5,7 @@ import { getPropertyById } from "../services/propertiesService";
 import { getReviewsByPropertyId } from "../services/reviews";
 import ReviewList from "../components/reviews/ReviewList";
 import ReviewForm from "../components/reviews/ReviewForm";
+import BookingForm from "../components/booking/BookingForm";
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
@@ -13,7 +14,7 @@ export default function PropertyDetailPage() {
   const [property, setProperty] = useState(null);
   const [reviews, setReviews] = useState([]);
 
-  const user = { id: "a1234567-89ab-cdef-0123-456789abcdef" }; // Mocked logged-in user
+  const user = { id: "ae62ded3-d6a5-480c-b471-de38efd885c1" }; // Mocked logged-in user
 
   const handleReviewAdded = (newReview) => {
     setReviews((prevReviews) => [...prevReviews, newReview]);
@@ -35,12 +36,13 @@ export default function PropertyDetailPage() {
       setReviews(data);
     }
     fetchReviews();
-  }, [property]);
+  }, [id]);
 
   if (!property) {
     return <Text>Loading...</Text>;
   }
-
+console.log("URL PARAM ID:", id);
+console.log("PROPERTY FROM BACKEND:", property);
   return (
     <Box>
       <Text
@@ -54,6 +56,14 @@ export default function PropertyDetailPage() {
       {/* ✅ Property info */}
       <Heading>{property.title}</Heading>
       <Text>{property.description}</Text>
+<BookingForm
+  propertyId={property.id}
+  userId="ae62ded3-d6a5-480c-b471-de38efd885c1"
+  pricePerNight={property.pricePerNight}
+  onBookingCreated={(booking) => console.log("New booking:", booking)}
+/>
+
+
 
       <VStack align="start" spacing={6} w="100%" mt={8}>
         {/* ✅ ReviewForm */}

@@ -4,18 +4,10 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // Clear existing data
-  await prisma.review.deleteMany();
-  await prisma.booking.deleteMany();
-  await prisma.property.deleteMany();
-  await prisma.host.deleteMany();
-  await prisma.user.deleteMany();
-
-  // ✅ USERS
-  const users = await prisma.user.createMany({
+  // ✅ 1. USERS
+  await prisma.user.createMany({
     data: [
       {
-        id: "a1234567-89ab-cdef-0123-456789abcdef",
         username: "jdoe",
         password: "password123",
         name: "John Doe",
@@ -24,7 +16,6 @@ async function main() {
         pictureUrl: "https://wincacademy.github.io/webpages/media/johndoe.jpeg"
       },
       {
-        id: "b2345678-90cd-ef01-2345-6789abcdef01",
         username: "asimpson",
         password: "password234",
         name: "Anna Simpson",
@@ -33,7 +24,6 @@ async function main() {
         pictureUrl: "https://wincacademy.github.io/webpages/media/article-author.png"
       },
       {
-        id: "c3456789-01de-f012-3456-789abcdef012",
         username: "rjames",
         password: "password345",
         name: "Robert James",
@@ -42,7 +32,6 @@ async function main() {
         pictureUrl: "https://wincacademy.github.io/webpages/media/robertjames.jpeg"
       },
       {
-        id: "d4567890-12ef-0123-4567-89abcdef0123",
         username: "klopez",
         password: "password456",
         name: "Karen Lopez",
@@ -51,7 +40,6 @@ async function main() {
         pictureUrl: "https://wincacademy.github.io/webpages/media/person9.jpeg"
       },
       {
-        id: "e5678901-23f0-1234-5678-9abcdef01234",
         username: "smiller",
         password: "password567",
         name: "Steve Miller",
@@ -62,7 +50,10 @@ async function main() {
     ]
   });
 
-  // ✅ HOSTS
+  // ✅ 2. USERS OPHALEN MET ECHTE ID’S
+  const users = await prisma.user.findMany();
+
+  // ✅ 3. HOSTS (met vaste ID’s)
   await prisma.host.createMany({
     data: [
       {
@@ -73,7 +64,7 @@ async function main() {
         email: "johndoe@email.com",
         phoneNumber: "+11234567890",
         pictureUrl: "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
-        aboutMe: "I'm a passionate traveler who loves to share my home with fellow explorers. Welcome!"
+        aboutMe: "I'm a passionate traveler who loves to share my home."
       },
       {
         id: "e2345678-90bc-def0-0123-456789abcdef",
@@ -83,7 +74,7 @@ async function main() {
         email: "lindasmith@email.com",
         phoneNumber: "+12234567891",
         pictureUrl: "https://wincacademy.github.io/webpages/media/lindasmith.jpg",
-        aboutMe: "A professional chef and a part-time host. I love curating unique experiences for my guests."
+        aboutMe: "A professional chef and part-time host."
       },
       {
         id: "d3456789-01cd-def0-1234-56789abcdef0",
@@ -93,7 +84,7 @@ async function main() {
         email: "mikebrown@email.com",
         phoneNumber: "+13234567892",
         pictureUrl: "https://wincacademy.github.io/webpages/media/mikebrown.jpg",
-        aboutMe: "Nature enthusiast, hiker, and a lover of arts. My home reflects my passions. Stay and enjoy!"
+        aboutMe: "Nature enthusiast and art lover."
       },
       {
         id: "c4567890-12de-f012-3456-789abcdef012",
@@ -103,7 +94,7 @@ async function main() {
         email: "sarahlee@email.com",
         phoneNumber: "+14234567893",
         pictureUrl: "https://wincacademy.github.io/webpages/media/sarahlee.jpg",
-        aboutMe: "Travel blogger turned host. My home is filled with artifacts from around the world. Feel the global vibe!"
+        aboutMe: "Travel blogger turned host."
       },
       {
         id: "b5678901-23ef-0123-4567-89abcdef0123",
@@ -113,7 +104,7 @@ async function main() {
         email: "paulgreen@email.com",
         phoneNumber: "+15234567894",
         pictureUrl: "https://wincacademy.github.io/webpages/media/paulgreen.jpg",
-        aboutMe: "Engineer by profession, passionate about history. Stay in my vintage-themed home and relive the past."
+        aboutMe: "Engineer passionate about history."
       },
       {
         id: "d2345678-90ab-cdef-1234-567890abcdef",
@@ -123,211 +114,187 @@ async function main() {
         email: "sofie.jansen@email.com",
         phoneNumber: "+31612345678",
         pictureUrl: "https://wincacademy.github.io/webpages/media/sofiejansen.jpg",
-        aboutMe: "Born and raised in Amsterdam. I love sharing hidden gems of the city with travelers from all over the world."
+        aboutMe: "Born and raised in Amsterdam."
       }
     ]
   });
 
-  // ✅ PROPERTIES
+  // ✅ 4. PROPERTIES
   await prisma.property.createMany({
     data: [
       {
-        id: "g9012345-67ef-0123-4567-89abcdef0123",
-        hostId: "f1234567-89ab-cdef-0123-456789abcdef",
         title: "Cozy Mountain Retreat",
-        description: "Experience tranquility in our cozy cabin situated on a serene mountain peak.",
+        description: "Experience tranquility in our cozy cabin.",
         location: "Rocky Mountains, Colorado",
         pricePerNight: 120.5,
         bedroomCount: 3,
         bathRoomCount: 2,
         maxGuestCount: 5,
-        rating: 5
+        rating: 5,
+        hostId: "f1234567-89ab-cdef-0123-456789abcdef"
       },
       {
-        id: "h0123456-78f0-1234-5678-9abcdef01234",
-        hostId: "e2345678-90bc-def0-0123-456789abcdef",
         title: "Modern City Apartment",
-        description: "Stay in our sleek and modern apartment right in the heart of the city.",
+        description: "Sleek and modern apartment in the city center.",
         location: "New York, NY",
         pricePerNight: 150.75,
         bedroomCount: 2,
         bathRoomCount: 2,
         maxGuestCount: 4,
-        rating: 4
+        rating: 4,
+        hostId: "e2345678-90bc-def0-0123-456789abcdef"
       },
       {
-        id: "i1234567-89f0-1234-5678-9abcdef01234",
-        hostId: "d3456789-01cd-def0-1234-56789abcdef0",
         title: "Lakeside Cottage",
-        description: "Unwind by the lake in our rustic cottage, perfect for weekend getaways.",
+        description: "Rustic cottage by the lake.",
         location: "Lake Tahoe, California",
         pricePerNight: 95.0,
         bedroomCount: 1,
         bathRoomCount: 1,
         maxGuestCount: 3,
-        rating: 5
+        rating: 5,
+        hostId: "d3456789-01cd-def0-1234-56789abcdef0"
       },
       {
-        id: "j2345678-90f1-2345-6789-abcdef012345",
-        hostId: "c4567890-12de-f012-3456-789abcdef012",
         title: "Beachfront Villa",
-        description: "Experience paradise in our luxurious villa right on the beach.",
+        description: "Luxurious villa right on the beach.",
         location: "Malibu, California",
         pricePerNight: 310.25,
         bedroomCount: 4,
         bathRoomCount: 3,
         maxGuestCount: 8,
-        rating: 5
+        rating: 5,
+        hostId: "c4567890-12de-f012-3456-789abcdef012"
       },
       {
-        id: "k3456789-01f2-3456-789a-bcdef0123456",
-        hostId: "b5678901-23ef-0123-4567-89abcdef0123",
         title: "Country Farmhouse",
-        description: "Step back in time and enjoy the simple pleasures of our traditional farmhouse.",
+        description: "Traditional farmhouse with vintage charm.",
         location: "Nashville, Tennessee",
         pricePerNight: 85.0,
         bedroomCount: 3,
         bathRoomCount: 2,
         maxGuestCount: 6,
-        rating: 4
+        rating: 4,
+        hostId: "b5678901-23ef-0123-4567-89abcdef0123"
       },
       {
-        id: "a9876543-21dc-4321-ba98-fedcba098765",
-        hostId: "d2345678-90ab-cdef-1234-567890abcdef",
         title: "Charming Canal Apartment",
-        description: "Experience authentic Amsterdam living in this cozy canal-side apartment with classic Dutch architecture and modern comforts.",
+        description: "Authentic Amsterdam canal-side apartment.",
         location: "Amsterdam, Netherlands",
         pricePerNight: 120.0,
         bedroomCount: 2,
         bathRoomCount: 1,
         maxGuestCount: 4,
-        rating: 5
+        rating: 5,
+        hostId: "d2345678-90ab-cdef-1234-567890abcdef"
       }
     ]
   });
 
-  // ✅ REVIEWS
-  await prisma.review.createMany({
+  // ✅ 5. PROPERTIES OPHALEN MET ECHTE ID’S
+  const properties = await prisma.property.findMany();
+
+  // ✅ 6. AMENITIES
+  await prisma.amenity.createMany({
     data: [
-      {
-        id: "g7890123-45cd-ef01-2345-6789abcdef01",
-        userId: "a1234567-89ab-cdef-0123-456789abcdef",
-        propertyId: "g9012345-67ef-0123-4567-89abcdef0123",
-        rating: 5,
-        comment: "The property was amazing, and the host was very accommodating!"
-      },
-      {
-        id: "h8901234-56de-f012-3456-789abcdef012",
-        userId: "b2345678-90cd-ef01-2345-6789abcdef01",
-        propertyId: "k3456789-01f2-3456-789a-bcdef0123456",
-        rating: 4,
-        comment: "Lovely place, but the WiFi was a bit slow."
-      },
-      {
-        id: "i9012345-67ef-0123-4567-89abcdef0123",
-        userId: "c3456789-01de-f012-3456-789abcdef012",
-        propertyId: "k3456789-01f2-3456-789a-bcdef0123456",
-        rating: 3,
-        comment: "Decent place for the price. Would visit again."
-      },
-      {
-        id: "j0123456-78f0-1234-5678-9abcdef01234",
-        userId: "d4567890-12ef-0123-4567-89abcdef0123",
-        propertyId: "j2345678-90f1-2345-6789-abcdef012345",
-        rating: 4,
-        comment: "Beautiful view! However, there were some minor issues with the bathroom."
-      },
-      {
-        id: "k1234567-89f0-1234-5678-9abcdef01234",
-        userId: "e5678901-23f0-1234-5678-9abcdef01234",
-        propertyId: "j2345678-90f1-2345-6789-abcdef012345",
-        rating: 5,
-        comment: "A perfect stay! Can't wait to come back."
-      }
+      { name: "WiFi" },
+      { name: "Air Conditioning" },
+      { name: "Heating" },
+      { name: "Kitchen" },
+      { name: "Washer" },
+      { name: "Dryer" },
+      { name: "TV" },
+      { name: "Parking" },
+      { name: "Pool" },
+      { name: "Gym" }
     ]
   });
 
-// ✅ AMENITIES
-await prisma.amenity.createMany({
-  data: [
-    { id: "l4567890-12gh-ijkl-1234-56789abcdef0", name: "Wifi" },
-    { id: "m5678901-23ij-klmn-2345-6789abcdef01", name: "Gym" },
-    { id: "n6789012-34kl-mnop-3456-789abcdef012", name: "Pool" },
-    { id: "o7890123-45lm-nopq-4567-89abcdef0123", name: "Kitchen" },
-    { id: "p8901234-56mn-opqr-5678-9abcdef01234", name: "Air Conditioning" },
-    { id: "q9012345-67no-pqrs-6789-abcdef012345", name: "Heating" },
-    { id: "r0123456-78op-qrst-789a-bcdef0123456", name: "Washer" },
-    { id: "s1234567-89pq-rstu-89ab-cdef01234567", name: "Dryer" },
-    { id: "t2345678-90qr-stuv-90bc-def012345678", name: "TV" },
-    { id: "u3456789-01rs-tuvw-01cd-ef0123456789", name: "Free Parking" }
-  ]
-});
+  // ✅ 7. BOOKINGS (met echte ID’s)
 
-// ✅ BOOKINGS
 await prisma.booking.createMany({
   data: [
     {
-      id: "b001",
-      userId: "a1234567-89ab-cdef-0123-456789abcdef",
-      propertyId: "g9012345-67ef-0123-4567-89abcdef0123",
-      checkinDate: new Date("2024-06-01"),
-      checkoutDate: new Date("2024-06-05"),
+      userId: users[0].id,
+      propertyId: properties[0].id,
+      checkinDate: new Date("2025-12-13"),
+      checkoutDate: new Date("2025-12-19"),
       numberOfGuests: 2,
-      totalPrice: 480.0,
+      totalPrice: 150.25,
       bookingStatus: "confirmed"
     },
     {
-      id: "b002",
-      userId: "b2345678-90cd-ef01-2345-6789abcdef01",
-      propertyId: "h0123456-78f0-1234-5678-9abcdef01234",
-      checkinDate: new Date("2024-07-10"),
-      checkoutDate: new Date("2024-07-15"),
+      userId: users[1].id,
+      propertyId: properties[1].id,
+      checkinDate: new Date("2025-12-24"),
+      checkoutDate: new Date("2025-12-31"),
       numberOfGuests: 3,
-      totalPrice: 753.75,
+      totalPrice: 220.0,
       bookingStatus: "pending"
     },
     {
-      id: "b003",
-      userId: "c3456789-01de-f012-3456-789abcdef012",
-      propertyId: "i1234567-89f0-1234-5678-9abcdef01234",
-      checkinDate: new Date("2024-08-20"),
-      checkoutDate: new Date("2024-08-22"),
-      numberOfGuests: 1,
-      totalPrice: 190.0,
-      bookingStatus: "confirmed"
-    },
-    {
-      id: "b004",
-      userId: "d4567890-12ef-0123-4567-89abcdef0123",
-      propertyId: "j2345678-90f1-2345-6789-abcdef012345",
-      checkinDate: new Date("2024-09-01"),
-      checkoutDate: new Date("2024-09-07"),
+      userId: users[2].id,
+      propertyId: properties[2].id,
+      checkinDate: new Date("2026-01-10"),
+      checkoutDate: new Date("2026-01-15"),
       numberOfGuests: 4,
-      totalPrice: 1861.5,
-      bookingStatus: "cancelled"
+      totalPrice: 290.5,
+      bookingStatus: "confirmed"
     },
     {
-      id: "b005",
-      userId: "e5678901-23f0-1234-5678-9abcdef01234",
-      propertyId: "k3456789-01f2-3456-789a-bcdef0123456",
-      checkinDate: new Date("2024-10-12"),
-      checkoutDate: new Date("2024-10-14"),
-      numberOfGuests: 2,
-      totalPrice: 170.0,
-      bookingStatus: "confirmed"
+      userId: users[3].id,
+      propertyId: properties[3].id,
+      checkinDate: new Date("2026-02-05"),
+      checkoutDate: new Date("2026-02-12"),
+      numberOfGuests: 1,
+      totalPrice: 80.75,
+      bookingStatus: "canceled"
     }
   ]
 });
 
-
-  console.log("✅ Seeding complete!");
+  // ✅ REVIEWS (met echte ID’s)
+await prisma.review.createMany({
+  data: [
+    {
+      userId: users[0].id,
+      propertyId: properties[0].id,
+      rating: 5,
+      comment: "Amazing stay! Beautiful location and very clean."
+    },
+    {
+      userId: users[1].id,
+      propertyId: properties[1].id,
+      rating: 4,
+      comment: "Great apartment, perfect location. WiFi could be faster."
+    },
+    {
+      userId: users[2].id,
+      propertyId: properties[2].id,
+      rating: 3,
+      comment: "Nice cottage, but a bit smaller than expected."
+    },
+    {
+      userId: users[3].id,
+      propertyId: properties[3].id,
+      rating: 5,
+      comment: "Absolutely loved the beachfront villa. Worth every cent."
+    },
+    {
+      userId: users[4].id,
+      propertyId: properties[4].id,
+      rating: 4,
+      comment: "Cozy farmhouse with a great atmosphere."
+    }
+  ]
+});
 }
-
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("❌ Seeding error:", e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
+  
   });
