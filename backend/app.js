@@ -16,10 +16,11 @@ app.get("/", (req, res) => {
 });
 
 app.use("/properties", propertiesRoutes);
-app.use("/properties", reviewRoutes );
+
 app.use("/users", userRoutes);
 app.use("/hosts", hostRoutes);
 app.use("/bookings", bookingRoutes);
+app.use("/reviews", reviewRoutes);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
