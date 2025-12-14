@@ -1,4 +1,5 @@
 import { Box, Text, VStack } from "@chakra-ui/react";
+import { useColorModeValue } from "@chakra-ui/react";
 
 export default function ReviewList({ reviews }) {
   // ✅ Fallback bij lege lijst
@@ -20,19 +21,23 @@ export default function ReviewList({ reviews }) {
 
       {/* ✅ Review cards */}
       {reviews.map((review) => (
-        <Box
-          key={review.id}
-          p={4}
-          borderWidth="1px"
-          borderRadius="md"
-          w="100%"
-          bg="gray.50"
-          _hover={{ bg: "gray.100", transition: "0.2s" }}
-        >
-          <Text fontWeight="bold">{review.rating} ⭐</Text>
-          <Text>{review.comment}</Text>
-        </Box>
-      ))}
+ <Box
+  bg={useColorModeValue("gray.100", "gray.700")}
+  color={useColorModeValue("gray.900", "whiteAlpha.900")}
+  borderRadius="md"
+  p={4}
+  mb={3}
+  boxShadow="md"
+>
+  <Text fontSize="lg" fontWeight="bold">
+    ⭐ {review.rating}
+  </Text>
+  <Text mt={1}>{review.comment}</Text>
+  <Text mt={2} fontSize="sm" fontStyle="italic">
+    {review.user?.name}
+  </Text>
+</Box>
+))}
     </VStack>
   );
 }

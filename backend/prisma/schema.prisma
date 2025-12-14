@@ -60,7 +60,7 @@ model Booking {
   checkinDate    DateTime
   checkoutDate   DateTime
   numberOfGuests Int
-  totalPrice     Int
+  totalPrice     Float
   bookingStatus  String
 
   // Relations
@@ -79,3 +79,9 @@ model Review {
   user     User     @relation(fields: [userId], references: [id])
   property Property @relation(fields: [propertyId], references: [id])
 }
+
+model Amenity {
+  id   String @id @default(uuid())
+  name String
+}
+
