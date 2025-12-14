@@ -22,18 +22,20 @@ model User {
 }
 
 model Host {
-  id          String @id @default(uuid())
-  username    String @unique
+  id          String   @id @default(uuid())
+  username    String   @unique
   password    String
   name        String
-  email       String
+  email       String   @unique
   phoneNumber String
   pictureUrl  String
   aboutMe     String
 
   // Relations
-  properties Property[]
+  properties  Property[]
 }
+
+
 
 model Property {
   id            String @id @default(uuid())
@@ -48,10 +50,18 @@ model Property {
   rating        Int
 
   // Relations
-  host     Host      @relation(fields: [hostId], references: [id])
-  bookings Booking[]
-  reviews  Review[]
+  host       Host      @relation(fields: [hostId], references: [id])
+  bookings   Booking[]
+  reviews    Review[]
+  amenities  Amenity[]   // ✅ DIT MOET ERBIJ
 }
+
+model Amenity {
+  id         String     @id @default(uuid())
+  name       String
+  properties Property[]  // ✅ MANY-TO-MANY
+}
+
 
 model Booking {
   id             String   @id @default(uuid())
@@ -80,8 +90,5 @@ model Review {
   property Property @relation(fields: [propertyId], references: [id])
 }
 
-model Amenity {
-  id   String @id @default(uuid())
-  name String
-}
+
 
