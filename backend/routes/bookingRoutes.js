@@ -1,8 +1,36 @@
 import express from "express";
 import prisma from "../lib/prisma.js";
 import { createBooking } from "../services/bookingService.js";
+import * as bookingService from "../services/bookingService.js";
 
 const router = express.Router();
+
+// ✅ GET /bookings/property/:propertyId — alle bookings voor een property ophalen  
+
+router.get("/property/:propertyId", async (req, res, next) => {
+  try {
+    const { propertyId } = req.params;
+
+    const bookings = await bookingService.getBookingsForProperty(propertyId);
+
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+});
+// ✅ GET /bookings/user/:auth0Id — alle bookings van een user ophalen
+router.get("/user/:auth0Id", async (req, res, next) => {
+  try {
+    const { auth0Id } = req.params;
+
+    const bookings = await bookingService.getBookingsForUser(auth0Id);
+
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 // ✅ POST /bookings — nieuwe booking aanmaken
 router.post("/", async (req, res) => {
@@ -97,3 +125,6 @@ router.post("/", async (req, res) => {
 });
 
 export default router;
+
+
+

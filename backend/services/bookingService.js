@@ -1,6 +1,21 @@
 import prisma from "../lib/prisma.js";
-import { checkBookingOverlap } from "./overlapService.js"; // of zelfde file, afhankelijk van jouw structuur
 
+// ✅ Overlap-check functie opnieuw toegevoegd
+async function checkBookingOverlap(propertyId, checkinDate, checkoutDate) {
+  const overlappingBookings = await prisma.booking.findMany({
+    where: {
+      propertyId,
+      AND: [
+        { checkinDate: { lt: new Date(checkoutDate) } },
+        { checkoutDate: { gt: new Date(checkinDate) } }
+      ]
+    }
+  });
+
+  return overlappingBookings.length > 0;
+}
+
+// ✅ Booking aanmaken
 export async function createBooking(data) {
   const { 
     userId,
@@ -24,7 +39,6 @@ export async function createBooking(data) {
     throw error;
   }
 
-  // ✅ Booking aanmaken
   return prisma.booking.create({
     data: {
       userId,
@@ -33,7 +47,46 @@ export async function createBooking(data) {
       checkoutDate: new Date(checkoutDate),
       numberOfGuests,
       totalPrice,
-      bookingStatus: "pending",   // ✅ TERUGGEZET
+      bookingStatus: "pending",
     }
   });
 }
+
+// ✅ Bookings ophalen voor disabled dates
+export async function getBookingsForProperty(propertyId) {
+  return prisma.booking.findMany({
+    where: { propertyId },
+    select: {
+      checkinDate: true,
+      checkoutDate: true
+    }
+  });
+}
+export async function getBookingsForUser(auth0Id) {
+  const user = await prisma.user.findUnique({
+    where: { auth0Id },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return prisma.booking.findMany({
+    where: { userId: user.id },
+    include: {
+      property: {
+        select: {
+          title: true,
+          location: true,
+          pricePerNight: true,
+        }
+      }
+    }
+  });
+}
+
+
+// ✅ Correcte export (named exports)
+export {
+  checkBookingOverlap, 
+};
