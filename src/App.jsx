@@ -1,16 +1,42 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./auth/ProtectedRoutes";
+import HostRoute from "./auth/HostRoute";
+import { Routes, Route } from "react-router-dom";
+import Navbar from "./components/navbar"; // <-- jouw navbar
 import PropertyPage from "./pages/PropertyPage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
+import BookingPage from "./pages/BookingPage";
+import PropertyForm from "./components/properties/PropertyForm";
 
-function App() {
+
+export default function App() {
   return (
-    <Router>
+    <>
+      <Navbar />
+
       <Routes>
-        <Route path="/" element={<PropertyPage />} />
+        <Route
+          path="/properties"
+          element={
+            <HostRoute>
+              <PropertyForm />
+            </HostRoute>
+          }
+        />
+
         <Route path="/properties/:id" element={<PropertyDetailPage />} />
+
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute>
+              <BookingPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/" element={<PropertyPage />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 
-export default App;

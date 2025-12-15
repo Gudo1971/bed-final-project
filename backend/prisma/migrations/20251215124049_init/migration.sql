@@ -4,6 +4,7 @@ CREATE TABLE "User" (
     "username" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "auth0Id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phoneNumber" TEXT NOT NULL,
     "pictureUrl" TEXT NOT NULL
@@ -15,6 +16,7 @@ CREATE TABLE "Host" (
     "username" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "auth0Id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phoneNumber" TEXT NOT NULL,
     "pictureUrl" TEXT NOT NULL,
@@ -37,6 +39,12 @@ CREATE TABLE "Property" (
 );
 
 -- CreateTable
+CREATE TABLE "Amenity" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "Booking" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" TEXT NOT NULL,
@@ -44,7 +52,7 @@ CREATE TABLE "Booking" (
     "checkinDate" DATETIME NOT NULL,
     "checkoutDate" DATETIME NOT NULL,
     "numberOfGuests" INTEGER NOT NULL,
-    "totalPrice" INTEGER NOT NULL,
+    "totalPrice" REAL NOT NULL,
     "bookingStatus" TEXT NOT NULL,
     CONSTRAINT "Booking_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Booking_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
@@ -61,8 +69,31 @@ CREATE TABLE "Review" (
     CONSTRAINT "Review_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
+-- CreateTable
+CREATE TABLE "_AmenityToProperty" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+    CONSTRAINT "_AmenityToProperty_A_fkey" FOREIGN KEY ("A") REFERENCES "Amenity" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_AmenityToProperty_B_fkey" FOREIGN KEY ("B") REFERENCES "Property" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_auth0Id_key" ON "User"("auth0Id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Host_username_key" ON "Host"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Host_auth0Id_key" ON "Host"("auth0Id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Host_email_key" ON "Host"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_AmenityToProperty_AB_unique" ON "_AmenityToProperty"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_AmenityToProperty_B_index" ON "_AmenityToProperty"("B");
