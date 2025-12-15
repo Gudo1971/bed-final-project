@@ -1,161 +1,130 @@
 import express from "express";
 import prisma from "../lib/prisma.js";
-import { validate as isUuid } from "uuid";
+import { createBooking } from "../services/bookingService.js";
+import * as bookingService from "../services/bookingService.js";
 
 const router = express.Router();
 
+// ✅ GET /bookings/property/:propertyId — alle bookings voor een property ophalen  
+
+router.get("/property/:propertyId", async (req, res, next) => {
+  try {
+    const { propertyId } = req.params;
+
+    const bookings = await bookingService.getBookingsForProperty(propertyId);
+
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+});
+// ✅ GET /bookings/user/:auth0Id — alle bookings van een user ophalen
+router.get("/user/:auth0Id", async (req, res, next) => {
+  try {
+    const { auth0Id } = req.params;
+
+    const bookings = await bookingService.getBookingsForUser(auth0Id);
+
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 // ✅ POST /bookings — nieuwe booking aanmaken
 router.post("/", async (req, res) => {
-   console.log("REQ BODY RECEIVED:", req.body);  
   try {
     const {
-      userId,
+      userAuth0Id,
       propertyId,
       checkinDate,
       checkoutDate,
       numberOfGuests,
-      totalPrice,
     } = req.body;
 
     // ✅ Validatie
-    if (!userId || !propertyId || !checkinDate || !checkoutDate) {
+    if (!userAuth0Id || !propertyId || !checkinDate || !checkoutDate) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    if (!isUuid(userId) || !isUuid(propertyId)) {
-      return res.status(400).json({ error: "Invalid UUID format" });
+    // ✅ User ophalen via Auth0 ID
+    let user = await prisma.user.findUnique({
+      where: { auth0Id: userAuth0Id }
+    });
+
+    // ✅ User aanmaken als hij nog niet bestaat
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          auth0Id: userAuth0Id,
+          email: `${userAuth0Id}@unknown.com`,
+          username: userAuth0Id,
+          password: "auth0",
+          name: "Auth0 User",
+          phoneNumber: "",
+          pictureUrl: ""
+        }
+      });
     }
 
-    // ✅ Bestaat user?
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    // ✅ Bestaat property?
+    // ✅ Property ophalen
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
-    });
-    if (!property)
-      return res.status(404).json({ error: "Property not found" });
-
-    // ✅ Booking aanmaken
-    const booking = await prisma.booking.create({
-      data: {
-        userId,
-        propertyId,
-        checkinDate: new Date(checkinDate),
-        checkoutDate: new Date(checkoutDate),
-        numberOfGuests: numberOfGuests || 1,
-        totalPrice: totalPrice || 0,
-        bookingStatus: "pending",
-      },
-    });
-
-    res.json({
-      message: "Booking created",
-      booking,
-    });
-  } catch (error) {
-  console.error("Error creating booking:", error);
-
-  if (error.code === "P2003") {
-    return res.status(400).json({ error: "Foreign key constraint failed — user or property not found" });
-  }
-
-  res.status(500).json({ error: error.message });
-}
-});
-
-// ✅ GET /bookings — alle bookings
-router.get("/", async (req, res) => {
-  try {
-    const bookings = await prisma.booking.findMany();
-    res.json(bookings);
-  } catch (error) {
-    console.error("Error fetching bookings:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// ✅ GET /properties/:id/bookings — bookings per property
-router.get("/property/:id", async (req, res) => {
-  const { id } = req.params;
-
-  if (!isUuid(id)) {
-    return res.status(400).json({ error: "Invalid property ID format" });
-  }
-
-  try {
-    const property = await prisma.property.findUnique({
-      where: { id },
     });
 
     if (!property) {
       return res.status(404).json({ error: "Property not found" });
     }
 
-    const bookings = await prisma.booking.findMany({
-      where: { propertyId: id },
-    });
+    // ✅ Aantal nachten berekenen
+    const nights =
+      (new Date(checkoutDate) - new Date(checkinDate)) /
+      (1000 * 60 * 60 * 24);
 
-    res.json(bookings);
-  } catch (error) {
-    console.error("Error fetching bookings for property:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-// ✅ GET /users/:id/bookings — bookings per user
-router.get("/user/:id", async (req, res) => {
-  console.log("REQ BODY:", req.body);
-  const { id } = req.params;
-
-  if (!isUuid(id)) {
-    return res.status(400).json({ error: "Invalid user ID format" });
-  }
-
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    if (nights <= 0) {
+      return res.status(400).json({ error: "Invalid date range" });
     }
 
-    const bookings = await prisma.booking.findMany({
-      where: { userId: id },
+    // ✅ Totale prijs berekenen
+    const totalPrice = nights * property.pricePerNight;
+
+    // ✅ Booking aanmaken via service (met overlap-check)
+    const booking = await createBooking({
+      userId: user.id,
+      propertyId,
+      checkinDate,
+      checkoutDate,
+      numberOfGuests: Number(numberOfGuests),
+      totalPrice,
     });
 
-    res.json(bookings);
-  } catch (error) {
-    console.error("Error fetching bookings for user:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// ✅ GET /bookings/:id — één booking via UUID
-router.get("/:id", async (req, res) => {
-  const { id } = req.params;
-
-  if (!isUuid(id)) {
-    return res.status(400).json({ error: "Invalid booking ID format" });
-  }
-
-  try {
-    const booking = await prisma.booking.findUnique({
-      where: { id },
+    return res.status(201).json({
+      message: "Booking created",
+      booking,
     });
 
-    if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
+  } catch (err) {
+    console.error("Error creating booking:", err);
+
+    // ✅ Overlap-conflict
+    if (err.status === 409) {
+      return res.status(409).json({ error: err.message });
     }
 
-    res.json(booking);
-  } catch (error) {
-    console.error("Error fetching booking:", error);
-    res.status(500).json({ error: "Internal server error" });
+    // ✅ Prisma foreign key error
+    if (err.code === "P2003") {
+      return res.status(400).json({
+        error: "Foreign key constraint failed — user or property not found",
+      });
+    }
+
+    // ✅ Fallback
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
 
 export default router;
+
+
+

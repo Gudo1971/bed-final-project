@@ -13,7 +13,9 @@ async function main() {
         name: "John Doe",
         email: "johndoe@example.com",
         phoneNumber: "123-456-7890",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/johndoe.jpeg"
+        pictureUrl: "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
+        auth0Id: "seed|jdoe"
+
       },
       {
         username: "asimpson",
@@ -21,7 +23,9 @@ async function main() {
         name: "Anna Simpson",
         email: "annasimpson@example.com",
         phoneNumber: "123-456-7891",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/article-author.png"
+        pictureUrl: "https://wincacademy.github.io/webpages/media/article-author.png",
+        auth0Id: "seed|asimpson"
+
       },
       {
         username: "rjames",
@@ -29,7 +33,8 @@ async function main() {
         name: "Robert James",
         email: "robertjames@example.com",
         phoneNumber: "123-456-7892",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/robertjames.jpeg"
+        pictureUrl: "https://wincacademy.github.io/webpages/media/robertjames.jpeg",
+        auth0Id: "seed|rjames"
       },
       {
         username: "klopez",
@@ -37,7 +42,8 @@ async function main() {
         name: "Karen Lopez",
         email: "karenlopez@example.com",
         phoneNumber: "123-456-7893",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/person9.jpeg"
+        pictureUrl: "https://wincacademy.github.io/webpages/media/person9.jpeg",
+        auth0Id: "seed|klopez"
       },
       {
         username: "smiller",
@@ -45,7 +51,8 @@ async function main() {
         name: "Steve Miller",
         email: "stevemiller@example.com",
         phoneNumber: "123-456-7894",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/person6.jpeg"
+        pictureUrl: "https://wincacademy.github.io/webpages/media/person6.jpeg",
+        auth0Id: "seed|smiller"
       }
     ]
   });
@@ -64,7 +71,9 @@ async function main() {
         email: "johndoe@email.com",
         phoneNumber: "+11234567890",
         pictureUrl: "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
-        aboutMe: "I'm a passionate traveler who loves to share my home."
+        aboutMe: "I'm a passionate traveler who loves to share my home.",
+        auth0Id   : "host|johnDoe"
+
       },
       {
         id: "e2345678-90bc-def0-0123-456789abcdef",
@@ -74,7 +83,9 @@ async function main() {
         email: "lindasmith@email.com",
         phoneNumber: "+12234567891",
         pictureUrl: "https://wincacademy.github.io/webpages/media/lindasmith.jpg",
-        aboutMe: "A professional chef and part-time host."
+        aboutMe: "A professional chef and part-time host.",
+        auth0Id   : "host|lindaSmith"     
+
       },
       {
         id: "d3456789-01cd-def0-1234-56789abcdef0",
@@ -84,7 +95,10 @@ async function main() {
         email: "mikebrown@email.com",
         phoneNumber: "+13234567892",
         pictureUrl: "https://wincacademy.github.io/webpages/media/mikebrown.jpg",
-        aboutMe: "Nature enthusiast and art lover."
+        aboutMe: "Nature enthusiast and art lover.",
+        auth0Id   : "host|mikeBrown"  
+
+
       },
       {
         id: "c4567890-12de-f012-3456-789abcdef012",
@@ -94,7 +108,8 @@ async function main() {
         email: "sarahlee@email.com",
         phoneNumber: "+14234567893",
         pictureUrl: "https://wincacademy.github.io/webpages/media/sarahlee.jpg",
-        aboutMe: "Travel blogger turned host."
+        aboutMe: "Travel blogger turned host.",
+        auth0Id   : "host|sarahLee"
       },
       {
         id: "b5678901-23ef-0123-4567-89abcdef0123",
@@ -104,7 +119,9 @@ async function main() {
         email: "paulgreen@email.com",
         phoneNumber: "+15234567894",
         pictureUrl: "https://wincacademy.github.io/webpages/media/paulgreen.jpg",
-        aboutMe: "Engineer passionate about history."
+        aboutMe: "Engineer passionate about history.",
+        auth0Id  : "host|paulGreen"
+
       },
       {
         id: "d2345678-90ab-cdef-1234-567890abcdef",
@@ -114,7 +131,8 @@ async function main() {
         email: "sofie.jansen@email.com",
         phoneNumber: "+31612345678",
         pictureUrl: "https://wincacademy.github.io/webpages/media/sofiejansen.jpg",
-        aboutMe: "Born and raised in Amsterdam."
+        aboutMe: "Born and raised in Amsterdam.",
+        auth0Id   : "host|sofieJansen"
       }
     ]
   });
