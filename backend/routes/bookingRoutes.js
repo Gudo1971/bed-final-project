@@ -1,7 +1,8 @@
 import express from "express";
 import prisma from "../lib/prisma.js";
-import { createBooking } from "../services/bookingService.js";
-import * as bookingService from "../services/bookingService.js";
+
+
+import { createBooking, getBookingsForUser } from "../services/bookingService.js";
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get("/property/:propertyId", async (req, res, next) => {
   try {
     const { propertyId } = req.params;
 
-    const bookings = await bookingService.getBookingsForProperty(propertyId);
+    const bookings = await getBookingsForProperty(propertyId);
 
     res.json(bookings);
   } catch (error) {
@@ -19,18 +20,19 @@ router.get("/property/:propertyId", async (req, res, next) => {
   }
 });
 // ✅ GET /bookings/user/:auth0Id — alle bookings van een user ophalen
-router.get("/user/:auth0Id", async (req, res, next) => {
+router.get("/user/:auth0Id", async (req, res) => {
+   
   try {
     const { auth0Id } = req.params;
+    const { email } = req.query;
 
-    const bookings = await bookingService.getBookingsForUser(auth0Id);
-
+    const bookings = await getBookingsForUser(auth0Id, email);
     res.json(bookings);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    console.error("Error in GET /bookings/user:", err);
+    res.status(500).json({ error: "Failed to fetch user bookings" });
   }
 });
-
 
 // ✅ POST /bookings — nieuwe booking aanmaken
 router.post("/", async (req, res) => {
