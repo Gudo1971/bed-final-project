@@ -14,6 +14,7 @@ import {
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import Calendar from "../components/calendar/Calendar";
 
 export default function BookingPage() {
   const { user, isAuthenticated } = useAuth0();
@@ -24,6 +25,7 @@ const [propertyBookings, setPropertyBookings] = useState([]);
   const [properties, setProperties] = useState([]);
   const [selectedPropertyId, setSelectedPropertyId] = useState(null);
   const [loading, setLoading] = useState(true);
+  
 
   // 🟢 Bookings ophalen
   const fetchBookings = async () => {
@@ -111,6 +113,26 @@ useEffect(() => {
     );
 }, [selectedPropertyId]);
 
+const disabledDates = useMemo(() => {
+  const dates = [];
+
+  propertyBookings.forEach((booking) => {
+    const start = new Date(booking.checkIn);
+    const end = new Date(booking.checkOut);
+
+    const current = new Date(start);
+
+    while (current <= end) {
+      dates.push(current.toISOString().split("T")[0]);
+      current.setDate(current.getDate() + 1);
+    }
+  });
+
+  return dates;
+}, [propertyBookings]);
+
+
+
   return (
     <Box maxW="800px" mx="auto" py={8}>
       <Heading mb={6}>Boek een verblijf</Heading>
@@ -140,6 +162,12 @@ useEffect(() => {
             <FormLabel>Check-out Date</FormLabel>
             <Input type="date" {...register("checkoutDate")} />
           </FormControl>
+
+          <Calendar 
+            disabledDates={disabledDates} 
+            onSelectDate={(date) => console.log("Geselecteerd:", date)}
+          />
+
 
           <FormControl isRequired>
             <FormLabel>Guests</FormLabel>
