@@ -1,4 +1,10 @@
 import { Grid, Box, Text } from "@chakra-ui/react";
+import { io } from "socket.io-client";
+import  {useEffect} from "react";
+
+
+
+
 
 export default function CalendarGrid({
   days,
@@ -6,7 +12,29 @@ export default function CalendarGrid({
   checkIn,
   checkOut,
   onDateClick,
+  setDisabledDates,
 }) {
+
+
+useEffect(() => {
+  const socket = io("http://localhost:3000"); // of je live URL
+
+  socket.on("booking:created", (booking) => {
+    const start = new Date(booking.checkinDate);
+    const end = new Date(booking.checkoutDate);
+
+    const newDisabled = [];
+    for (let d = start; d <= end; d = new Date(d.getTime() + 86400000)) {
+      newDisabled.push(d.toISOString().split("T")[0]);
+    }
+
+    setDisabledDates((prev) => [...prev, ...newDisabled]);
+  });
+
+  return () => socket.disconnect();
+}, []);
+
+
   // ⭐ Lokale datum formatter (geen UTC!)
   const formatDate = (date) => {
     const y = date.getFullYear();
