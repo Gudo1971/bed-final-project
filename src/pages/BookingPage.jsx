@@ -12,7 +12,7 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo} from "react";
 import { useForm } from "react-hook-form";
 import Calendar from "../components/calendar/Calendar";
 
@@ -117,16 +117,19 @@ const disabledDates = useMemo(() => {
   const dates = [];
 
   propertyBookings.forEach((booking) => {
-    const start = new Date(booking.checkIn);
-    const end = new Date(booking.checkOut);
+    const start = new Date(booking.checkinDate);
+    const end = new Date(booking.checkoutDate);
 
     const current = new Date(start);
 
     while (current <= end) {
-      dates.push(current.toISOString().split("T")[0]);
+      const local = new Date(current.getTime() - current.getTimezoneOffset() * 60000);
+      dates.push(local.toISOString().split("T")[0]);
       current.setDate(current.getDate() + 1);
     }
   });
+
+  console.log("Disabled dates:", dates);
 
   return dates;
 }, [propertyBookings]);
