@@ -3,9 +3,35 @@ import prisma from "../lib/prisma.js";
 import { createBooking, getBookingsForUser, getBookingsForProperty } from "../services/bookingService.js";
 
 const router = express.Router();
+router.get("/disabled-dates/:propertyId", async (req, res) => {
+  const { propertyId } = req.params;
 
-// GET routes blijven zoals ze zijn…
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { propertyId },
+      select: {
+        checkinDate: true,
+        checkoutDate: true,
+      },
+    });
 
+    const disabled = bookings.flatMap((b) => {
+      const start = new Date(b.checkinDate);
+      const end = new Date(b.checkoutDate);
+
+      const dates = [];
+      for (let d = start; d <= end; d = new Date(d.getTime() + 86400000)) {
+        dates.push(d.toISOString().split("T")[0]);
+      }
+      return dates;
+    });
+
+    res.json(disabled);
+  } catch (err) {
+    console.error("Error fetching disabled dates:", err);
+    res.status(500).json({ error: "Failed to fetch disabled dates" });
+  }
+});
 router.post("/", async (req, res) => {
   console.log("RAW BODY:", req.body);
   try {

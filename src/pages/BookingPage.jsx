@@ -155,11 +155,11 @@ export default function BookingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-         auth0Id: user.sub,     // ⭐ matcht backend
-         propertyId,  // ⭐ matcht backend
-         checkIn,  // ⭐ matcht backend
-         checkOut,   // ⭐ matcht backend
-         guests,    // ⭐ matcht backend
+         auth0Id: user.sub,     
+         propertyId,  
+         checkIn,  
+         checkOut, 
+         guests,    
 }),
       });
 
