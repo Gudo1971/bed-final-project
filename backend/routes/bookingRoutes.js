@@ -1,8 +1,13 @@
 import express from "express";
 import prisma from "../lib/prisma.js";
-import { createBooking, getBookingsForUser, getBookingsForProperty } from "../services/bookingService.js";
+import { createBooking } from "../services/bookingService.js";
+import { sendBookingConfirmation } from "../services/emailService.js";
 
 const router = express.Router();
+
+/* -------------------------------------------
+   GET: Disabled dates for a property
+------------------------------------------- */
 router.get("/disabled-dates/:propertyId", async (req, res) => {
   const { propertyId } = req.params;
 
@@ -32,16 +37,15 @@ router.get("/disabled-dates/:propertyId", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch disabled dates" });
   }
 });
+
+/* -------------------------------------------
+   POST: Create booking + send confirmation email
+------------------------------------------- */
 router.post("/", async (req, res) => {
   console.log("RAW BODY:", req.body);
+
   try {
-    const {
-      auth0Id,
-      propertyId,
-      checkIn,
-      checkOut,
-      guests,
-    } = req.body;
+    const { auth0Id, propertyId, checkIn, checkOut, guests } = req.body;
 
     if (!auth0Id || !propertyId || !checkIn || !checkOut) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -49,7 +53,7 @@ router.post("/", async (req, res) => {
 
     // User ophalen of aanmaken
     let user = await prisma.user.findUnique({
-      where: { auth0Id }
+      where: { auth0Id },
     });
 
     if (!user) {
@@ -61,8 +65,8 @@ router.post("/", async (req, res) => {
           password: "auth0",
           name: "Auth0 User",
           phoneNumber: "",
-          pictureUrl: ""
-        }
+          pictureUrl: "",
+        },
       });
     }
 
@@ -92,6 +96,14 @@ router.post("/", async (req, res) => {
       numberOfGuests: Number(guests),
       totalPrice,
     });
+
+    // ⭐ EMAIL CONFIRMATION — juiste plek
+    try {
+      await sendBookingConfirmation(user.email, booking);
+    } catch (emailErr) {
+      console.error("Email sending failed:", emailErr);
+      // Booking blijft gewoon bestaan
+    }
 
     return res.status(201).json({
       message: "Booking created",
