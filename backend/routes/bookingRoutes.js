@@ -2,6 +2,7 @@ import express from "express";
 import prisma from "../lib/prisma.js";
 import { createBooking } from "../services/bookingService.js";
 import { sendBookingConfirmation } from "../services/emailService.js";
+import { io } from "../app.js";
 
 const router = express.Router();
 
@@ -39,7 +40,7 @@ router.get("/disabled-dates/:propertyId", async (req, res) => {
 });
 
 /* -------------------------------------------
-   POST: Create booking + send confirmation email
+   POST: Create booking + email + websocket
 ------------------------------------------- */
 router.post("/", async (req, res) => {
   console.log("RAW BODY:", req.body);
@@ -52,9 +53,7 @@ router.post("/", async (req, res) => {
     }
 
     // User ophalen of aanmaken
-    let user = await prisma.user.findUnique({
-      where: { auth0Id },
-    });
+    let user = await prisma.user.findUnique({ where: { auth0Id } });
 
     if (!user) {
       user = await prisma.user.create({
@@ -88,6 +87,7 @@ router.post("/", async (req, res) => {
 
     const totalPrice = nights * property.pricePerNight;
 
+    // ⭐ Booking opslaan
     const booking = await createBooking({
       userId: user.id,
       propertyId,
@@ -97,12 +97,14 @@ router.post("/", async (req, res) => {
       totalPrice,
     });
 
-    // ⭐ EMAIL CONFIRMATION — juiste plek
+    // ⭐ Realtime update uitsturen
+    io.emit("booking:created", booking);
+
+    // ⭐ Email confirmation
     try {
       await sendBookingConfirmation(user.email, booking);
     } catch (emailErr) {
       console.error("Email sending failed:", emailErr);
-      // Booking blijft gewoon bestaan
     }
 
     return res.status(201).json({

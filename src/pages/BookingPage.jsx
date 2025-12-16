@@ -195,6 +195,7 @@ export default function BookingPage() {
         checkIn={checkIn}
         checkOut={checkOut}
         onDateClick={handleDateSelection}
+        setDisabledDates={setDisabledDates}  
       />
 
       {/* ⭐ Prijs */}
