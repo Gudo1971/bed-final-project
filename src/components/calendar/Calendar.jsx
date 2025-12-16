@@ -1,25 +1,26 @@
 import { useState } from "react";
+import CalendarGrid from "./CalendarGrid";
+import CalendarHeader from "./CalendarHeader";
 
 export default function Calendar({ disabledDates = [], onSelectDate }) {
   const today = new Date();
+
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
-  const daysOfWeek = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
+  const generateDays = (year, month) => {
+    const date = new Date(year, month, 1);
+    const days = [];
 
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const jsDay = new Date(currentYear, currentMonth, 1).getDay();
-const firstDay = jsDay === 0 ? 6 : jsDay - 1; 
+    while (date.getMonth() === month) {
+      days.push(new Date(date));
+      date.setDate(date.getDate() + 1);
+    }
 
+    return days;
+  };
 
-  const formatDate = (y, m, d) => {
-  const month = String(m + 1).padStart(2, "0");
-  const day = String(d).padStart(2, "0");
-  return `${y}-${month}-${day}`;
-};
-
-
-  const isDisabled = (dateString) => disabledDates.includes(dateString);
+  const days = generateDays(currentYear, currentMonth);
 
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
@@ -39,43 +40,45 @@ const firstDay = jsDay === 0 ? 6 : jsDay - 1;
     }
   };
 
+  const [checkIn, setCheckIn] = useState(null);
+  const [checkOut, setCheckOut] = useState(null);
+
+  const handleDateClick = (date) => {
+    const dateStr = date.toISOString().split("T")[0];
+
+    if (!checkIn) {
+      setCheckIn(dateStr);
+      onSelectDate(dateStr);
+      return;
+    }
+
+    if (checkIn && !checkOut && dateStr > checkIn) {
+      setCheckOut(dateStr);
+      onSelectDate({ checkIn, checkOut: dateStr });
+      return;
+    }
+
+    setCheckIn(dateStr);
+    setCheckOut(null);
+    onSelectDate(dateStr);
+  };
+
   return (
-    <div className="calendar">
-      <div className="calendar-header">
-        <button onClick={handlePrevMonth}>{"<"}</button>
-        <h3>
-          {currentYear} - {currentMonth + 1}
-        </h3>
-        <button onClick={handleNextMonth}>{">"}</button>
-      </div>
+    <>
+      <CalendarHeader
+        month={currentMonth}
+        year={currentYear}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
+      />
 
-      <div className="calendar-grid">
-        {daysOfWeek.map((d) => (
-          <div key={d} className="calendar-day-header">
-            {d}
-          </div>
-        ))}
-
-        {[...Array(firstDay === 0 ? 6 : firstDay - 1)].map((_, i) => (
-          <div key={"empty-" + i} className="calendar-empty"></div>
-        ))}
-
-        {[...Array(daysInMonth)].map((_, i) => {
-          const day = i + 1;
-          const dateString = formatDate(currentYear, currentMonth, day);
-          const disabled = isDisabled(dateString);
-
-          return (
-            <div
-              key={day}
-              className={`calendar-day ${disabled ? "disabled" : ""}`}
-              onClick={() => !disabled && onSelectDate && onSelectDate(dateString)}
-            >
-              {day}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+      <CalendarGrid
+        days={days}
+        disabledDates={disabledDates}
+        checkIn={checkIn}
+        checkOut={checkOut}
+        onDateClick={handleDateClick}
+      />
+    </>
   );
 }

@@ -1,11 +1,11 @@
-import { Box, Heading, Text, VStack } from "@chakra-ui/react";
+import { Box, Heading, Text, VStack, Button,} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPropertyById } from "../services/propertiesService";
 import { getReviewsByPropertyId } from "../services/reviews";
 import ReviewList from "../components/reviews/ReviewList";
 import ReviewForm from "../components/reviews/ReviewForm";
-import BookingForm from "../components/booking/BookingForm";
+import { Link } from "react-router-dom";
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
@@ -56,12 +56,17 @@ console.log("PROPERTY FROM BACKEND:", property);
       {/* ✅ Property info */}
       <Heading>{property.title}</Heading>
       <Text>{property.description}</Text>
-<BookingForm
-  propertyId={property.id}
-  userId="ae62ded3-d6a5-480c-b471-de38efd885c1"
-  pricePerNight={property.pricePerNight}
-  onBookingCreated={(booking) => console.log("New booking:", booking)}
-/>
+
+
+
+<Button
+  as={Link}
+  to={`/booking/${property.id}`}
+  colorScheme="teal"
+  mt={4}
+>
+  Boek nu
+</Button>
 
 
 

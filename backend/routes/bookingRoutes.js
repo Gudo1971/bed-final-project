@@ -1,67 +1,63 @@
 import express from "express";
 import prisma from "../lib/prisma.js";
-
-
-import { createBooking, getBookingsForUser } from "../services/bookingService.js";
+import { createBooking, getBookingsForUser, getBookingsForProperty } from "../services/bookingService.js";
 
 const router = express.Router();
+router.get("/disabled-dates/:propertyId", async (req, res) => {
+  const { propertyId } = req.params;
 
-// ✅ GET /bookings/property/:propertyId — alle bookings voor een property ophalen  
-
-router.get("/property/:propertyId", async (req, res, next) => {
   try {
-    const { propertyId } = req.params;
+    const bookings = await prisma.booking.findMany({
+      where: { propertyId },
+      select: {
+        checkinDate: true,
+        checkoutDate: true,
+      },
+    });
 
-    const bookings = await getBookingsForProperty(propertyId);
+    const disabled = bookings.flatMap((b) => {
+      const start = new Date(b.checkinDate);
+      const end = new Date(b.checkoutDate);
 
-    res.json(bookings);
-  } catch (error) {
-    next(error);
-  }
-});
-// ✅ GET /bookings/user/:auth0Id — alle bookings van een user ophalen
-router.get("/user/:auth0Id", async (req, res) => {
-   
-  try {
-    const { auth0Id } = req.params;
-    const { email } = req.query;
+      const dates = [];
+      for (let d = start; d <= end; d = new Date(d.getTime() + 86400000)) {
+        dates.push(d.toISOString().split("T")[0]);
+      }
+      return dates;
+    });
 
-    const bookings = await getBookingsForUser(auth0Id, email);
-    res.json(bookings);
+    res.json(disabled);
   } catch (err) {
-    console.error("Error in GET /bookings/user:", err);
-    res.status(500).json({ error: "Failed to fetch user bookings" });
+    console.error("Error fetching disabled dates:", err);
+    res.status(500).json({ error: "Failed to fetch disabled dates" });
   }
 });
-
-// ✅ POST /bookings — nieuwe booking aanmaken
 router.post("/", async (req, res) => {
+  console.log("RAW BODY:", req.body);
   try {
     const {
-      userAuth0Id,
+      auth0Id,
       propertyId,
-      checkinDate,
-      checkoutDate,
-      numberOfGuests,
+      checkIn,
+      checkOut,
+      guests,
     } = req.body;
 
-    // ✅ Validatie
-    if (!userAuth0Id || !propertyId || !checkinDate || !checkoutDate) {
+    if (!auth0Id || !propertyId || !checkIn || !checkOut) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // ✅ User ophalen via Auth0 ID
+    // User ophalen of aanmaken
     let user = await prisma.user.findUnique({
-      where: { auth0Id: userAuth0Id }
+      where: { auth0Id }
     });
 
-    // ✅ User aanmaken als hij nog niet bestaat
     if (!user) {
       user = await prisma.user.create({
         data: {
-          auth0Id: userAuth0Id,
-          email: `${userAuth0Id}@unknown.com`,
-          username: userAuth0Id,
+          auth0Id,
+          email: `${auth0Id}@unknown.com`,
+          username: auth0Id,
           password: "auth0",
           name: "Auth0 User",
           phoneNumber: "",
@@ -70,7 +66,6 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // ✅ Property ophalen
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
     });
@@ -79,25 +74,22 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "Property not found" });
     }
 
-    // ✅ Aantal nachten berekenen
     const nights =
-      (new Date(checkoutDate) - new Date(checkinDate)) /
+      (new Date(checkOut) - new Date(checkIn)) /
       (1000 * 60 * 60 * 24);
 
     if (nights <= 0) {
       return res.status(400).json({ error: "Invalid date range" });
     }
 
-    // ✅ Totale prijs berekenen
     const totalPrice = nights * property.pricePerNight;
 
-    // ✅ Booking aanmaken via service (met overlap-check)
     const booking = await createBooking({
       userId: user.id,
       propertyId,
-      checkinDate,
-      checkoutDate,
-      numberOfGuests: Number(numberOfGuests),
+      checkinDate: checkIn,
+      checkoutDate: checkOut,
+      numberOfGuests: Number(guests),
       totalPrice,
     });
 
@@ -109,24 +101,12 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("Error creating booking:", err);
 
-    // ✅ Overlap-conflict
     if (err.status === 409) {
       return res.status(409).json({ error: err.message });
     }
 
-    // ✅ Prisma foreign key error
-    if (err.code === "P2003") {
-      return res.status(400).json({
-        error: "Foreign key constraint failed — user or property not found",
-      });
-    }
-
-    // ✅ Fallback
     return res.status(500).json({ error: "Internal server error" });
   }
 });
 
 export default router;
-
-
-

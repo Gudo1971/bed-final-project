@@ -25,6 +25,15 @@ export default function App() {
 
         <Route path="/properties/:id" element={<PropertyDetailPage />} />
 
+         <Route
+          path="/booking/:propertyId"
+          element={
+            <ProtectedRoute>
+              <BookingPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/bookings"
           element={
