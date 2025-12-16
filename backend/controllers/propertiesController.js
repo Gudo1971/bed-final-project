@@ -1,4 +1,5 @@
 import * as propertiesService from '../services/propertiesService.js';
+import prisma from "../lib/prisma.js";
 
 export async function getProperties(req, res){
     try{
@@ -26,3 +27,22 @@ export async function getProperty(req, res){
 
     }
     }
+export async function getPropertyBookings(req, res) {
+  const { id } = req.params;
+
+  try {
+    console.log("Fetching bookings for property:", id);
+
+    const bookings = await prisma.booking.findMany({
+      where: { propertyId: id },
+      include: { property: true },
+    });
+
+    console.log("Bookings found:", bookings);
+
+    res.json(bookings);
+  } catch (error) {
+    console.error("🔥 Prisma error in getPropertyBookings:", error);
+    res.status(500).json({ error: "Failed to fetch property bookings" });
+  }
+}

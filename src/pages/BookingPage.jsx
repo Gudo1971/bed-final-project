@@ -1,45 +1,70 @@
-import { useAuth0 } from "@auth0/auth0-react";
 import {
   Box,
+  Heading,
+  Text,
+  VStack,
+  Spinner,
+  useToast,
   FormControl,
   FormLabel,
   Input,
   Select,
   Button,
-  VStack,
 } from "@chakra-ui/react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 export default function BookingPage() {
   const { user, isAuthenticated } = useAuth0();
+  const { register, handleSubmit, reset } = useForm();
+  const toast = useToast();
+const [propertyBookings, setPropertyBookings] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [properties, setProperties] = useState([]);
-  const { register, handleSubmit, reset } = useForm();
+  const [selectedPropertyId, setSelectedPropertyId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch bookings for this user
-  useEffect(() => {
-    if (!isAuthenticated || !user) return;
+  // 🟢 Bookings ophalen
+  const fetchBookings = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/bookings/user/${user.sub}?email=${user.email}`
+      );
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setBookings(data);
+      } else {
+        setBookings([]);
+      }
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetch(`http://localhost:3000/bookings/user/${user.sub}`)
-      .then((res) => res.json())
-      .then((data) => setBookings(data))
-      .catch((err) => console.error("Error fetching bookings:", err));
-  }, [isAuthenticated, user]);
-
-  // Fetch all properties
+  // 🟢 Properties ophalen
   useEffect(() => {
     fetch("http://localhost:3000/properties")
       .then((res) => res.json())
       .then((data) => setProperties(data))
+
       .catch((err) => console.error("Error fetching properties:", err));
   }, []);
 
-  // Submit booking
+  // 🟢 Bookings ophalen bij paginalaad
+  useEffect(() => {
+    if (!isAuthenticated || !user?.sub || !user?.email) return;
+    fetchBookings();
+  }, [isAuthenticated, user?.sub]);
+
+  // 🟢 Booking indienen
   const onSubmit = async (data) => {
     const payload = {
       userAuth0Id: user.sub,
-      propertyId: data.propertyId,
+      propertyId: selectedPropertyId,
       checkinDate: data.checkinDate,
       checkoutDate: data.checkoutDate,
       numberOfGuests: data.numberOfGuests,
@@ -52,26 +77,52 @@ export default function BookingPage() {
     });
 
     if (res.ok) {
-      alert("✅ Booking created!");
+      toast({
+        title: "✅ Booking aangemaakt",
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
       reset();
-
-      // Refresh bookings
-      fetch(`http://localhost:3000/bookings/user/${user.sub}`)
-        .then((res) => res.json())
-        .then((data) => setBookings(data));
+      fetchBookings();
     } else {
-      alert("❌ Booking failed");
+      toast({
+        title: "❌ Booking mislukt",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     }
   };
+  // 🟢 Bookings ophalen voor geselecteerde property (disabled ranges)
+useEffect(() => {
+  if (!selectedPropertyId) return;
 
-  // ⬇️ LET OP: vanaf hier begint de RETURN
+  console.log("Fetching bookings for property:", selectedPropertyId);
+
+  fetch(`http://localhost:3000/properties/${selectedPropertyId}/bookings`)
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Fetched property bookings:", data);
+      setPropertyBookings(data);
+    })
+    .catch((err) =>
+      console.error("Error fetching property bookings:", err)
+    );
+}, [selectedPropertyId]);
+
   return (
-    <div>
-      <Box p={4} borderWidth="1px" borderRadius="md" mb={6}>
+    <Box maxW="800px" mx="auto" py={8}>
+      <Heading mb={6}>Boek een verblijf</Heading>
+
+      <Box p={4} borderWidth="1px" borderRadius="md" mb={10}>
         <VStack as="form" spacing={4} onSubmit={handleSubmit(onSubmit)}>
-          <FormControl>
+          <FormControl isRequired>
             <FormLabel>Property</FormLabel>
-            <Select {...register("propertyId")} placeholder="Select property" required>
+            <Select
+              placeholder="Select property"
+              onChange={(e) => setSelectedPropertyId(e.target.value)}
+            >
               {properties.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.title}
@@ -80,19 +131,19 @@ export default function BookingPage() {
             </Select>
           </FormControl>
 
-          <FormControl>
+          <FormControl isRequired>
             <FormLabel>Check-in Date</FormLabel>
-            <Input type="date" {...register("checkinDate")} required />
+            <Input type="date" {...register("checkinDate")} />
           </FormControl>
 
-          <FormControl>
+          <FormControl isRequired>
             <FormLabel>Check-out Date</FormLabel>
-            <Input type="date" {...register("checkoutDate")} required />
+            <Input type="date" {...register("checkoutDate")} />
           </FormControl>
 
-          <FormControl>
+          <FormControl isRequired>
             <FormLabel>Guests</FormLabel>
-            <Input type="number" min="1" {...register("numberOfGuests")} required />
+            <Input type="number" min="1" {...register("numberOfGuests")} />
           </FormControl>
 
           <Button colorScheme="blue" type="submit">
@@ -101,23 +152,31 @@ export default function BookingPage() {
         </VStack>
       </Box>
 
-      <h1>Your Bookings</h1>
-
-      {bookings.length === 0 ? (
-        <p>No bookings yet.</p>
+      <Heading mb={4}>Jouw bookings</Heading>
+      {loading ? (
+        <Spinner size="lg" />
+      ) : bookings.length === 0 ? (
+        <Text>📭 Geen bookings gevonden.</Text>
       ) : (
-        <ul>
+        <VStack spacing={4} align="stretch">
           {bookings.map((booking) => (
-            <li key={booking.id}>
-              <strong>{booking.property.title}</strong><br />
-              {new Date(booking.checkinDate).toLocaleDateString()} –{" "}
-              {new Date(booking.checkoutDate).toLocaleDateString()}<br />
-              Guests: {booking.numberOfGuests}
-            </li>
+            <Box
+              key={booking.id}
+              p={4}
+              borderWidth="1px"
+              borderRadius="md"
+              bg="gray.50"
+            >
+              <Text fontWeight="bold">{booking.property.title}</Text>
+              <Text>
+                {new Date(booking.checkinDate).toLocaleDateString()} –{" "}
+                {new Date(booking.checkoutDate).toLocaleDateString()}
+              </Text>
+              <Text>Guests: {booking.numberOfGuests}</Text>
+            </Box>
           ))}
-        </ul>
+        </VStack>
       )}
-    </div>
+    </Box>
   );
 }
-
