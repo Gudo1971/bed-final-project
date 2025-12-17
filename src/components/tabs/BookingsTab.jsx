@@ -1,10 +1,25 @@
 import { useEffect, useState } from "react";
 import { Box, Heading, Text, Spinner, Stack, Button } from "@chakra-ui/react";
 import { getUserBookings } from "../../services/bookings";
+import BookingEditModal from "../tabs/BookingEditModal";
 
 export default function BookingsTab() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal state (één keer!)
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  function openModal(booking) {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  }
+
+  function closeModal() {
+    setIsModalOpen(false);
+    setSelectedBooking(null);
+  }
 
   useEffect(() => {
     async function fetchBookings() {
@@ -49,12 +64,24 @@ export default function BookingsTab() {
               Van: {booking.startDate} — Tot: {booking.endDate}
             </Text>
 
-            <Button mt={3} size="sm" colorScheme="teal">
+            <Button
+              mt={3}
+              size="sm"
+              colorScheme="teal"
+              onClick={() => openModal(booking)}
+            >
               Bewerken
             </Button>
           </Box>
         ))}
       </Stack>
+
+      {/* Modal hoort HIER, buiten de map */}
+      <BookingEditModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        booking={selectedBooking}
+      />
     </Box>
   );
 }
