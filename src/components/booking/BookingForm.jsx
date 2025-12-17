@@ -34,31 +34,30 @@ export default function BookingForm({ propertyId, userId, pricePerNight, onBooki
     console.log("USER ID SENT:", userId);
     console.log("TOTAL PRICE CALCULATED:", totalPrice);
 
-    try {
-      const res = await axios.post("http://localhost:3000/bookings", {
-        propertyId,
-        userId,
-        checkinDate,
-        checkoutDate,
-        numberOfGuests: Number(numberOfGuests),
-        totalPrice: Number(totalPrice),
-      });
+     try {
+    const res = await axios.post("http://localhost:3000/bookings", {
+      auth0Id: userId,              // backend expects this
+      propertyId,                   // correct
+      checkIn: checkinDate,         // backend expects checkIn
+      checkOut: checkoutDate,       // backend expects checkOut
+      guests: Number(numberOfGuests) // backend expects guests
+    });
 
-      if (onBookingCreated) {
-        onBookingCreated(res.data.booking);
-      }
-
-      setCheckinDate("");
-      setCheckoutDate("");
-      setNumberOfGuests(1);
-      setTotalPrice(0);
-
-    } catch (err) {
-      console.error("Booking error:", err.response?.data || err);
-    } finally {
-      setLoading(false);
+    if (onBookingCreated) {
+      onBookingCreated(res.data.booking);
     }
-  };
+
+    setCheckinDate("");
+    setCheckoutDate("");
+    setNumberOfGuests(1);
+    setTotalPrice(0);
+
+  } catch (err) {
+    console.error("Booking error:", err.response?.data || err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box as="form" onSubmit={handleSubmit} p={4} borderWidth="1px" borderRadius="md">

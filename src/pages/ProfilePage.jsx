@@ -1,0 +1,32 @@
+import { Tabs, TabList, TabPanels, Tab, TabPanel, Container, Heading } from "@chakra-ui/react";
+import ProfileTab from "../components/ProfileTab";
+import BookingsTab from "../components/BookingsTab";
+import AccountTab from "../components/AccountTab";
+
+export default function ProfilePage() {
+  return (
+    <Container maxW="6xl" py={10}>
+      <Heading mb={6}>Mijn Profiel</Heading>
+
+      <Tabs variant="enclosed" colorScheme="teal" isFitted>
+        <TabList>
+          <Tab>👤 Persoonsgegevens</Tab>
+          <Tab>📅 Mijn Boekingen</Tab>
+          <Tab>🔐 Account</Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel>
+            <ProfileTab />
+          </TabPanel>
+          <TabPanel>
+            <BookingsTab />
+          </TabPanel>
+          <TabPanel>
+            <AccountTab />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Container>
+  );
+}

@@ -1,10 +1,6 @@
 import { Grid, Box, Text } from "@chakra-ui/react";
 import { io } from "socket.io-client";
-import  {useEffect} from "react";
-
-
-
-
+import { useEffect } from "react";
 
 export default function CalendarGrid({
   days,
@@ -14,28 +10,29 @@ export default function CalendarGrid({
   onDateClick,
   setDisabledDates,
 }) {
+  // ⭐ Socket realtime updates
+  useEffect(() => {
+    const socket = io("http://localhost:3000");
 
+    socket.on("booking:created", (booking) => {
+      const start = new Date(booking.checkinDate);
+      const end = new Date(booking.checkoutDate);
 
-useEffect(() => {
-  const socket = io("http://localhost:3000"); // of je live URL
+      const newDisabled = [];
+      for (let d = start; d <= end; d = new Date(d.getTime() + 86400000)) {
+        newDisabled.push(d.toISOString().split("T")[0]);
+      }
 
-  socket.on("booking:created", (booking) => {
-    const start = new Date(booking.checkinDate);
-    const end = new Date(booking.checkoutDate);
+      // ⭐ Deduplicatie
+      setDisabledDates((prev) =>
+        Array.from(new Set([...prev, ...newDisabled]))
+      );
+    });
 
-    const newDisabled = [];
-    for (let d = start; d <= end; d = new Date(d.getTime() + 86400000)) {
-      newDisabled.push(d.toISOString().split("T")[0]);
-    }
+    return () => socket.disconnect();
+  }, [setDisabledDates]);
 
-    setDisabledDates((prev) => [...prev, ...newDisabled]);
-  });
-
-  return () => socket.disconnect();
-}, []);
-
-
-  // ⭐ Lokale datum formatter (geen UTC!)
+  // ⭐ Formatter
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -48,9 +45,14 @@ useEffect(() => {
     return disabledDates.includes(dateStr);
   };
 
+  // ⭐ Correcte selectie-check
   const isSelected = (date) => {
     const dateStr = formatDate(date);
-    return checkIn === dateStr || checkOut === dateStr;
+
+    if (dateStr === checkIn) return "checkin";
+    if (dateStr === checkOut) return "checkout";
+
+    return "";
   };
 
   const isInRange = (date) => {
@@ -85,52 +87,63 @@ useEffect(() => {
           const inRange = isInRange(date);
 
           return (
-     <Box
-  key={dateStr}
-  p={3}
-  textAlign="center"
-  borderRadius={
-    selected && checkIn === dateStr
-      ? "md 0 0 md"
-      : selected && checkOut === dateStr
-      ? "0 md md 0"
-      : "md"
-  }
-  cursor={disabled ? "not-allowed" : "pointer"}
-  bg={
-    disabled
-      ? "red.300"      // internationale standaard
-      : selected
-      ? "blue.400"
-      : inRange
-      ? "blue.100"
-      : "white"
-  }
-  color={
-    disabled
-      ? "red.700"      // duidelijk zichtbaar
-      : selected
-      ? "white"
-      : "black"
-  }
-  _hover={{
-    bg: disabled ? "red.300" : "blue.50", // geen hover op disabled
-  }}
-  onClick={() => !disabled && onDateClick(date)} // klik blokkeren
-  boxShadow={disabled ? "none" : "sm"} // geen schaduw op disabled
->
-  <Text fontWeight="medium">
-    {date.getDate()}
+            <Box
+              key={dateStr}
+              p={3}
+              textAlign="center"
+              borderRadius={
+                selected === "checkin"
+                  ? "md 0 0 md"
+                  : selected === "checkout"
+                  ? "0 md md 0"
+                  : "md"
+              }
+              cursor={disabled ? "not-allowed" : "pointer"}
+              bg={
+                disabled
+                  ? "red.300"
+                  : selected === "checkin"
+                  ? "green.400"
+                  : selected === "checkout"
+                  ? "blue.700"
+                  : inRange
+                  ? "blue.100"
+                  : "white"
+              }
+              color={
+                disabled
+                  ? "red.700"
+                  : selected
+                  ? "white"
+                  : "black"
+              }
+              _hover={{
+                bg: disabled ? "red.300" : "blue.50",
+              }}
+              onClick={() => !disabled && onDateClick(date)}
+              boxShadow={disabled ? "none" : "sm"}
+            >
+
+              <Text fontWeight="medium">{date.getDate()}</Text>
+              {selected === "checkin" && (
+  <Text fontSize="xs" color="white" mt={1}>
+    Check‑in
   </Text>
+)}
 
-  {disabled && (
-    <Text fontSize="xs" color="red.700">
-      🔒
-    </Text>
-  )}
-</Box>
+{selected === "checkout" && (
+  <Text fontSize="xs" color="white" mt={1}>
+    Check‑out
+  </Text>
+)}
 
 
+              {disabled && (
+                <Text fontSize="xs" color="red.700">
+                  🔒
+                </Text>
+              )}
+            </Box>
           );
         })}
       </Grid>
