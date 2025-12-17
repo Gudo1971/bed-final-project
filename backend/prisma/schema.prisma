@@ -1,44 +1,57 @@
+// ============================================================
+// Prisma Client configuratie
+// ============================================================
 generator client {
   provider = "prisma-client-js"
 }
 
+// ============================================================
+// Database configuratie
+// ============================================================
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
+// ============================================================
+// User model
+// ============================================================
 model User {
   id          String @id @default(uuid())
   username    String @unique
   password    String
   name        String
-  auth0Id   String   @unique
+  auth0Id     String @unique
   email       String
   phoneNumber String
   pictureUrl  String
 
-  // Relations
+  // Relaties
   bookings Booking[]
   reviews  Review[]
 }
 
+// ============================================================
+// Host model
+// ============================================================
 model Host {
-  id          String   @id @default(uuid())
-  username    String   @unique
+  id          String @id @default(uuid())
+  username    String @unique
   password    String
-  name        String
-  auth0Id   String   @unique
-  email       String   @unique
+  name        String 
+  auth0Id     String @unique
+  email       String @unique
   phoneNumber String
   pictureUrl  String
   aboutMe     String
 
-  // Relations
-  properties  Property[]
+  // Relaties
+  properties Property[]
 }
 
-
-
+// ============================================================
+// Property model
+// ============================================================
 model Property {
   id            String @id @default(uuid())
   hostId        String
@@ -51,20 +64,27 @@ model Property {
   maxGuestCount Int
   rating        Int
 
-  // Relations
+  // Relaties
   host       Host      @relation(fields: [hostId], references: [id])
   bookings   Booking[]
   reviews    Review[]
-  amenities  Amenity[]   // ✅ DIT MOET ERBIJ
+  amenities  Amenity[]
 }
 
+// ============================================================
+// Amenity model (many-to-many met Property)
+// ============================================================
 model Amenity {
-  id         String     @id @default(uuid())
+  id         String    @id @default(uuid())
   name       String
-  properties Property[]  // ✅ MANY-TO-MANY
+
+  // Relaties
+  properties Property[]
 }
 
-
+// ============================================================
+// Booking model
+// ============================================================
 model Booking {
   id             String   @id @default(uuid())
   userId         String
@@ -75,11 +95,19 @@ model Booking {
   totalPrice     Float
   bookingStatus  String
 
-  // Relations
+  // Nieuwe velden voor boeking-details
+  name           String
+  email          String
+  notes          String?
+
+  // Relaties
   user     User     @relation(fields: [userId], references: [id])
   property Property @relation(fields: [propertyId], references: [id])
 }
 
+// ============================================================
+// Review model
+// ============================================================
 model Review {
   id         String @id @default(uuid())
   userId     String
@@ -87,11 +115,7 @@ model Review {
   rating     Int
   comment    String
 
-  // Relations
+  // Relaties
   user     User     @relation(fields: [userId], references: [id])
   property Property @relation(fields: [propertyId], references: [id])
 }
-
-
-
-

@@ -8,11 +8,16 @@ import { Auth0Provider } from "@auth0/auth0-react";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <Auth0Provider
-        domain="dev-u34emqv2lh0qdxoi.us.auth0.com"
-        clientId="TeroCNBGeOjreWy33sHVVpekvuU3gA4D"
-        authorizationParams={{ redirect_uri: window.location.origin }}
-      >
+ <Auth0Provider
+  domain="dev-u34emqv2lh0qdxoi.us.auth0.com"
+  clientId="TeroCNBGeOjreWy33sHVVpekvuU3gA4D"
+  authorizationParams={{
+    redirect_uri: window.location.origin,
+    audience: "https://staybnb-api/",
+    scope: "openid profile email"
+  }}
+>
+
         <ChakraProvider>
           <App />
         </ChakraProvider>
