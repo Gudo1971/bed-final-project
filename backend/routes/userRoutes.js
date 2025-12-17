@@ -49,6 +49,39 @@ router.get("/", async (req, res) => {
 });
 
 /* -------------------------------------------
+   PUT /users/me  (Auth0 protected)
+   Wijzigt persoonsgegevens van de ingelogde user
+------------------------------------------- */
+router.put("/me", checkJwt, async (req, res) => {
+  try {
+    const auth0Id = req.user.sub;
+    const { name, email, phoneNumber, address, pictureUrl } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { auth0Id },
+      data: {
+        name,
+        email,
+        phoneNumber,
+        address,
+        pictureUrl
+      }
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(500).json({ error: "Failed to update user profile" });
+  }
+});
+
+
+/* -------------------------------------------
    GET /users/:id/reviews
 ------------------------------------------- */
 router.get("/:id/reviews", async (req, res) => {
