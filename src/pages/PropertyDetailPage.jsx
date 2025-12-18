@@ -7,6 +7,8 @@ import ReviewList from "../components/reviews/ReviewList";
 import ReviewForm from "../components/reviews/ReviewForm";
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import { io } from "socket.io-client";
+import ImageCarousel from "../components/images/ImageCarousel";
+
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
@@ -122,20 +124,13 @@ export default function PropertyDetailPage() {
       >
         ← Terug naar overzicht
       </Text>
-      {property.imageUrl && (
-  <Box mb={4}>
-    <img
-      src={property.imageUrl}
-      alt={property.title}
-      style={{
-        width: "100%",
-        height: "300px",
-        objectFit: "cover",
-        borderRadius: "8px"
-      }}
-    />
-  </Box>
-      )}
+      {property.images && property.images.length > 0 && (
+ <Box mb={4} width="100%" height="350px" position="relative">
+  <ImageCarousel images={property.images} />
+</Box>
+
+)}
+
 
 
       <Heading>{property.title}</Heading>

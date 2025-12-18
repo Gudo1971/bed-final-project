@@ -1,0 +1,76 @@
+import { useState } from "react";
+import { Input, Image, VStack } from "@chakra-ui/react";
+
+export default function ImageUploadTest() {
+  const [preview, setPreview] = useState(null);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+
+    if (!file) {
+      console.warn("⚠️ Geen bestand geselecteerd");
+      return;
+    }
+
+    console.log("📦 Bestand:", file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "upload_preset",
+      import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+    );
+
+    console.log("Cloud name:", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
+    console.log("Preset:", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await res.json();
+
+    // 🔥 Belangrijk: toon Cloudinary foutmelding als die bestaat
+    if (data.error) {
+      console.error("❌ Cloudinary error:", data.error.message);
+      return;
+    }
+
+    console.log("🌐 Cloudinary response:", data);
+    console.log("✅ Uploaded image URL:", data.secure_url);
+
+    setPreview(data.secure_url);
+
+    // ⭐ Stuur naar backend om op te slaan in PropertyImage
+const propertyId = "25d53e9a-5d7f-49bd-8857-99c26cf1c8ef"; // <-- jouw property ID
+
+try {
+  const res = await fetch(`http://localhost:3000/properties/${propertyId}/images`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url: data.secure_url,
+      publicId: data.public_id,
+      order: 0
+    })
+  });
+
+  const saved = await res.json();
+  console.log("💾 Saved in DB:", saved);
+} catch (err) {
+  console.error("❌ Error saving image:", err);
+}
+
+  };
+
+  return (
+    <VStack spacing={4}>
+      <Input type="file" accept="image/*" onChange={handleUpload} />
+      {preview && <Image src={preview} boxSize="300px" borderRadius="md" />}
+    </VStack>
+  );
+}
