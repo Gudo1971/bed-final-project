@@ -1,41 +1,75 @@
+import { Resend } from 'resend';
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendBookingConfirmation(to, booking) {
-  if (!process.env.MAILTRAP_TOKEN) {
-    console.warn("⚠️ EMAIL SERVICE DISABLED — missing MAILTRAP_TOKEN");
-    return;
+  console.log("CONFIRMATION EMAIL FUNCTION REACHED");
+
+  try {
+    const result = await resend.emails.send({
+      from: 'onboarding@resend.dev',   // gratis & toegestaan
+      to,
+      subject: 'Bevestiging van je boeking – StayBnB',
+      html: `
+        <h2>Je boeking is bevestigd!</h2>
+        <p>Beste gebruiker,</p>
+        <p>Je boeking voor <strong>${booking.property.title}</strong> is succesvol bevestigd.</p>
+        <p>Details:</p>
+        <ul>
+          <li>Check-in: ${booking.checkinDate}</li>
+          <li>Check-out: ${booking.checkoutDate}</li>
+          <li>Aantal gasten: ${booking.numberOfGuests}</li>
+          <li>Totaalprijs: €${booking.totalPrice}</li>
+        </ul>
+        <p>We wensen je een fantastisch verblijf!</p>
+      `
+    });
+
+    if (result.error) {
+      console.error("Resend confirmation email failed:", result.error);
+      return false;
+    }
+
+    console.log("CONFIRMATION EMAIL SENT via Resend");
+    return true;
+
+  } catch (err) {
+    console.error("Resend API error:", err);
+    return false;
   }
+}
 
-  const response = await fetch("https://send.api.mailtrap.io/api/send", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.MAILTRAP_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: {
-        email: "hello@demomailtrap.co",
-        name: "MyBnB",
-      },
-      to: [
-        { email: "gbgieles@gmail.com"}
-      ],
-      subject: "Bevestiging van je boeking",
-      text: `
-Je boeking is bevestigd!
+export async function sendBookingCancellationEmail(to, booking) {
+  console.log("CANCELLATION EMAIL FUNCTION REACHED");
 
-Check-in: ${booking.checkinDate}
-Check-out: ${booking.checkoutDate}
-Aantal gasten: ${booking.numberOfGuests}
-Totaalprijs: €${booking.totalPrice}
+  try {
+    const result = await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to,
+      subject: 'Bevestiging van annulering – StayBnB',
+      html: `
+        <h2>Je boeking is geannuleerd</h2>
+        <p>Beste gebruiker,</p>
+        <p>Je boeking voor <strong>${booking.property.title}</strong> is succesvol geannuleerd.</p>
+        <p>Details:</p>
+        <ul>
+          <li>Check-in: ${booking.checkinDate}</li>
+          <li>Check-out: ${booking.checkoutDate}</li>
+        </ul>
+        <p>We hopen je snel weer te zien op StayBnB!</p>
+      `
+    });
 
-      `,
-      category: "Booking Confirmation",
-    }),
-  });
+    if (result.error) {
+      console.error("Resend cancellation email failed:", result.error);
+      return false;
+    }
 
-  if (!response.ok) {
-    const error = await response.text();
-    console.error("Email sending failed:", error);
+    console.log("CANCELLATION EMAIL SENT via Resend");
+    return true;
+
+  } catch (err) {
+    console.error("Resend API error:", err);
+    return false;
   }
 }

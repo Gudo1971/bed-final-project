@@ -1,9 +1,28 @@
 import prisma from "../lib/prisma.js";
 
-/* ============================================================
-   checkBookingOverlap
-   Controleert of een nieuwe boeking overlapt met bestaande
-============================================================ */
+// ============================================================
+// getBookingsForUser
+// ============================================================
+export async function getBookingsForUser(auth0Id) {
+  return prisma.booking.findMany({
+    where: {
+      user: { auth0Id }
+    },
+    include: {
+      property: {
+        select: {
+          title: true,
+          location: true,
+          pricePerNight: true,
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// createBooking
+// ============================================================
 async function checkBookingOverlap(propertyId, checkinDate, checkoutDate) {
   return prisma.booking.findMany({
     where: {
@@ -16,10 +35,6 @@ async function checkBookingOverlap(propertyId, checkinDate, checkoutDate) {
   }).then(results => results.length > 0);
 }
 
-/* ============================================================
-   createBooking
-   Valideert input, controleert overlap en maakt een boeking aan
-============================================================ */
 export async function createBooking(data) {
   const { 
     userId,
@@ -33,7 +48,6 @@ export async function createBooking(data) {
     notes
   } = data;
 
-  // Validatie van verplichte velden
   if (
     !userId ||
     !propertyId ||
@@ -48,7 +62,6 @@ export async function createBooking(data) {
     throw error;
   }
 
-  // Overlapcontrole
   const hasOverlap = await checkBookingOverlap(
     propertyId,
     checkinDate,
@@ -61,7 +74,6 @@ export async function createBooking(data) {
     throw error;
   }
 
-  // Boeking aanmaken
   return prisma.booking.create({
     data: {
       userId,
@@ -78,39 +90,15 @@ export async function createBooking(data) {
   });
 }
 
-/* ============================================================
-   getBookingsForProperty
-   Haalt alle boekingen op voor een property
-============================================================ */
+// ============================================================
+// getBookingsForProperty
+// ============================================================
 export async function getBookingsForProperty(propertyId) {
   return prisma.booking.findMany({
     where: { propertyId },
     select: {
       checkinDate: true,
       checkoutDate: true
-    }
-  });
-}
-
-/* ============================================================
-   getBookingsForUser
-   Haalt alle boekingen op voor een gebruiker via auth0Id
-============================================================ */
-export async function getBookingsForUser(auth0Id) {
-  return prisma.booking.findMany({
-    where: {
-      user: {
-        auth0Id
-      }
-    },
-    include: {
-      property: {
-        select: {
-          title: true,
-          location: true,
-          pricePerNight: true,
-        }
-      }
     }
   });
 }
