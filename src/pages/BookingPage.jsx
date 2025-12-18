@@ -14,7 +14,7 @@ import {
 import { useParams } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useBookingForm } from "../hoooks/useBookingForm";
-
+import ImageUploadTest from "../components/uploads/ImageUploadTest";
 export default function BookingPage() {
   const { propertyId } = useParams();
   const { user } = useAuth0();
@@ -279,6 +279,7 @@ export default function BookingPage() {
             Boek nu
           </Button>
         </VStack>
+        <ImageUploadTest />
       </Box>
     </Box>
   );
