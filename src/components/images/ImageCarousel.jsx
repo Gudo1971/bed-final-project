@@ -8,14 +8,11 @@ export default function ImageCarousel({ images }) {
   const [index, setIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
 
-  // ⭐ Autoplay elke 4 seconden
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((i) => (i === safeImages.length - 1 ? 0 : i + 1));
-    }, 4000);
+  // ⭐ Fade state
+  const [fade, setFade] = useState(false);
 
-    return () => clearInterval(interval);
-  }, [safeImages.length]);
+  // ⭐ Autoplay pause state
+  const [paused, setPaused] = useState(false);
 
   if (!safeImages.length) {
     return (
@@ -36,13 +33,34 @@ export default function ImageCarousel({ images }) {
     );
   }
 
-  const prev = () => {
-    setIndex((i) => (i === 0 ? safeImages.length - 1 : i - 1));
+  // ⭐ Fade + next
+  const next = () => {
+    setFade(true);
+    setTimeout(() => {
+      setIndex((i) => (i === safeImages.length - 1 ? 0 : i + 1));
+      setFade(false);
+    }, 150);
   };
 
-  const next = () => {
-    setIndex((i) => (i === safeImages.length - 1 ? 0 : i + 1));
+  // ⭐ Fade + prev
+  const prev = () => {
+    setFade(true);
+    setTimeout(() => {
+      setIndex((i) => (i === 0 ? safeImages.length - 1 : i - 1));
+      setFade(false);
+    }, 150);
   };
+
+  // ⭐ Autoplay (respecteert pause)
+  useEffect(() => {
+    if (paused) return;
+
+    const interval = setInterval(() => {
+      next();
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [paused, safeImages.length]);
 
   return (
     <Box width="100%" position="relative">
@@ -53,6 +71,8 @@ export default function ImageCarousel({ images }) {
         height="350px"
         overflow="hidden"
         borderRadius="10px"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
       >
         <Image
           src={safeImages[index].url}
@@ -62,6 +82,10 @@ export default function ImageCarousel({ images }) {
           height="100%"
           cursor="pointer"
           onClick={() => setFullscreen(true)}
+          style={{
+            opacity: fade ? 0 : 1,
+            transition: "opacity 0.3s ease-in-out",
+          }}
         />
 
         {/* Arrows */}
