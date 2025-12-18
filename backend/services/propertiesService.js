@@ -8,6 +8,10 @@ export async function getAllProperties() {
 
 export async function getPropertyById(id) {
   return prisma.property.findUnique({
-    where: { id }
+    where: { id },
+    include: {
+      images: true   
+    }
   });
 }
+

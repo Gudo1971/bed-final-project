@@ -59,7 +59,14 @@ router.get("/:id", async (req, res) => {
   }
 
   try {
-    const property = await prisma.property.findUnique({ where: { id } });
+    const property = await prisma.property.findUnique({
+      where: { id },
+      include: {
+        images: {
+          orderBy: { order: "asc" }
+        }
+      }
+    });
 
     if (!property) {
       return res.status(404).json({ error: "Property not found" });
@@ -71,6 +78,7 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 /* -------------------------------------------
    POST /properties
@@ -109,31 +117,73 @@ router.post("/", async (req, res) => {
 /* -------------------------------------------
    PUT /properties/:id
 ------------------------------------------- */
-router.put("/:id", async (req, res) => {
-  const { id } = req.params;
-  const { title, description, pricePerNight, pictureUrl } = req.body;
+router.post("/:id/images", async (req, res) => {
+  const propertyId = req.params.id;
+  const { url, publicId, order } = req.body;
 
-  if (!isUuid(id)) {
+  if (!isUuid(propertyId)) {
     return res.status(400).json({ error: "Invalid property ID format" });
   }
 
+  if (!url || !publicId) {
+    return res.status(400).json({ error: "Missing url or publicId" });
+  }
+
   try {
-    const updated = await prisma.property.update({
-      where: { id },
-      data: { title, description, pricePerNight, pictureUrl },
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
     });
 
-    res.json(updated);
-  } catch (error) {
-    console.error("Error updating property:", error);
-
-    if (error.code === "P2025") {
+    if (!property) {
       return res.status(404).json({ error: "Property not found" });
     }
 
-    res.status(500).json({ error: "Internal server error" });
+    const image = await prisma.propertyImage.create({
+      data: {
+        propertyId,
+        url,
+        publicId,
+        order: order ?? 0,
+      },
+    });
+
+    res.status(201).json(image);
+  } catch (error) {
+    console.error("Error saving property image:", error);
+    res.status(500).json({ error: "Failed to save property image" });
   }
 });
+
+/* -------------------------------------------
+   PUT /Image/:id
+------------------------------------------- */
+
+router.post("/:id/images", async (req, res) => {
+  try {
+    const { url, publicId, order } = req.body;
+    const propertyId = req.params.id;
+
+    if (!url || !publicId) {
+      return res.status(400).json({ error: "Missing url or publicId" });
+    }
+
+    const image = await prisma.propertyImage.create({
+      data: {
+        propertyId,
+        url,
+        publicId,
+        order: order ?? 0,
+      },
+    });
+
+    res.status(201).json(image);
+  } catch (error) {
+    console.error("Error saving property image:", error);
+    res.status(500).json({ error: "Failed to save property image" });
+  }
+});
+
+
 
 /* -------------------------------------------
    DELETE /properties/:id

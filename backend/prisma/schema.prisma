@@ -52,12 +52,12 @@ model Host {
 // ============================================================
 // Property model
 // ============================================================
-model Property {
-  id            String @id @default(uuid())
+
+  model Property {
+  id            String          @id @default(uuid())
   hostId        String
   title         String
   description   String
-  imageUrl      String?
   location      String
   pricePerNight Float
   bedroomCount  Int
@@ -66,11 +66,29 @@ model Property {
   rating        Int
 
   // Relaties
-  host       Host      @relation(fields: [hostId], references: [id])
-  bookings   Booking[]
-  reviews    Review[]
-  amenities  Amenity[]
+  host          Host            @relation(fields: [hostId], references: [id])
+  bookings      Booking[]
+  reviews       Review[]
+  amenities     Amenity[]
+  images        PropertyImage[] // <-- nieuwe relatie
 }
+// ============================================================
+// PropertyImg  model
+// ============================================================
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  propertyId String
+  url        String
+  publicId   String
+  order      Int      @default(0)
+
+  property   Property @relation(fields: [propertyId], references: [id])
+  
+  
+}
+
+
 
 // ============================================================
 // Amenity model (many-to-many met Property)

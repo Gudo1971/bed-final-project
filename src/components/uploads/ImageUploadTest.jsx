@@ -44,6 +44,27 @@ export default function ImageUploadTest() {
     console.log("✅ Uploaded image URL:", data.secure_url);
 
     setPreview(data.secure_url);
+
+    // ⭐ Stuur naar backend om op te slaan in PropertyImage
+const propertyId = "25d53e9a-5d7f-49bd-8857-99c26cf1c8ef"; // <-- jouw property ID
+
+try {
+  const res = await fetch(`http://localhost:3000/properties/${propertyId}/images`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url: data.secure_url,
+      publicId: data.public_id,
+      order: 0
+    })
+  });
+
+  const saved = await res.json();
+  console.log("💾 Saved in DB:", saved);
+} catch (err) {
+  console.error("❌ Error saving image:", err);
+}
+
   };
 
   return (
