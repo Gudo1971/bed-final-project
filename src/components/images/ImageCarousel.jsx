@@ -1,5 +1,5 @@
 import { Box, IconButton, Flex, Text, Image } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import FullscreenGallery from "./FullscreenGallery";
 
@@ -8,11 +8,29 @@ export default function ImageCarousel({ images }) {
   const [index, setIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
 
+
+
+  // skelleton loader 
+
+  const [loading, setLoading] = useState(true);
+
+
   // ⭐ Fade state
   const [fade, setFade] = useState(false);
 
   // ⭐ Autoplay pause state
   const [paused, setPaused] = useState(false);
+
+  // ⭐ Thumbnail scroll refs
+  const containerRef = useRef(null);
+  const thumbRefs = useRef([]);
+  thumbRefs.current = [];
+
+  const addToRefs = (el) => {
+    if (el && !thumbRefs.current.includes(el)) {
+      thumbRefs.current.push(el);
+    }
+  };
 
   if (!safeImages.length) {
     return (
@@ -61,6 +79,25 @@ export default function ImageCarousel({ images }) {
 
     return () => clearInterval(interval);
   }, [paused, safeImages.length]);
+
+  // ⭐ Auto-snap + centreren van actieve thumbnail
+  useEffect(() => {
+    if (!containerRef.current || !thumbRefs.current[index]) return;
+
+    const container = containerRef.current;
+    const activeThumb = thumbRefs.current[index];
+
+    const containerWidth = container.offsetWidth;
+    const thumbWidth = activeThumb.offsetWidth;
+
+    const scrollPosition =
+      activeThumb.offsetLeft - containerWidth / 2 + thumbWidth / 2;
+
+    container.scrollTo({
+      left: scrollPosition,
+      behavior: "smooth",
+    });
+  }, [index]);
 
   return (
     <Box width="100%" position="relative">
@@ -118,18 +155,38 @@ export default function ImageCarousel({ images }) {
         />
       </Box>
 
-      {/* ⭐ Thumbnails */}
-      <Flex mt={3} gap={2} justifyContent="center" wrap="wrap">
+      {/* ⭐ Scrollbare thumbnails met auto-snap + centering */}
+      <Flex
+        ref={containerRef}
+        mt={3}
+        gap={2}
+        overflowX="auto"
+        overflowY="hidden"
+        whiteSpace="nowrap"
+        scrollBehavior="smooth"
+        css={{
+          "&::-webkit-scrollbar": {
+            height: "6px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "#ccc",
+            borderRadius: "10px",
+          },
+        }}
+      >
         {safeImages.map((img, i) => (
           <Box
             key={i}
-            width="60px"
-            height="60px"
+            ref={addToRefs}
+            display="inline-block"
+            width="70px"
+            height="70px"
             borderRadius="6px"
             overflow="hidden"
-            border={i === index ? "2px solid teal" : "2px solid transparent"}
+            border={i === index ? "3px solid teal" : "2px solid transparent"}
             cursor="pointer"
             onClick={() => setIndex(i)}
+            flexShrink={0}
           >
             <Image
               src={img.url}
