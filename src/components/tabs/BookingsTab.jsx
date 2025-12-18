@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { Box, Heading, Text, Spinner, Stack, Button } from "@chakra-ui/react";
 import { getUserBookings } from "../../services/bookings";
 import BookingEditModal from "../tabs/BookingEditModal";
+import { useAuth0 } from "@auth0/auth0-react";
 
 export default function BookingsTab() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal state (één keer!)
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { getAccessTokenSilently } = useAuth0();
 
   function openModal(booking) {
     setSelectedBooking(booking);
@@ -21,20 +23,47 @@ export default function BookingsTab() {
     setSelectedBooking(null);
   }
 
-  useEffect(() => {
-    async function fetchBookings() {
-      try {
-        const data = await getUserBookings();
-        setBookings(data);
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-      } finally {
-        setLoading(false);
-      }
+  async function fetchBookings() {
+    try {
+      const data = await getUserBookings(getAccessTokenSilently);
+      setBookings(data);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    fetchBookings();
-  }, []);
+  async function handleDelete(id) {
+    const confirmed = window.confirm("Weet je zeker dat je deze boeking wilt annuleren?");
+    if (!confirmed) return;
+
+    try {
+      const token = await getAccessTokenSilently({
+        audience: "https://staybnb-api/",
+        scope: "openid profile email"
+      });
+
+      const res = await fetch(`http://localhost:3000/bookings/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (res.status === 204) {
+        setBookings((prev) => prev.filter((b) => b.id !== id));
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  }
+
+  useEffect(() => {
+    if (!isModalOpen) {
+      fetchBookings();
+    }
+  }, [isModalOpen]);
 
   if (loading) {
     return <Spinner size="xl" />;
@@ -59,9 +88,11 @@ export default function BookingsTab() {
             borderRadius="md"
             shadow="sm"
           >
-            <Text fontWeight="bold">{booking.propertyName}</Text>
+            <Text fontWeight="bold">{booking.property?.title}</Text>
+
             <Text>
-              Van: {booking.startDate} — Tot: {booking.endDate}
+              Van: {new Date(booking.checkinDate).toLocaleDateString("nl-NL")}  
+              Tot: {new Date(booking.checkoutDate).toLocaleDateString("nl-NL")}
             </Text>
 
             <Button
@@ -72,11 +103,20 @@ export default function BookingsTab() {
             >
               Bewerken
             </Button>
+
+            <Button
+              mt={3}
+              ml={3}
+              size="sm"
+              colorScheme="red"
+              onClick={() => handleDelete(booking.id)}
+            >
+              Annuleer
+            </Button>
           </Box>
         ))}
       </Stack>
 
-      {/* Modal hoort HIER, buiten de map */}
       <BookingEditModal
         isOpen={isModalOpen}
         onClose={closeModal}

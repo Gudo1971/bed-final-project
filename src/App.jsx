@@ -9,7 +9,7 @@ import PropertyPage from "./pages/PropertyPage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
 import BookingPage from "./pages/BookingPage";
 import PropertyForm from "./components/properties/PropertyForm";
-
+import ProfilePage from "./pages/ProfilePage";
 export default function App() {
   const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
 
@@ -64,8 +64,9 @@ console.log("🔐 TOKEN:", token);
             </HostRoute>
           }
         />
-
+        
         <Route path="/properties/:id" element={<PropertyDetailPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
 
         <Route
           path="/booking/:propertyId"
@@ -76,14 +77,7 @@ console.log("🔐 TOKEN:", token);
           }
         />
 
-        <Route
-          path="/bookings"
-          element={
-            <ProtectedRoute>
-              <BookingPage />
-            </ProtectedRoute>
-          }
-        />
+    
 
         <Route path="/" element={<PropertyPage />} />
       </Routes>

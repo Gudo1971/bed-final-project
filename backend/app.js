@@ -9,6 +9,14 @@ import userRoutes from "./routes/userRoutes.js";
 import hostRoutes from "./routes/hostRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import authRoutes from "./routes/auth.js";
+import { auth } from "express-oauth2-jwt-bearer";
+
+const checkJwt = auth({
+  audience: "https://staybnb-api/",
+  issuerBaseURL: "https://dev-u34emqv2lh0qdxoi.us.auth0.com/",
+  tokenSigningAlg: "RS256",
+});
+
 
 const app = express();
 app.use(express.json());
@@ -21,7 +29,7 @@ app.get("/", (req, res) => res.send("Hello world!"));
 app.use("/properties", propertiesRoutes);
 app.use("/users", userRoutes);
 app.use("/hosts", hostRoutes);
-app.use("/bookings", bookingRoutes);
+app.use("/bookings",bookingRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/auth", authRoutes);
 

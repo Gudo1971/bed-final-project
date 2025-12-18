@@ -1,7 +1,8 @@
 import { Tabs, TabList, TabPanels, Tab, TabPanel, Container, Heading } from "@chakra-ui/react";
-import ProfileTab from "../components/ProfileTab";
-import BookingsTab from "../components/BookingsTab";
-import AccountTab from "../components/AccountTab";
+import ProfileTab from "../components/tabs/ProfileTab";
+import BookingsTab from "../components/tabs/BookingsTab";
+import AccountTab from "../components/tabs/AccountTab";
+
 
 export default function ProfilePage() {
   return (

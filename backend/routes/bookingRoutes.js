@@ -2,15 +2,31 @@ import express from "express";
 import prisma from "../lib/prisma.js";
 import { validate as isUuid } from "uuid";
 import { createBooking } from "../services/bookingService.js";
+import { getBookingsForUser } from "../services/bookingService.js";
 import { sendBookingConfirmation } from "../services/emailService.js";
 import { io } from "../app.js";
+import { checkJwt } from "../middleware/auth0Middleware.js";
+import { sendBookingCancellationEmail } from "../services/emailService.js";
 
 const router = express.Router();
 
-/* ============================================================
-   GET /bookings
-   Haalt alle boekingen op, inclusief gekoppelde user en property
-============================================================ */
+// ------------------------------------------------------------
+// GET /bookings/me  (Auth0 protected)
+// ------------------------------------------------------------
+router.get("/me", checkJwt, async (req, res) => {
+  try {
+    const auth0Id = req.auth.payload.sub;
+    const bookings = await getBookingsForUser(auth0Id);
+    res.json(bookings);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch user bookings" });
+  }
+});
+
+// ------------------------------------------------------------
+// GET /bookings
+// ------------------------------------------------------------
 router.get("/", async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
@@ -27,27 +43,23 @@ router.get("/", async (req, res) => {
   }
 });
 
-/* ============================================================
-   GET /bookings/user/:userId
-   Haalt alle boekingen op voor een specifieke gebruiker
-============================================================ */
+// ------------------------------------------------------------
+// GET /bookings/user/:userId
+// ------------------------------------------------------------
 router.get("/user/:userId", async (req, res) => {
   const { userId } = req.params;
 
-  // Validatie van UUID
   if (!isUuid(userId)) {
     return res.status(400).json({ error: "Invalid user ID format" });
   }
 
   try {
-    // Controleren of user bestaat
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Boekingen ophalen
     const bookings = await prisma.booking.findMany({
       where: { userId },
       include: { property: true },
@@ -60,14 +72,12 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
-/* ============================================================
-   GET /bookings/:id
-   Haalt één boeking op via ID
-============================================================ */
+// ------------------------------------------------------------
+// GET /bookings/:id
+// ------------------------------------------------------------
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
 
-  // Validatie van UUID
   if (!isUuid(id)) {
     return res.status(400).json({ error: "Invalid booking ID format" });
   }
@@ -92,14 +102,12 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-/* ============================================================
-   GET /bookings/disabled-dates/:propertyId
-   Haalt alle bezette datums op voor een property
-============================================================ */
+// ------------------------------------------------------------
+// GET /bookings/disabled-dates/:propertyId
+// ------------------------------------------------------------
 router.get("/disabled-dates/:propertyId", async (req, res) => {
   const { propertyId } = req.params;
 
-  // Validatie van UUID
   if (!isUuid(propertyId)) {
     return res.status(400).json({ error: "Invalid property ID format" });
   }
@@ -113,7 +121,6 @@ router.get("/disabled-dates/:propertyId", async (req, res) => {
       },
     });
 
-    // Alle datums tussen check-in en check-out verzamelen
     const disabled = bookings.flatMap((b) => {
       const start = new Date(b.checkinDate);
       const end = new Date(b.checkoutDate);
@@ -132,13 +139,11 @@ router.get("/disabled-dates/:propertyId", async (req, res) => {
   }
 });
 
-/* ============================================================
-   POST /bookings
-   Maakt een nieuwe boeking aan
-============================================================ */
+// ------------------------------------------------------------
+// POST /bookings
+// ------------------------------------------------------------
 router.post("/", async (req, res) => {
   try {
-    // Alle velden uit de body halen
     const {
       auth0Id,
       propertyId,
@@ -150,12 +155,10 @@ router.post("/", async (req, res) => {
       notes,
     } = req.body;
 
-    // Minimale validatie op verplichte velden
     if (!auth0Id || !propertyId || !checkIn || !checkOut) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // User ophalen of aanmaken
     let user = await prisma.user.findUnique({ where: { auth0Id } });
 
     if (!user) {
@@ -172,7 +175,6 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Property ophalen
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
     });
@@ -181,7 +183,6 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "Property not found" });
     }
 
-    // Aantal nachten berekenen
     const nights =
       (new Date(checkOut) - new Date(checkIn)) /
       (1000 * 60 * 60 * 24);
@@ -192,23 +193,28 @@ router.post("/", async (req, res) => {
 
     const totalPrice = nights * property.pricePerNight;
 
-    // Boeking opslaan via service
-    const booking = await createBooking({
-      userId: user.id,
-      propertyId,
-      checkinDate: checkIn,
-      checkoutDate: checkOut,
-      numberOfGuests: Number(guests),
-      totalPrice,
-      name,
-      email,
-      notes,
-    });
+  const booking = await prisma.booking.create({
+  data: {
+    userId: user.id,
+    propertyId,
+    checkinDate: new Date (checkIn),
+    checkoutDate:new  Date( checkOut),
+    numberOfGuests: Number(guests),
+    totalPrice,
+    name,
+    email,
+    notes,
+    bookingStatus: "CONFIRMED" 
+  },
+  include: {
+    property: true,
+    user: true
+  }
+});
 
-    // Realtime update uitsturen
+
     io.emit("booking:created", booking);
 
-    // Bevestigingsmail versturen
     try {
       await sendBookingConfirmation(user.email, booking);
     } catch (emailErr) {
@@ -223,7 +229,6 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("Error creating booking:", err);
 
-    // Overlap of andere service errors
     if (err.status === 409) {
       return res.status(409).json({ error: err.message });
     }
@@ -232,15 +237,13 @@ router.post("/", async (req, res) => {
   }
 });
 
-/* ============================================================
-   PUT /bookings/:id
-   Wijzigt een bestaande boeking
-============================================================ */
+// ------------------------------------------------------------
+// PUT /bookings/:id
+// ------------------------------------------------------------
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const { checkinDate, checkoutDate, numberOfGuests } = req.body;
 
-  // Validatie van UUID
   if (!isUuid(id)) {
     return res.status(400).json({ error: "Invalid booking ID format" });
   }
@@ -267,29 +270,48 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-/* ============================================================
-   DELETE /bookings/:id
-   Verwijdert een boeking
-============================================================ */
+// ------------------------------------------------------------
+// DELETE /bookings/:id
+// ------------------------------------------------------------
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
 
-  // Validatie van UUID
   if (!isUuid(id)) {
     return res.status(400).json({ error: "Invalid booking ID format" });
   }
 
   try {
-    await prisma.booking.delete({ where: { id } });
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting booking:", error);
+    // 1. Haal booking op inclusief user + property
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        property: true
+      }
+    });
 
-    if (error.code === "P2025") {
+    if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
     }
 
-    res.status(500).json({ error: "Internal server error" });
+    // 2. Verwijder booking
+    await prisma.booking.delete({ where: { id } });
+
+    // 3. Verstuur annuleringsmail
+    console.log("Sending cancellation email to:", booking.user.email);
+    try {
+      await sendBookingCancellationEmail(booking.user.email, booking);
+    } catch (emailErr) {
+      console.error("Cancellation email failed:", emailErr);
+      // email mag falen, DELETE blijft succesvol
+    }
+
+    // 4. Succes
+    return res.status(204).send();
+
+  } catch (error) {
+    console.error("Error deleting booking:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 

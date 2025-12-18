@@ -149,7 +149,8 @@ async function main() {
         bathRoomCount: 2,
         maxGuestCount: 5,
         rating: 5,
-        hostId: "f1234567-89ab-cdef-0123-456789abcdef"
+        hostId: "f1234567-89ab-cdef-0123-456789abcdef",
+        imageUrl: "https://images.unsplash.com/photo-1505691938895-1758d7feb511"
       },
       {
         title: "Modern City Apartment",

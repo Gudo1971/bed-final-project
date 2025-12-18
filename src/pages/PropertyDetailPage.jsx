@@ -31,8 +31,10 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     async function fetchProperty() {
       const data = await getPropertyById(id);
+       console.log("PROPERTY:", data);
       setProperty(data);
     }
+    
     fetchProperty();
   }, [id]);
 
@@ -120,6 +122,21 @@ export default function PropertyDetailPage() {
       >
         ← Terug naar overzicht
       </Text>
+      {property.imageUrl && (
+  <Box mb={4}>
+    <img
+      src={property.imageUrl}
+      alt={property.title}
+      style={{
+        width: "100%",
+        height: "300px",
+        objectFit: "cover",
+        borderRadius: "8px"
+      }}
+    />
+  </Box>
+      )}
+
 
       <Heading>{property.title}</Heading>
       <Text>{property.description}</Text>
