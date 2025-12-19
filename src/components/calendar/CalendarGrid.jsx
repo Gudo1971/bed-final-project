@@ -9,6 +9,7 @@ export default function CalendarGrid({
   checkOut,
   onDateClick,
   setDisabledDates,
+  isInteractive = true, // ⭐ nieuwe prop
 }) {
   // ⭐ Socket realtime updates
   useEffect(() => {
@@ -98,7 +99,13 @@ export default function CalendarGrid({
                   ? "0 md md 0"
                   : "md"
               }
-              cursor={disabled ? "not-allowed" : "pointer"}
+              cursor={
+                !isInteractive
+                  ? "default"
+                  : disabled
+                  ? "not-allowed"
+                  : "pointer"
+              }
               bg={
                 disabled
                   ? "red.300"
@@ -117,26 +124,36 @@ export default function CalendarGrid({
                   ? "white"
                   : "black"
               }
-              _hover={{
-                bg: disabled ? "red.300" : "blue.50",
+              _hover={
+                !isInteractive
+                  ? {}
+                  : disabled
+                  ? { bg: "red.300" }
+                  : { bg: "blue.50" }
+              }
+              onClick={() => {
+                if (!isInteractive) return;
+                if (!disabled) onDateClick(date);
               }}
-              onClick={() => !disabled && onDateClick(date)}
-              boxShadow={disabled ? "none" : "sm"}
+              boxShadow={
+                !isInteractive || disabled
+                  ? "none"
+                  : "sm"
+              }
             >
-
               <Text fontWeight="medium">{date.getDate()}</Text>
+
               {selected === "checkin" && (
-  <Text fontSize="xs" color="white" mt={1}>
-    Check‑in
-  </Text>
-)}
+                <Text fontSize="xs" color="white" mt={1}>
+                  Check‑in
+                </Text>
+              )}
 
-{selected === "checkout" && (
-  <Text fontSize="xs" color="white" mt={1}>
-    Check‑out
-  </Text>
-)}
-
+              {selected === "checkout" && (
+                <Text fontSize="xs" color="white" mt={1}>
+                  Check‑out
+                </Text>
+              )}
 
               {disabled && (
                 <Text fontSize="xs" color="red.700">

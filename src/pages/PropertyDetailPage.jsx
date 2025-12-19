@@ -139,14 +139,15 @@ export default function PropertyDetailPage() {
 
       {/* ⭐ Kalender */}
       <Box mt={6}>
-        <CalendarGrid
-          days={days}
-          disabledDates={disabledDates}
-          checkIn={checkIn}
-          checkOut={checkOut}
-          onDateClick={handleDateClick}
-          setDisabledDates={setDisabledDates}
-        />
+       <CalendarGrid
+  days={days}
+  disabledDates={disabledDates}
+  checkIn={null}
+  checkOut={null}
+  onDateClick={() => {}}          // geen actie
+  setDisabledDates={() => {}}     // geen updates
+  isInteractive={false}           // ⭐ belangrijkste regel
+/>
       </Box>
 
       {/* ⭐ Boek nu knop */}
