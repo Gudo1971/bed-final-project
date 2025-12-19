@@ -1,47 +1,58 @@
-import { Box, Heading, Text, VStack, Button } from "@chakra-ui/react";
+import { Box, Heading, Text, VStack, Button,} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getPropertyById } from "../services/propertiesService";
 import { getReviewsByPropertyId } from "../services/reviews";
-import ReviewList from "../components/reviews/ReviewList";
-import ReviewForm from "../components/reviews/ReviewForm";
+
+
+
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import { io } from "socket.io-client";
-
+import { useAuth0 } from "@auth0/auth0-react";
 import ImageCarousel from "../components/images/ImageCarousel";
-
-
+import ReviewCarousel from "../components/reviews/Reviewcarousel";
 export default function PropertyDetailPage() {
+
+
+
+
+  // Auth0 user en login status
+  const { user, isAuthenticated } = useAuth0();
+
+  // Router helpers
   const { id } = useParams();
+  
   const navigate = useNavigate();
 
+  // Property data
   const [property, setProperty] = useState(null);
+
+  // Reviews voor deze property
   const [reviews, setReviews] = useState([]);
 
-  // ⭐ Kalender state
+  // Kalender state
   const [disabledDates, setDisabledDates] = useState([]);
   const [days, setDays] = useState([]);
+
+  // Check-in en check-out (hier niet interactief)
   const [checkIn, setCheckIn] = useState(null);
   const [checkOut, setCheckOut] = useState(null);
 
-  const user = { id: "ae62ded3-d6a5-480c-b471-de38efd885c1" }; // Mocked user
-
+  // Wordt aangeroepen wanneer een nieuwe review is toegevoegd
   const handleReviewAdded = (newReview) => {
     setReviews((prev) => [...prev, newReview]);
   };
 
-  // ⭐ Fetch property
+  // Property ophalen
   useEffect(() => {
     async function fetchProperty() {
       const data = await getPropertyById(id);
-       console.log("PROPERTY:", data);
       setProperty(data);
     }
-    
     fetchProperty();
   }, [id]);
 
-  // ⭐ Fetch reviews
+  // Reviews ophalen
   useEffect(() => {
     async function fetchReviews() {
       const data = await getReviewsByPropertyId(id);
@@ -50,7 +61,7 @@ export default function PropertyDetailPage() {
     fetchReviews();
   }, [id]);
 
-  // ⭐ Fetch disabled dates
+  // Disabled dates ophalen voor de kalender
   useEffect(() => {
     async function fetchDisabled() {
       const res = await fetch(
@@ -62,7 +73,7 @@ export default function PropertyDetailPage() {
     fetchDisabled();
   }, [id]);
 
-  // ⭐ Generate days for the calendar (simple month view)
+  // Dagen genereren voor de kalender (huidige maand)
   useEffect(() => {
     const today = new Date();
     const year = today.getFullYear();
@@ -79,12 +90,12 @@ export default function PropertyDetailPage() {
     setDays(tempDays);
   }, []);
 
-  // ⭐ Realtime updates
+  // Realtime updates via socket.io
   useEffect(() => {
     const socket = io("http://localhost:3000");
 
     socket.on("booking:created", (booking) => {
-      if (booking.propertyId !== id) return; // alleen deze property
+      if (booking.propertyId !== id) return;
 
       const start = new Date(booking.checkinDate);
       const end = new Date(booking.checkoutDate);
@@ -100,24 +111,12 @@ export default function PropertyDetailPage() {
     return () => socket.disconnect();
   }, [id]);
 
-  // ⭐ Date click handler
-  const handleDateClick = (date) => {
-    const dateStr = date.toISOString().split("T")[0];
-
-    if (!checkIn) {
-      setCheckIn(dateStr);
-    } else if (!checkOut && dateStr > checkIn) {
-      setCheckOut(dateStr);
-    } else {
-      setCheckIn(dateStr);
-      setCheckOut(null);
-    }
-  };
-
+  // Als property nog niet geladen is
   if (!property) return <Text>Loading...</Text>;
 
   return (
     <Box>
+      {/* Link terug naar overzicht */}
       <Text
         onClick={() => navigate("/")}
         cursor="pointer"
@@ -125,32 +124,48 @@ export default function PropertyDetailPage() {
       >
         ← Terug naar overzicht
       </Text>
-      {property.images && property.images.length > 0 && (
- <Box mb={4} width="100%" height="350px" position="relative">
-  <ImageCarousel images={property.images} />
-</Box>
-
-)}
-
-
-
+      {/* Titel en beschrijving */}
       <Heading>{property.title}</Heading>
+
+
+      {/* Afbeeldingen carousel */}
+      {property.images && property.images.length > 0 && (
+        <Box mb={4} width="100%" height="350px" position="relative">
+          <ImageCarousel images={property.images} />
+        </Box>
+      )}
+
+
+
       <Text>{property.description}</Text>
 
-      {/* ⭐ Kalender */}
+        {/* Review lijst altijd tonen */}
+        <ReviewCarousel reviews={reviews} />
+
+       
+
+
+      {/* Kalender (read-only) */}
       <Box mt={6}>
-       <CalendarGrid
-  days={days}
-  disabledDates={disabledDates}
-  checkIn={null}
-  checkOut={null}
-  onDateClick={() => {}}          // geen actie
-  setDisabledDates={() => {}}     // geen updates
-  isInteractive={false}           // ⭐ belangrijkste regel
-/>
+        <CalendarGrid
+          days={days}
+          disabledDates={disabledDates}
+          checkIn={null}
+          checkOut={null}
+          onDateClick={() => {}}
+          setDisabledDates={() => {}}
+          isInteractive={false}
+        />
       </Box>
 
-      {/* ⭐ Boek nu knop */}
+      
+
+      {/* Reviews sectie */}
+      <VStack align="start" spacing={6} w="100%" mt={8}>
+
+
+
+       {/* Boek nu knop */}
       <Button
         as={Link}
         to={`/booking/${property.id}`}
@@ -160,15 +175,10 @@ export default function PropertyDetailPage() {
         Boek nu
       </Button>
 
-      {/* ⭐ Reviews */}
-      <VStack align="start" spacing={6} w="100%" mt={8}>
-        <ReviewForm
-          propertyId={property.id}
-          userId={user.id}
-          onReviewAdded={handleReviewAdded}
-        />
+        {/* Review formulier alleen tonen als gebruiker is ingelogd */}
+       
+              
 
-        <ReviewList reviews={reviews} />
       </VStack>
     </Box>
   );

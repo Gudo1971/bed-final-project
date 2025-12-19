@@ -2,6 +2,7 @@ import { Tabs, TabList, TabPanels, Tab, TabPanel, Container, Heading } from "@ch
 import ProfileTab from "../components/tabs/ProfileTab";
 import BookingsTab from "../components/tabs/BookingsTab";
 import AccountTab from "../components/tabs/AccountTab";
+import MyReviews from "../components/profile/MyReviews";
 
 
 export default function ProfilePage() {
@@ -13,7 +14,9 @@ export default function ProfilePage() {
         <TabList>
           <Tab>👤 Persoonsgegevens</Tab>
           <Tab>📅 Mijn Boekingen</Tab>
+          <Tab>📃 Mijn Reviews</Tab>
           <Tab>🔐 Account</Tab>
+
         </TabList>
 
         <TabPanels>
@@ -22,6 +25,9 @@ export default function ProfilePage() {
           </TabPanel>
           <TabPanel>
             <BookingsTab />
+          </TabPanel>
+          <TabPanel>
+            <MyReviews />
           </TabPanel>
           <TabPanel>
             <AccountTab />
