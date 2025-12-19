@@ -18,13 +18,15 @@ datasource db {
 // ============================================================
 model User {
   id          String @id @default(uuid())
-  username    String @unique
-  password    String
-  name        String
   auth0Id     String @unique
-  email       String
-  phoneNumber String
-  pictureUrl  String
+  username    String? @unique
+  password    String?
+  name        String?
+
+  email       String?
+  phoneNumber String?
+  pictureUrl  String?
+
 
   // Relaties
   bookings Booking[]
@@ -37,7 +39,7 @@ model User {
 model Host {
   id          String @id @default(uuid())
   username    String @unique
-  password    String
+  password    String?
   name        String 
   auth0Id     String @unique
   email       String @unique
@@ -52,8 +54,7 @@ model Host {
 // ============================================================
 // Property model
 // ============================================================
-
-  model Property {
+model Property {
   id            String          @id @default(uuid())
   hostId        String
   title         String
@@ -65,12 +66,22 @@ model Host {
   maxGuestCount Int
   rating        Int
 
-  // Relaties
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  latitude      Float?
+  longitude     Float?
+  isActive      Boolean         @default(true)
+  cleaningFee   Float? 
+  serviceFee    Float?
+  minimumNights Int? 
+  maximumNights Int?
+
   host          Host            @relation(fields: [hostId], references: [id])
   bookings      Booking[]
   reviews       Review[]
   amenities     Amenity[]
-  images        PropertyImage[] // <-- nieuwe relatie
+  images        PropertyImage[]
 }
 // ============================================================
 // PropertyImg  model
@@ -128,13 +139,17 @@ model Booking {
 // Review model
 // ============================================================
 model Review {
-  id         String @id @default(uuid())
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relaties
   userId     String
   propertyId String
-  rating     Int
-  comment    String
-
-  // Relaties
-  user     User     @relation(fields: [userId], references: [id])
-  property Property @relation(fields: [propertyId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])
 }
+
+

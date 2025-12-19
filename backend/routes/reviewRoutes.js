@@ -1,15 +1,18 @@
 import express from "express";
 import prisma from "../lib/prisma.js";
-import { validate as isUuid } from "uuid";
+import { checkJwt } from "../middleware/auth0Middleware.js";
+import { getDbUser } from "../middleware/getDbUser.js";
 
 const router = express.Router();
 
 /* -------------------------------------------
-   GET /reviews
+   GET /reviews  → alle reviews
 ------------------------------------------- */
 router.get("/", async (req, res) => {
   try {
-    const reviews = await prisma.review.findMany();
+    const reviews = await prisma.review.findMany({
+      include: { user: true, property: true },
+    });
     res.json(reviews);
   } catch (error) {
     console.error("Error fetching reviews:", error);
@@ -18,14 +21,27 @@ router.get("/", async (req, res) => {
 });
 
 /* -------------------------------------------
-   GET /properties/:id/reviews  (specifiek → boven /reviews/:id)
+   GET /reviews/me  → reviews van ingelogde user
+------------------------------------------- */
+router.get("/me", checkJwt, getDbUser, async (req, res) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { userId: req.dbUser.id },
+      include: { property: true },
+    });
+
+    res.json(reviews);
+  } catch (error) {
+    console.error("Error fetching user reviews:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/* -------------------------------------------
+   GET /reviews/property/:id  → reviews per property
 ------------------------------------------- */
 router.get("/property/:id", async (req, res) => {
   const { id } = req.params;
-
-  if (!isUuid(id)) {
-    return res.status(400).json({ error: "Invalid property ID format" });
-  }
 
   try {
     const property = await prisma.property.findUnique({ where: { id } });
@@ -36,9 +52,7 @@ router.get("/property/:id", async (req, res) => {
 
     const reviews = await prisma.review.findMany({
       where: { propertyId: id },
-      include: {
-        user: true,
-      },
+      include: { user: true },
     });
 
     res.json(reviews);
@@ -49,17 +63,16 @@ router.get("/property/:id", async (req, res) => {
 });
 
 /* -------------------------------------------
-   GET /reviews/:id
+   GET /reviews/:id  → één review
 ------------------------------------------- */
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
 
-  if (!isUuid(id)) {
-    return res.status(400).json({ error: "Invalid review ID format" });
-  }
-
   try {
-    const review = await prisma.review.findUnique({ where: { id } });
+    const review = await prisma.review.findUnique({
+      where: { id },
+      include: { user: true, property: true },
+    });
 
     if (!review) {
       return res.status(404).json({ error: "Review not found" });
@@ -73,34 +86,24 @@ router.get("/:id", async (req, res) => {
 });
 
 /* -------------------------------------------
-   POST /reviews
+   POST /reviews  → nieuwe review
 ------------------------------------------- */
-router.post("/", async (req, res) => {
-  const { userId, propertyId, rating, comment } = req.body;
+router.post("/", checkJwt, getDbUser, async (req, res) => {
+  const { propertyId, rating, comment } = req.body;
 
-  if (!userId || !propertyId || !rating) {
+  if (!propertyId || !rating) {
     return res.status(400).json({
-      error: "userId, propertyId and rating are required",
+      error: "propertyId and rating are required",
     });
   }
 
-  if (!isUuid(userId) || !isUuid(propertyId)) {
-    return res.status(400).json({ error: "Invalid UUID format" });
-  }
-
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    const property = await prisma.property.findUnique({ where: { id: propertyId } });
-
-    if (!user) return res.status(404).json({ error: "User not found" });
-    if (!property) return res.status(404).json({ error: "Property not found" });
-
     const review = await prisma.review.create({
       data: {
-        userId,
+        userId: req.dbUser.id,
         propertyId,
         rating: Number(rating),
-        comment,
+        comment: comment || "",
       },
     });
 
@@ -112,54 +115,60 @@ router.post("/", async (req, res) => {
 });
 
 /* -------------------------------------------
-   PUT /reviews/:id
+   PUT /reviews/:id  → review updaten (alleen eigenaar)
 ------------------------------------------- */
-router.put("/:id", async (req, res) => {
+router.put("/:id", checkJwt, getDbUser, async (req, res) => {
   const { id } = req.params;
   const { rating, comment } = req.body;
 
-  if (!isUuid(id)) {
-    return res.status(400).json({ error: "Invalid review ID format" });
-  }
-
   try {
+    const review = await prisma.review.findUnique({ where: { id } });
+
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    if (review.userId !== req.dbUser.id) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
+
     const updated = await prisma.review.update({
       where: { id },
-      data: { rating: Number(rating), comment },
+      data: {
+        rating: Number(rating),
+        comment,
+      },
     });
 
     res.json(updated);
   } catch (error) {
     console.error("Error updating review:", error);
-
-    if (error.code === "P2025") {
-      return res.status(404).json({ error: "Review not found" });
-    }
-
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
 /* -------------------------------------------
-   DELETE /reviews/:id
+   DELETE /reviews/:id  → review verwijderen (alleen eigenaar)
 ------------------------------------------- */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", checkJwt, getDbUser, async (req, res) => {
   const { id } = req.params;
 
-  if (!isUuid(id)) {
-    return res.status(400).json({ error: "Invalid review ID format" });
-  }
-
   try {
-    await prisma.review.delete({ where: { id } });
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting review:", error);
+    const review = await prisma.review.findUnique({ where: { id } });
 
-    if (error.code === "P2025") {
+    if (!review) {
       return res.status(404).json({ error: "Review not found" });
     }
 
+    if (review.userId !== req.dbUser.id) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
+
+    await prisma.review.delete({ where: { id } });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting review:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

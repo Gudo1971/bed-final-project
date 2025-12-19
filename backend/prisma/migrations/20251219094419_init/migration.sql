@@ -39,6 +39,16 @@ CREATE TABLE "Property" (
 );
 
 -- CreateTable
+CREATE TABLE "PropertyImage" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "propertyId" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "publicId" TEXT NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT "PropertyImage_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "Amenity" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL
@@ -54,6 +64,9 @@ CREATE TABLE "Booking" (
     "numberOfGuests" INTEGER NOT NULL,
     "totalPrice" REAL NOT NULL,
     "bookingStatus" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "notes" TEXT,
     CONSTRAINT "Booking_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Booking_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );

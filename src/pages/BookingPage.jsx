@@ -208,6 +208,7 @@ export default function BookingPage() {
         checkOut={checkOut}
         onDateClick={handleDateSelection}
         setDisabledDates={setDisabledDates}
+        isInteractive={true}   
       />
 
       {/* Prijsindicatie */}

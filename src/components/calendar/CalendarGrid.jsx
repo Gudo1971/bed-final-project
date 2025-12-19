@@ -9,10 +9,26 @@ export default function CalendarGrid({
   checkOut,
   onDateClick,
   setDisabledDates,
+  isInteractive = true,
 }) {
-  // ⭐ Socket realtime updates
+
+  /*
+    SOCKET.IO REALTIME UPDATES
+    ---------------------------
+    - Verbindt met backend via WebSocket
+    - StrictMode-proof: één stabiele connectie
+    - Luistert naar "booking:created" events
+    - Voegt nieuwe disabled dates toe zonder duplicaten
+  */
   useEffect(() => {
-    const socket = io("http://localhost:3000");
+    const socket = io("http://localhost:3000", {
+      transports: ["websocket"], // Forceert WebSocket boven polling
+      autoConnect: true          // Verbindt direct
+    });
+
+    socket.on("connect", () => {
+      console.log("Socket.IO verbonden:", socket.id);
+    });
 
     socket.on("booking:created", (booking) => {
       const start = new Date(booking.checkinDate);
@@ -23,16 +39,26 @@ export default function CalendarGrid({
         newDisabled.push(d.toISOString().split("T")[0]);
       }
 
-      // ⭐ Deduplicatie
+      // Deduplicatie van disabled dates
       setDisabledDates((prev) =>
         Array.from(new Set([...prev, ...newDisabled]))
       );
     });
 
-    return () => socket.disconnect();
+    return () => {
+      socket.disconnect();
+    };
   }, [setDisabledDates]);
 
-  // ⭐ Formatter
+  /*
+    HULPFUNCTIES
+    ------------
+    - formatDate: zet Date om naar YYYY-MM-DD
+    - isDisabled: checkt of datum geblokkeerd is
+    - isSelected: checkt of datum check-in of check-out is
+    - isInRange: checkt of datum tussen check-in en check-out valt
+  */
+
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -45,13 +71,10 @@ export default function CalendarGrid({
     return disabledDates.includes(dateStr);
   };
 
-  // ⭐ Correcte selectie-check
   const isSelected = (date) => {
     const dateStr = formatDate(date);
-
     if (dateStr === checkIn) return "checkin";
     if (dateStr === checkOut) return "checkout";
-
     return "";
   };
 
@@ -60,6 +83,14 @@ export default function CalendarGrid({
     const d = date.getTime();
     return d > new Date(checkIn).getTime() && d < new Date(checkOut).getTime();
   };
+
+  /*
+    RENDER
+    ------
+    - Weekdagen
+    - Dagen van de maand
+    - Styling voor disabled, selected, in-range en hover states
+  */
 
   return (
     <>
@@ -79,7 +110,7 @@ export default function CalendarGrid({
       </Grid>
 
       {/* Dagen */}
-      <Grid templateColumns="repeat(7, 1fr)" gap={2}>
+      <Grid templateColumns="repeat(7, 1fr)" gap={0.5}>
         {days.map((date) => {
           const dateStr = formatDate(date);
           const disabled = isDisabled(date);
@@ -89,7 +120,8 @@ export default function CalendarGrid({
           return (
             <Box
               key={dateStr}
-              p={3}
+              p={0.5}
+              minW="28px"
               textAlign="center"
               borderRadius={
                 selected === "checkin"
@@ -98,7 +130,13 @@ export default function CalendarGrid({
                   ? "0 md md 0"
                   : "md"
               }
-              cursor={disabled ? "not-allowed" : "pointer"}
+              cursor={
+                !isInteractive
+                  ? "default"
+                  : disabled
+                  ? "not-allowed"
+                  : "pointer"
+              }
               bg={
                 disabled
                   ? "red.300"
@@ -117,26 +155,36 @@ export default function CalendarGrid({
                   ? "white"
                   : "black"
               }
-              _hover={{
-                bg: disabled ? "red.300" : "blue.50",
+              _hover={
+                !isInteractive
+                  ? {}
+                  : disabled
+                  ? { bg: "red.300" }
+                  : { bg: "blue.50" }
+              }
+              onClick={() => {
+                if (!isInteractive) return;
+                if (!disabled) onDateClick(date);
               }}
-              onClick={() => !disabled && onDateClick(date)}
-              boxShadow={disabled ? "none" : "sm"}
+              boxShadow={
+                !isInteractive || disabled
+                  ? "none"
+                  : "sm"
+              }
             >
-
               <Text fontWeight="medium">{date.getDate()}</Text>
+
               {selected === "checkin" && (
-  <Text fontSize="xs" color="white" mt={1}>
-    Check‑in
-  </Text>
-)}
+                <Text fontSize="xs" color="white" mt={1}>
+                  Check-in
+                </Text>
+              )}
 
-{selected === "checkout" && (
-  <Text fontSize="xs" color="white" mt={1}>
-    Check‑out
-  </Text>
-)}
-
+              {selected === "checkout" && (
+                <Text fontSize="xs" color="white" mt={1}>
+                  Check-out
+                </Text>
+              )}
 
               {disabled && (
                 <Text fontSize="xs" color="red.700">

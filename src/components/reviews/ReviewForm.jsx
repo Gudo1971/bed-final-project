@@ -1,57 +1,128 @@
 import { useState } from "react";
 import {
   VStack,
-  Input,
   Textarea,
   Button,
   FormControl,
   FormLabel,
   FormErrorMessage,
+  Box,
+  Text,
+  useToast,
 } from "@chakra-ui/react";
 import { createReview } from "../../services/reviewService";
+import { useAuth0 } from "@auth0/auth0-react";
 
-export default function ReviewForm({ propertyId, userId, onReviewAdded }) {
-  const [rating, setRating] = useState("");
+// ⭐ Klikbare sterren component
+function StarRating({ rating, setRating }) {
+  const [hover, setHover] = useState(0);
+
+  return (
+    <Box>
+      {[1, 2, 3, 4, 5].map((value) => {
+        const isActive = value <= (hover > 0 ? hover : rating);
+
+        return (
+          <Text
+            as="span"
+            key={value}
+            display="inline-block"
+            fontSize="2xl"
+            cursor="pointer"
+            color={isActive ? "yellow.400" : "gray.400"}
+            transition="color 0.2s ease, transform 0.15s ease"
+            onMouseEnter={() => setHover(value)}
+            onMouseLeave={() => setHover(0)}
+            onClick={() => setRating(value)}
+            _hover={{ transform: "scale(1.2)" }}
+            mr={1}
+          >
+            ★
+          </Text>
+        );
+      })}
+    </Box>
+  );
+}
+
+
+
+export default function ReviewForm({ propertyId, onReviewAdded }) {
+  const { getAccessTokenSilently } = useAuth0();
+  const toast = useToast();
+
+  const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const isRatingInvalid = rating < 1 || rating > 5 || rating === "";
+  const isRatingInvalid = rating < 1 || rating > 5;
   const isCommentInvalid = comment.trim().length < 5;
 
   const handleSubmit = async () => {
     if (isRatingInvalid || isCommentInvalid) return;
 
-    const newReview = await createReview({
-      rating: Number(rating),
-      comment,
-      propertyId,
-      userId,
-    });
+    setIsLoading(true);
 
-    onReviewAdded(newReview);
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: "https://staybnb-api/",
+        },
+      });
 
-    setRating("");
-    setComment("");
+      const newReview = await createReview(
+        {
+          rating,
+          comment,
+          propertyId,
+        },
+        token
+      );
+
+      // ⭐ Succes toast
+      toast({
+        title: "Review geplaatst",
+        description: "Bedankt voor je bijdrage!",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+      onReviewAdded?.(newReview);
+
+      // Reset form
+      setRating(0);
+      setComment("");
+    } catch (err) {
+      console.error("Review plaatsen mislukt:", err);
+
+      // ⭐ Error toast
+      toast({
+        title: "Er ging iets mis",
+        description: "Probeer het later opnieuw.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <VStack spacing={4} align="start" w="100%">
+      {/* ⭐ Rating */}
       <FormControl isInvalid={isRatingInvalid}>
-        <FormLabel>Rating (1-5)</FormLabel>
-        <Input
-          type="number"
-          min={1}
-          max={5}
-          value={rating}
-          onChange={(e) => setRating(e.target.value)}
-          placeholder="Geef een rating van 1 t/m 5"
-        />
+        <FormLabel>Jouw rating</FormLabel>
+        <StarRating rating={rating} setRating={setRating} />
         {isRatingInvalid && (
           <FormErrorMessage>
-            Rating moet tussen 1 en 5 zijn.
+            Kies een rating tussen 1 en 5 sterren.
           </FormErrorMessage>
         )}
       </FormControl>
 
+      {/* ⭐ Comment */}
       <FormControl isInvalid={isCommentInvalid}>
         <FormLabel>Review</FormLabel>
         <Textarea
@@ -66,10 +137,13 @@ export default function ReviewForm({ propertyId, userId, onReviewAdded }) {
         )}
       </FormControl>
 
+      {/* ⭐ Submit */}
       <Button
         colorScheme="blue"
         onClick={handleSubmit}
         isDisabled={isRatingInvalid || isCommentInvalid}
+        isLoading={isLoading}
+        loadingText="Bezig..."
       >
         Review plaatsen
       </Button>
