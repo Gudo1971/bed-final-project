@@ -8,13 +8,38 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
 import ThemeToggle from "./ThemeToggle";
+import { useUser } from "../context/UserContext";
 
 export default function Navbar() {
-  const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0();
+  const { loginWithRedirect, logout, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { userData, setUserData } = useUser();
+  const navigate = useNavigate();
+
+  async function handleBecomeHost() {
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: "https://staybnb-api/" },
+      });
+
+      const res = await fetch("http://localhost:3000/users/become-host", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updated = await res.json();
+      setUserData(updated);
+
+      navigate("/host");
+    } catch (err) {
+      console.error("Become host failed:", err);
+    }
+  }
 
   return (
     <Box
@@ -43,6 +68,20 @@ export default function Navbar() {
         <HStack spacing={4}>
           <ThemeToggle />
 
+          {/* Become Host / Host Dashboard */}
+          {isAuthenticated && userData && !userData.isHost && (
+            <Button colorScheme="green" onClick={handleBecomeHost}>
+              Become a Host
+            </Button>
+          )}
+
+          {isAuthenticated && userData && userData.isHost && (
+            <Button colorScheme="blue" onClick={() => navigate("/host")}>
+              Host Dashboard
+            </Button>
+          )}
+
+          {/* Login / Logout */}
           {!isAuthenticated && (
             <Button colorScheme="teal" onClick={() => loginWithRedirect()}>
               Login

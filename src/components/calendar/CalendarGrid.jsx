@@ -12,22 +12,16 @@ export default function CalendarGrid({
   isInteractive = true,
 }) {
 
-  /*
-    SOCKET.IO REALTIME UPDATES
-    ---------------------------
-    - Verbindt met backend via WebSocket
-    - StrictMode-proof: één stabiele connectie
-    - Luistert naar "booking:created" events
-    - Voegt nieuwe disabled dates toe zonder duplicaten
-  */
+  // ---------------------------------------------------------
+  // SOCKET.IO REALTIME UPDATES
+  // ---------------------------------------------------------
+  // - Verbindt met backend via WebSocket
+  // - Luistert naar "booking:created" events
+  // - Voegt nieuwe disabled dates toe zonder duplicaten
   useEffect(() => {
     const socket = io("http://localhost:3000", {
-      transports: ["websocket"], // Forceert WebSocket boven polling
-      autoConnect: true          // Verbindt direct
-    });
-
-    socket.on("connect", () => {
-      console.log("Socket.IO verbonden:", socket.id);
+      transports: ["websocket"],
+      autoConnect: true
     });
 
     socket.on("booking:created", (booking) => {
@@ -39,26 +33,19 @@ export default function CalendarGrid({
         newDisabled.push(d.toISOString().split("T")[0]);
       }
 
-      // Deduplicatie van disabled dates
       setDisabledDates((prev) =>
         Array.from(new Set([...prev, ...newDisabled]))
       );
     });
 
-    return () => {
-      socket.disconnect();
-    };
+    return () => socket.disconnect();
   }, [setDisabledDates]);
 
-  /*
-    HULPFUNCTIES
-    ------------
-    - formatDate: zet Date om naar YYYY-MM-DD
-    - isDisabled: checkt of datum geblokkeerd is
-    - isSelected: checkt of datum check-in of check-out is
-    - isInRange: checkt of datum tussen check-in en check-out valt
-  */
+  // ---------------------------------------------------------
+  // HULPFUNCTIES
+  // ---------------------------------------------------------
 
+  // Format date naar YYYY-MM-DD
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -66,11 +53,17 @@ export default function CalendarGrid({
     return `${y}-${m}-${d}`;
   };
 
-  const isDisabled = (date) => {
-    const dateStr = formatDate(date);
-    return disabledDates.includes(dateStr);
+  // Check of datum in disabledDates zit
+  const isDisabled = (date) => disabledDates.includes(formatDate(date));
+
+  // Check of datum in het verleden ligt
+  const isPastDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
   };
 
+  // Check of datum check-in of check-out is
   const isSelected = (date) => {
     const dateStr = formatDate(date);
     if (dateStr === checkIn) return "checkin";
@@ -78,23 +71,19 @@ export default function CalendarGrid({
     return "";
   };
 
+  // Check of datum tussen check-in en check-out ligt
   const isInRange = (date) => {
     if (!checkIn || !checkOut) return false;
-    const d = date.getTime();
-    return d > new Date(checkIn).getTime() && d < new Date(checkOut).getTime();
+    const t = date.getTime();
+    return t > new Date(checkIn).getTime() && t < new Date(checkOut).getTime();
   };
 
-  /*
-    RENDER
-    ------
-    - Weekdagen
-    - Dagen van de maand
-    - Styling voor disabled, selected, in-range en hover states
-  */
-
+  // ---------------------------------------------------------
+  // RENDER
+  // ---------------------------------------------------------
   return (
     <>
-      {/* Weekdagen */}
+      {/* Weekdagen header */}
       <Grid templateColumns="repeat(7, 1fr)" mb={2}>
         {["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"].map((day) => (
           <Box
@@ -109,11 +98,12 @@ export default function CalendarGrid({
         ))}
       </Grid>
 
-      {/* Dagen */}
+      {/* Dagen van de maand */}
       <Grid templateColumns="repeat(7, 1fr)" gap={0.5}>
         {days.map((date) => {
           const dateStr = formatDate(date);
-          const disabled = isDisabled(date);
+          const past = isPastDate(date);
+          const disabled = isDisabled(date) || past;
           const selected = isSelected(date);
           const inRange = isInRange(date);
 
@@ -123,6 +113,9 @@ export default function CalendarGrid({
               p={0.5}
               minW="28px"
               textAlign="center"
+              position="relative"
+
+              // Border radius voor check-in en check-out styling
               borderRadius={
                 selected === "checkin"
                   ? "md 0 0 md"
@@ -130,6 +123,8 @@ export default function CalendarGrid({
                   ? "0 md md 0"
                   : "md"
               }
+
+              // Cursor gedrag
               cursor={
                 !isInteractive
                   ? "default"
@@ -137,6 +132,8 @@ export default function CalendarGrid({
                   ? "not-allowed"
                   : "pointer"
               }
+
+              // Achtergrondkleur op basis van status
               bg={
                 disabled
                   ? "red.300"
@@ -148,6 +145,8 @@ export default function CalendarGrid({
                   ? "blue.100"
                   : "white"
               }
+
+              // Tekstkleur
               color={
                 disabled
                   ? "red.700"
@@ -155,17 +154,34 @@ export default function CalendarGrid({
                   ? "white"
                   : "black"
               }
+
+              // Hover gedrag
               _hover={
                 !isInteractive
                   ? {}
                   : disabled
                   ? { bg: "red.300" }
-                  : { bg: "blue.50" }
+                  : {
+                      bg: "green.50",
+                      _after: {
+                        content: '"✔"',
+                        position: "absolute",
+                        top: "2px",
+                        right: "4px",
+                        color: "green.500",
+                        fontSize: "12px",
+                        fontWeight: "bold"
+                      }
+                    }
               }
+
+              // Klikgedrag
               onClick={() => {
                 if (!isInteractive) return;
                 if (!disabled) onDateClick(date);
               }}
+
+              // Schaduw voor actieve datums
               boxShadow={
                 !isInteractive || disabled
                   ? "none"
@@ -174,6 +190,7 @@ export default function CalendarGrid({
             >
               <Text fontWeight="medium">{date.getDate()}</Text>
 
+              {/* Labels voor check-in en check-out */}
               {selected === "checkin" && (
                 <Text fontSize="xs" color="white" mt={1}>
                   Check-in
@@ -186,6 +203,7 @@ export default function CalendarGrid({
                 </Text>
               )}
 
+              {/* Slotje voor disabled of verleden */}
               {disabled && (
                 <Text fontSize="xs" color="red.700">
                   🔒

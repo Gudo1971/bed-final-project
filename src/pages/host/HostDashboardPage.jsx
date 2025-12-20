@@ -1,90 +1,51 @@
-import { useEffect, useState } from "react";
-import { Box, Button, Heading, Flex, Text, Image } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
+import { Box, Heading, Tabs, TabList, TabPanels, Tab, TabPanel } from "@chakra-ui/react";
+import HostProperties from "./HostProperties";
+import HostBookings from "./HostBookings";
+import HostReviews from "./HostReviews";
 import { useAuth0 } from "@auth0/auth0-react";
-import axios from "axios";
-import { Link } from "react-router-dom";
 
 export default function HostDashboardPage() {
   const { getAccessTokenSilently } = useAuth0();
-  const [properties, setProperties] = useState([]);
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const token = await getAccessTokenSilently({
-  authorizationParams: {
-    audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-  },
-});
-   console.log("🔑 ACCESS TOKEN:", token);     
+    async function loadToken() {
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: "https://staybnb.gudo.dev/api" }
+      });
+      setToken(token); // <-- FIXED
+    }
+    loadToken();
+  }, [getAccessTokenSilently]);
 
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/properties/host/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        setProperties(res.data);
-      } catch (err) {
-        console.error("Error fetching host properties:", err);
-      }
-    };
-
-    fetchProperties();
-  }, []);
+  if (!token) return null;
 
   return (
     <Box p={6}>
-      <Flex justify="space-between" align="center" mb={6}>
-        <Heading size="lg">Your Properties</Heading>
+      <Heading mb={6}>Host Dashboard</Heading>
 
-        <Button as={Link} to="/host/add-property" colorScheme="teal">
-          + Add Property
-        </Button>
-      </Flex>
+      <Tabs variant="enclosed">
+        <TabList>
+          <Tab>Mijn Properties</Tab>
+          <Tab>Boekingen</Tab>
+          <Tab>Reviews</Tab>
+        </TabList>
 
-      {properties.length === 0 ? (
-        <Text>No properties yet. Add your first one!</Text>
-      ) : (
-        <Flex direction="column" gap={4}>
-          {properties.map((p) => (
-            <Flex
-              key={p.id}
-              p={4}
-              border="1px solid #ddd"
-              borderRadius="10px"
-              align="center"
-              justify="space-between"
-            >
-              <Flex align="center" gap={4}>
-                <Image
-                  src={p.images[0]?.url}
-                  width="80px"
-                  height="80px"
-                  objectFit="cover"
-                  borderRadius="8px"
-                />
-                <Box>
-                  <Heading size="md">{p.title}</Heading>
-                  <Text>€{p.pricePerNight} / night</Text>
-                </Box>
-              </Flex>
+        <TabPanels>
+          <TabPanel>
+            <HostProperties token={token} />
+          </TabPanel>
 
-              <Flex gap={3}>
-                <Button as={Link} to={`/properties/${p.id}`} variant="outline">
-                  View
-                </Button>
-                <Button as={Link} to={`/host/edit-property/${p.id}`} colorScheme="teal">
-                  Edit
-                </Button>
-              </Flex>
-            </Flex>
-          ))}
-        </Flex>
-      )}
+          <TabPanel>
+            <HostBookings token={token} />
+          </TabPanel>
+
+          <TabPanel>
+            <HostReviews token={token} />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </Box>
   );
 }

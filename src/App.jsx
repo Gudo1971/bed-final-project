@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import HostDashboardPage from "../src/pages/host/HostDashboardPage";
 
 import ProtectedRoute from "./auth/ProtectedRoutes";
 import HostRoute from "./auth/HostRoute";
 import { Routes, Route } from "react-router-dom";
-import Navbar from "./components/navbar";
+import Navbar from "./components/navbar/Navbar.jsx";;
 import PropertyPage from "./pages/PropertyPage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
 import BookingPage from "./pages/BookingPage";
@@ -67,6 +68,8 @@ console.log("🔐 TOKEN:", token);
         
         <Route path="/properties/:id" element={<PropertyDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/host" element={<HostDashboardPage />} />
+
 
         <Route
           path="/booking/:propertyId"
@@ -77,7 +80,15 @@ console.log("🔐 TOKEN:", token);
           }
         />
 
-    
+          <Route
+          path="/add-property"
+          element={
+          <HostRoute>
+        <PropertyForm />
+        </HostRoute>
+          }
+        />
+
 
         <Route path="/" element={<PropertyPage />} />
       </Routes>

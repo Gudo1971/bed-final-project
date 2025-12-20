@@ -6,7 +6,6 @@ import { Server } from "socket.io";
 import propertiesRoutes from './routes/propertiesRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import userRoutes from "./routes/userRoutes.js";
-import hostRoutes from "./routes/hostRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import authRoutes from "./routes/auth.js";
 import { auth } from "express-oauth2-jwt-bearer";
@@ -33,7 +32,6 @@ app.use("/auth0", authRoutes);
 app.get("/", (req, res) => res.send("Hello world!"));
 app.use("/properties", propertiesRoutes);
 app.use("/users", userRoutes);
-app.use("/hosts", hostRoutes);
 app.use("/bookings", bookingRoutes);
 app.use("/reviews", reviewRoutes);
 
