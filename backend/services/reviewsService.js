@@ -1,61 +1,47 @@
-import axios from "axios";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
-const API_URL = "http://localhost:3000/reviews";
-
-/* -------------------------------------------
-   GET reviews per property
-------------------------------------------- */
-export async function getReviewsByPropertyId(propertyId) {
-  return axios.get(`${API_URL}/property/${propertyId}`);
+// 🔹 Alle properties (publiek)
+export async function getAllProperties() {
+  return prisma.property.findMany({
+    where: { isActive: true },
+    include: { images: true },
+  });
 }
 
-/* -------------------------------------------
-   GET reviews van ingelogde user
-------------------------------------------- */
-export async function getMyReviews(token) {
-  return axios.get(`${API_URL}/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
+// 🔹 Eén property op ID
+export async function getPropertyById(id) {
+  if (!id) throw new Error("Property ID is required");
+
+  return prisma.property.findUnique({
+    where: { id },
+    include: {
+      images: true,
+      reviews: true,
+      bookings: true,
     },
   });
 }
 
-/* -------------------------------------------
-   POST nieuwe review
-------------------------------------------- */
-export async function createReview(data, token) {
-  try {
-    const res = await axios.post(API_URL, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return res.data;
-  } catch (err) {
-    // Zorg dat de frontend altijd een duidelijke fout krijgt
-    throw err.response?.data || { error: "Onbekende fout" };
-  }
-}
+// 🔹 Alle properties van een host (User = host)
+export async function getPropertiesByHostId(hostId) {
+  if (!hostId) throw new Error("Host ID is required");
 
-
-/* -------------------------------------------
-   PUT review updaten
-------------------------------------------- */
-export async function updateReview(id, data, token) {
-  return axios.put(`${API_URL}/${id}`, data, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  return prisma.property.findMany({
+    where: { hostId },
+    include: { images: true },
   });
 }
 
-/* -------------------------------------------
-   DELETE review
-------------------------------------------- */
-export async function deleteReview(id, token) {
-  return axios.delete(`${API_URL}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
+// 🔹 Property aanmaken voor host
+export async function createPropertyForHost(hostId, data) {
+  if (!hostId) throw new Error("Host ID is required");
+
+  return prisma.property.create({
+    data: {
+      ...data,
+      hostId,
     },
+    include: { images: true },
   });
 }

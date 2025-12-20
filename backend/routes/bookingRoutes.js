@@ -71,6 +71,56 @@ router.get("/user/:userId", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+// ------------------------------------------------------------
+// GET /bookings/host  (Auth0 protected)
+// Alle boekingen op properties van de host
+// ------------------------------------------------------------
+router.get("/host", checkJwt, async (req, res) => {
+  try {
+    const auth0Id = req.auth.payload.sub;
+
+    // 1. Vind de host in de database
+    const host = await prisma.user.findUnique({
+      where: { auth0Id },
+    });
+
+    if (!host) {
+      return res.status(404).json({ error: "Host not found" });
+    }
+
+    // 2. Vind alle properties van deze host
+    const properties = await prisma.property.findMany({
+      where: { userId: host.id },
+      select: { id: true },
+    });
+
+    const propertyIds = properties.map((p) => p.id);
+
+    if (propertyIds.length === 0) {
+      return res.json([]); // host heeft nog geen properties
+    }
+
+    // 3. Haal alle boekingen op voor deze properties
+    const bookings = await prisma.booking.findMany({
+      where: {
+        propertyId: { in: propertyIds },
+      },
+      include: {
+        user: true,
+        property: true,
+      },
+      orderBy: {
+        checkinDate: "asc",
+      },
+    });
+
+    res.json(bookings);
+  } catch (err) {
+    console.error("Error fetching host bookings:", err);
+    res.status(500).json({ error: "Failed to fetch host bookings" });
+  }
+});
+
 
 // ------------------------------------------------------------
 // GET /bookings/:id
