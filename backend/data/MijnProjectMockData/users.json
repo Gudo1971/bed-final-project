@@ -1,0 +1,82 @@
+{
+  "users": [
+    {
+      "id": "7f3c2c4e-9b0d-4c0e-9f3a-2a4e5f9b1c11",
+      "username": "jdoe",
+      "password": "password123",
+      "name": "John Doe",
+      "email": "johndoe@example.com",
+      "phoneNumber": "123-456-7890",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/johndoe.jpeg"
+    },
+    {
+      "id": "c8a1e3d2-4f6b-4c8e-9d22-1b7f4a9e8c44",
+      "username": "asimpson",
+      "password": "password234",
+      "name": "Anna Simpson",
+      "email": "annasimpson@example.com",
+      "phoneNumber": "123-456-7891",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/article-author.png"
+    },
+    {
+      "id": "f2d9b1a7-3c4e-4f8a-8b77-9d1e2c3f4b55",
+      "username": "rjames",
+      "password": "password345",
+      "name": "Robert James",
+      "email": "robertjames@example.com",
+      "phoneNumber": "123-456-7892",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/robertjames.jpeg"
+    },
+    {
+      "id": "a4e7c9d1-8b2f-4d33-9e11-7c8f2a1b6d66",
+      "username": "klopez",
+      "password": "password456",
+      "name": "Karen Lopez",
+      "email": "karenlopez@example.com",
+      "phoneNumber": "123-456-7893",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/person9.jpeg"
+    },
+    {
+      "id": "d1b8e4f2-7c3a-4e55-8f99-1a2b3c4d5e77",
+      "username": "smiller",
+      "password": "password567",
+      "name": "Steve Miller",
+      "email": "stevemiller@example.com",
+      "phoneNumber": "123-456-7894",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/person6.jpeg"
+    },
+    {
+      "id": "a1234567-89ab-cdef-0123-456789abcdef",
+      "username": "testUser1",
+      "email": "test1@email.com",
+      "password": "test123",
+      "phoneNumber": "145-458-8945",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/person6.jpeg"
+    },
+    {
+  "id": "b2345678-90cd-ef01-2345-6789abcdef01",
+  "username": "reviewUser_b234",
+  "email": "b234@example.com",
+  "password": "test123"
+},
+{
+  "id": "c3456789-01de-f012-3456-789abcdef012",
+  "username": "reviewUser_c345",
+  "email": "c345@example.com",
+  "password": "test123"
+},
+{
+  "id": "d4567890-12ef-0123-4567-89abcdef0123",
+  "username": "reviewUser_d456",
+  "email": "d456@example.com",
+  "password": "test123"
+},
+{
+  "id": "e5678901-23f0-1234-5678-9abcdef01234",
+  "username": "reviewUser_e567",
+  "email": "e567@example.com",
+  "password": "test123"
+}
+
+  ]
+}

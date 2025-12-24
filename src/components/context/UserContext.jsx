@@ -18,11 +18,18 @@ export function UserProvider({ children }) {
       }
 
       try {
-        const token = await getAccessTokenSilently({
-          authorizationParams: { audience: "https://staybnb.gudo.dev/api" },
-        });
+       const token = await getAccessTokenSilently({
+  authorizationParams: {
+    audience: "https://staybnb.gudo.dev/api",
+    scope: "openid profile email offline_access",
+    prompt: "consent",
+  
+  }
+});
 
-        const res = await fetch("http://localhost:3000/users/me", {
+
+        const res = await fetch("http://localhost:3000/api/users/me", {
+
           headers: { Authorization: `Bearer ${token}` },
         });
 

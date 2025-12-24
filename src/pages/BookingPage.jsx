@@ -12,12 +12,13 @@ import {
   FormErrorMessage,
 } from "@chakra-ui/react";
 import { useParams } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../components/context/AuthContext";
 import { useBookingForm } from "../hoooks/useBookingForm";
 import ImageUploadTest from "../components/uploads/ImageUploadTest";
+
 export default function BookingPage() {
   const { propertyId } = useParams();
-  const { user } = useAuth0();
+  const { user } = useAuth();   // ← FIXED
 
   // Property en kalender state
   const [property, setProperty] = useState(null);
@@ -74,16 +75,6 @@ export default function BookingPage() {
     setDays(temp);
   }, [currentYear, currentMonth]);
 
-  // Property ophalen
-  useEffect(() => {
-    async function fetchProperty() {
-      const res = await fetch(`http://localhost:3000/properties/${propertyId}`);
-      const data = await res.json();
-      setProperty(data);
-    }
-    fetchProperty();
-  }, [propertyId]);
-
   // Disabled dates ophalen
   useEffect(() => {
     async function fetchDisabledDates() {
@@ -127,7 +118,7 @@ export default function BookingPage() {
   };
 
   const nightCount = getNightCount();
-  const pricePerNight = property?.pricePerNight || 0;
+  const pricePerNight = 100;
   const totalPrice = nightCount * pricePerNight;
 
   // React Hook Form + Yup
@@ -139,28 +130,35 @@ export default function BookingPage() {
     setValue,
   } = useBookingForm();
 
-  // Submit handler ontvangt alleen gevalideerde data
+  // Submit handler
   const onSubmit = async (formData) => {
     if (!checkIn || !checkOut) {
       alert("Selecteer eerst een check-in en check-out datum.");
       return;
     }
 
+    if (!user) {
+      alert("Je moet ingelogd zijn om te boeken.");
+      return;
+    }
     try {
-      const response = await fetch("http://localhost:3000/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          auth0Id: user.sub,
-          propertyId,
-          checkIn,
-          checkOut,
-          guests: Number(formData.guests),
-          name: formData.name,
-          email: formData.email,
-          notes: formData.notes,
-        }),
-      });
+  const token = localStorage.getItem("token");
+
+  const response = await fetch("http://localhost:3000/bookings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,   // ← BELANGRIJK
+    },
+    body: JSON.stringify({
+      propertyId,
+      checkIn,
+      checkOut,
+      guests: Number(formData.guests),
+      notes: formData.notes,
+    }),
+  });
+     
 
       if (response.status === 409) {
         alert(
@@ -208,7 +206,7 @@ export default function BookingPage() {
         checkOut={checkOut}
         onDateClick={handleDateSelection}
         setDisabledDates={setDisabledDates}
-        isInteractive={true}   
+        isInteractive={true}
       />
 
       {/* Prijsindicatie */}
@@ -224,7 +222,6 @@ export default function BookingPage() {
       {/* Formulier */}
       <Box as="form" onSubmit={handleSubmit(onSubmit)} mt={8}>
         <VStack spacing={4} align="stretch">
-          {/* Naamveld met autocomplete-fix */}
           <FormControl isInvalid={!!errors.name} isRequired>
             <FormLabel>Naam</FormLabel>
             <Input
@@ -237,7 +234,6 @@ export default function BookingPage() {
             <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
           </FormControl>
 
-          {/* E-mail */}
           <FormControl isInvalid={!!errors.email} isRequired>
             <FormLabel>E-mail</FormLabel>
             <Input
@@ -250,7 +246,6 @@ export default function BookingPage() {
             <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
           </FormControl>
 
-          {/* Aantal gasten */}
           <FormControl isInvalid={!!errors.guests} isRequired>
             <FormLabel>Aantal gasten</FormLabel>
             <Input
@@ -264,13 +259,11 @@ export default function BookingPage() {
             <FormErrorMessage>{errors.guests?.message}</FormErrorMessage>
           </FormControl>
 
-          {/* Opmerkingen */}
           <FormControl>
             <FormLabel>Opmerkingen</FormLabel>
             <Input {...register("notes")} />
           </FormControl>
 
-          {/* Submitknop */}
           <Button
             type="submit"
             colorScheme="blue"
@@ -280,6 +273,7 @@ export default function BookingPage() {
             Boek nu
           </Button>
         </VStack>
+
         <ImageUploadTest />
       </Box>
     </Box>

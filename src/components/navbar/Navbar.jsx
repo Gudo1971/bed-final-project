@@ -7,39 +7,17 @@ import {
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { useAuth0 } from "@auth0/auth0-react";
+
 import { Link, useNavigate } from "react-router-dom";
 import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
 import ThemeToggle from "./ThemeToggle";
-import { useUser } from "../context/UserContext";
+
+import { useAuth } from "../../components/context/AuthContext.jsx";
 
 export default function Navbar() {
-  const { loginWithRedirect, logout, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
-  const { userData, setUserData } = useUser();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-
-  async function handleBecomeHost() {
-    try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: "https://staybnb-api/" },
-      });
-
-      const res = await fetch("http://localhost:3000/users/become-host", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const updated = await res.json();
-      setUserData(updated);
-
-      navigate("/host");
-    } catch (err) {
-      console.error("Become host failed:", err);
-    }
-  }
 
   return (
     <Box
@@ -68,43 +46,29 @@ export default function Navbar() {
         <HStack spacing={4}>
           <ThemeToggle />
 
-          {/* Become Host / Host Dashboard */}
-          {isAuthenticated && userData && !userData.isHost && (
-            <Button colorScheme="green" onClick={handleBecomeHost}>
-              Become a Host
-            </Button>
-          )}
-
-          {isAuthenticated && userData && userData.isHost && (
-            <Button colorScheme="blue" onClick={() => navigate("/host")}>
-              Host Dashboard
-            </Button>
-          )}
-
-          {/* Login / Logout */}
-          {!isAuthenticated && (
-            <Button colorScheme="teal" onClick={() => loginWithRedirect()}>
+          {/* Login knop */}
+          {!user && (
+            <Button colorScheme="teal" onClick={() => navigate("/login")}>
               Login
             </Button>
           )}
 
-          {isAuthenticated && (
+          {/* Avatar + naam + logout */}
+          {user && (
             <HStack spacing={3}>
-              <Avatar size="sm" src={user.picture} name={user.name} />
-              <Text>{user.name}</Text>
+              <Avatar size="sm" name={user.name || user.email} />
+              <Text>{user.name || user.email}</Text>
               <Button
                 variant="outline"
                 colorScheme="red"
-                onClick={() =>
-                  logout({ logoutParams: { returnTo: window.location.origin } })
-                }
+                onClick={logout}
               >
                 Logout
               </Button>
             </HStack>
           )}
 
-          {/* Mobile hamburger */}
+          {/* Mobile menu */}
           <MobileMenu />
         </HStack>
       </Flex>

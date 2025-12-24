@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, Heading, Text, Spinner, Stack, Button } from "@chakra-ui/react";
-import { getUserBookings } from "../../services/bookings";
+import { getUserBookings } from "../../api/bookings";
 import BookingEditModal from "../tabs/BookingEditModal";
 import { useAuth0 } from "@auth0/auth0-react";
 
@@ -11,7 +11,7 @@ export default function BookingsTab() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { getAccessTokenSilently } = useAuth0();
+  const { getAccessTokenSilently, user } = useAuth0();
 
   function openModal(booking) {
     setSelectedBooking(booking);
@@ -25,7 +25,12 @@ export default function BookingsTab() {
 
   async function fetchBookings() {
     try {
-      const data = await getUserBookings(getAccessTokenSilently);
+      const token = await getAccessTokenSilently({
+        audience: "https://staybnb.gudo.dev/api",
+        scope: "openid profile email"
+      });
+
+      const data = await getUserBookings(user.sub, token);
       setBookings(data);
     } catch (err) {
       console.error("Error fetching bookings:", err);
@@ -40,7 +45,7 @@ export default function BookingsTab() {
 
     try {
       const token = await getAccessTokenSilently({
-        audience: "https://staybnb-api/",
+        audience: "https://staybnb.gudo.dev/api",
         scope: "openid profile email"
       });
 

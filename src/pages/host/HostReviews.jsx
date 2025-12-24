@@ -10,6 +10,7 @@ import {
   Divider,
   useToast,
 } from "@chakra-ui/react";
+import { getHostReviews } from "../../api/host.js";
 
 export default function HostReviews({ token }) {
   const [reviews, setReviews] = useState([]);
@@ -18,15 +19,7 @@ export default function HostReviews({ token }) {
 
   async function fetchReviews() {
     try {
-      const res = await fetch("http://localhost:3000/reviews/host", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Kon reviews niet ophalen");
-
-      const data = await res.json();
+      const data = await getHostReviews(token);
       setReviews(data);
     } catch (err) {
       console.error(err);

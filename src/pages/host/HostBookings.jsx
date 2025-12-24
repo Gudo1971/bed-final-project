@@ -10,26 +10,30 @@ import {
   Divider,
   useToast,
 } from "@chakra-ui/react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { getHostBookings } from "../../api/host.js";
 
-export default function HostBookings({ token }) {
+export default function HostBookings() {
+  const { getAccessTokenSilently } = useAuth0();
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const toast = useToast();
 
   async function fetchBookings() {
     try {
-      const res = await fetch("http://localhost:3000/bookings/host", {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: "https://staybnb.gudo.dev/api",
         },
       });
 
-      if (!res.ok) throw new Error("Kon boekingen niet ophalen");
-
-      const data = await res.json();
+      const data = await getHostBookings(token);
       setBookings(data);
     } catch (err) {
       console.error(err);
+
       toast({
         title: "Fout bij ophalen",
         description: "Kon jouw boekingen niet laden.",
@@ -91,12 +95,12 @@ export default function HostBookings({ token }) {
             </Text>
 
             <Text>
-              <strong>Check‑in:</strong>{" "}
+              <strong>Check-in:</strong>{" "}
               {new Date(booking.startDate).toLocaleDateString()}
             </Text>
 
             <Text>
-              <strong>Check‑out:</strong>{" "}
+              <strong>Check-out:</strong>{" "}
               {new Date(booking.endDate).toLocaleDateString()}
             </Text>
 

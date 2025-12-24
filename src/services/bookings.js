@@ -1,36 +1,43 @@
+import axios from "axios";
 
+const API_URL = "http://localhost:3000";
 
-export async function getUserBookings(getAccessTokenSilently) {
-  const token = await getAccessTokenSilently();
-
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/bookings/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+export const getBookings = async () => {
+  const token = localStorage.getItem("token");
+  const res = await axios.get(`${API_URL}/bookings`, {
+    headers: { Authorization: `Bearer ${token}` }
   });
+  return res.data;
+};
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch user bookings");
-  }
-
-  return response.json();
-}
-
-export async function updateBooking(id, payload, getAccessTokenSilently) {
-  const token = await getAccessTokenSilently();
-
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/bookings/${id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
+export const getBookingById = async (id) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.get(`${API_URL}/bookings/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
   });
+  return res.data;
+};
 
-  if (!response.ok) {
-    throw new Error("Failed to update booking");
-  }
+export const createBooking = async (payload) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.post(`${API_URL}/bookings`, payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
 
-  return response.json();
-}
+export const updateBooking = async (id, payload) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.patch(`${API_URL}/bookings/${id}`, payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
+
+export const deleteBooking = async (id) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.delete(`${API_URL}/bookings/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};

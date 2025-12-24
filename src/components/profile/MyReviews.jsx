@@ -20,7 +20,7 @@ export default function MyReviews() {
   async function loadReviews() {
     try {
       const token = await getAccessTokenSilently({
-        authorizationParams: { audience: "https://staybnb-api/" },
+        authorizationParams: { audience: "https://staybnhttps://staybnb.gudo.dev/api" },
       });
 
       const res = await getMyReviews(token);
@@ -46,7 +46,7 @@ export default function MyReviews() {
 
     try {
       const token = await getAccessTokenSilently({
-        authorizationParams: { audience: "https://staybnb-api/" },
+        authorizationParams: { audience: "https://staybnb.gudo.dev/api" },
       });
 
       await deleteReview(id, token);
@@ -60,7 +60,7 @@ export default function MyReviews() {
   async function handleSave(updatedData) {
   try {
     const token = await getAccessTokenSilently({
-      authorizationParams: { audience: "https://staybnb-api/" },
+      authorizationParams: { audience: "https://staybnb.gudo.dev/api" },
     });
 
     await updateReview(selectedReview.id, updatedData, token);

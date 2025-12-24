@@ -36,7 +36,7 @@ export default function PropertyForm() {
     try {
       const token = await getAccessTokenSilently();
 
-      const res = await fetch("http://localhost:3000/properties/host/me", {
+      const res = await fetch("http://localhost:3000/api/properties/host/me", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -66,7 +66,8 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
     try {
       const token = await getAccessTokenSilently({
         authorizationParams: {
-          audience: "https://staybnb-api/",
+          audience: "https://staybnb.gudo.dev/api",
+
         },
       });
 

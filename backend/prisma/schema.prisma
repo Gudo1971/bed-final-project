@@ -8,26 +8,40 @@ datasource db {
 }
 
 model User {
-  id          String  @id @default(uuid())
-  auth0Id     String  @unique
-  username    String? @unique
-  password    String?
-  name        String?
-  email       String?
+  id          String   @id @default(uuid())
+  username    String   @unique
+  password    String
+  name        String
+  email       String   @unique
   phoneNumber String?
   pictureUrl  String?
-  isHost      Boolean @default(false)
+  aboutMe     String?
 
-  properties Property[]
-  bookings   Booking[]
-  reviews    Review[]
+  bookings    Booking[]
+  reviews     Review[]
 }
 
-model Property {
-  id     String @id @default(uuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
 
+
+model Host {
+  id          String   @id @default(uuid())
+  username    String   @unique
+  password    String
+  name        String
+  email       String   @unique
+  phoneNumber String?
+  pictureUrl  String?
+  aboutMe     String?
+
+  properties  Property[]
+}
+
+
+
+
+
+model Property {
+  id            String     @id @default(uuid())
   title         String
   description   String
   location      String
@@ -36,68 +50,36 @@ model Property {
   bathRoomCount Int
   maxGuestCount Int
   rating        Int
+  images        String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  hostId        String
+  host          Host       @relation(fields: [hostId], references: [id])
 
-  latitude      Float?
-  longitude     Float?
-  isActive      Boolean @default(true)
-  cleaningFee   Float?
-  serviceFee    Float?
-  minimumNights Int?
-  maximumNights Int?
-
-  bookings  Booking[]
-  reviews   Review[]
-  amenities Amenity[]
-  images    PropertyImage[]
+  bookings      Booking[]
+  reviews       Review[]
 }
 
 model Booking {
-  id             String   @id @default(uuid())
+  id             String     @id @default(uuid())
   userId         String
   propertyId     String
-  checkinDate    DateTime
-  checkoutDate   DateTime
+  startDate      DateTime
+  endDate        DateTime
   numberOfGuests Int
   totalPrice     Float
   bookingStatus  String
 
-  name  String
-  email String
-  notes String?
-
-  user     User     @relation(fields: [userId], references: [id])
-  property Property @relation(fields: [propertyId], references: [id])
+  user           User       @relation(fields: [userId], references: [id])
+  property       Property   @relation(fields: [propertyId], references: [id])
 }
 
 model Review {
-  id        String   @id @default(uuid())
-  rating    Int
-  comment   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id         String     @id @default(uuid())
   userId     String
   propertyId String
+  rating     Int
+  comment    String
 
-  user     User     @relation(fields: [userId], references: [id])
-  property Property @relation(fields: [propertyId], references: [id])
-}
-
-model Amenity {
-  id         String     @id @default(uuid())
-  name       String
-  properties Property[]
-}
-
-model PropertyImage {
-  id         String @id @default(uuid())
-  propertyId String
-  url        String
-  publicId   String
-  order      Int    @default(0)
-
-  property Property @relation(fields: [propertyId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+  property   Property   @relation(fields: [propertyId], references: [id])
 }

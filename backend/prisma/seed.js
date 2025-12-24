@@ -1,192 +1,132 @@
+import fs from "fs";
+import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
+import { fileURLToPath } from "url";
+import path from "path";
+
 const prisma = new PrismaClient();
+
+// Fix __dirname for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Helper to load JSON with wrapper keys
+function loadJson(relativePath) {
+  const fullPath = path.join(__dirname, "..", relativePath);
+  const parsed = JSON.parse(fs.readFileSync(fullPath, "utf-8"));
+
+  // If JSON is { key: [...] }, extract the array
+  if (typeof parsed === "object" && !Array.isArray(parsed)) {
+    const firstKey = Object.keys(parsed)[0];
+    return parsed[firstKey];
+  }
+
+  return parsed;
+}
 
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // ============================================================
-  // 1. USERS (hosts zitten hier ook tussen!)
-  // ============================================================
-  await prisma.user.createMany({
-    data: [
-      {
-        username: "jdoe",
-        password: "password123",
-        name: "John Doe",
-        email: "johndoe@example.com",
-        phoneNumber: "123-456-7890",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
-        auth0Id: "seed|jdoe",
-        isHost: true
-      },
-      {
-        username: "asimpson",
-        password: "password234",
-        name: "Anna Simpson",
-        email: "annasimpson@example.com",
-        phoneNumber: "123-456-7891",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/article-author.png",
-        auth0Id: "seed|asimpson",
-        isHost: true
-      },
-      {
-        username: "rjames",
-        password: "password345",
-        name: "Robert James",
-        email: "robertjames@example.com",
-        phoneNumber: "123-456-7892",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/robertjames.jpeg",
-        auth0Id: "seed|rjames",
-        isHost: true
-      },
-      {
-        username: "klopez",
-        password: "password456",
-        name: "Karen Lopez",
-        email: "karenlopez@example.com",
-        phoneNumber: "123-456-7893",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/person9.jpeg",
-        auth0Id: "seed|klopez",
-        isHost: true
-      },
-      {
-        username: "smiller",
-        password: "password567",
-        name: "Steve Miller",
-        email: "stevemiller@example.com",
-        phoneNumber: "123-456-7894",
-        pictureUrl: "https://wincacademy.github.io/webpages/media/person6.jpeg",
-        auth0Id: "seed|smiller",
-        isHost: true
-      }
-    ]
-  });
+  // Load JSON files
+  const users = loadJson("data/users.json");
+  const hosts = loadJson("data/hosts.json");
+  const properties = loadJson("data/properties.json");
+  const reviews = loadJson("data/reviews.json");
+  const bookings = loadJson("data/bookings.json");
 
-  const users = await prisma.user.findMany();
+  // 1. Clear tables in correct FK order
+  await prisma.review.deleteMany();
+  await prisma.booking.deleteMany();
+  await prisma.property.deleteMany();
+  await prisma.host.deleteMany();
+  await prisma.user.deleteMany();
 
-  // ============================================================
-  // 2. PROPERTIES (nu gekoppeld aan userId)
-  // ============================================================
-  await prisma.property.createMany({
-    data: [
-      {
-        title: "Cozy Mountain Retreat",
-        description: "Experience tranquility in our cozy cabin.",
-        location: "Rocky Mountains, Colorado",
-        pricePerNight: 120.5,
-        bedroomCount: 3,
-        bathRoomCount: 2,
-        maxGuestCount: 5,
-        rating: 5,
-        userId: users[0].id
+  // 2. Seed Users
+  for (const user of users) {
+    await prisma.user.create({
+      data: {
+        id: user.id,
+        username: user.username,
+        password: await bcrypt.hash(user.password, 10),
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        pictureUrl: user.pictureUrl,
+        aboutMe: user.aboutMe,
       },
-      {
-        title: "Modern City Apartment",
-        description: "Sleek and modern apartment in the city center.",
-        location: "New York, NY",
-        pricePerNight: 150.75,
-        bedroomCount: 2,
-        bathRoomCount: 2,
-        maxGuestCount: 4,
-        rating: 4,
-        userId: users[1].id
+    });
+  }
+
+  // 3. Seed Hosts
+  for (const host of hosts) {
+    await prisma.host.create({
+      data: {
+        id: host.id,
+        username: host.username,
+        password: await bcrypt.hash(host.password, 10),
+        name: host.name,
+        email: host.email,
+        phoneNumber: host.phoneNumber,
+        pictureUrl: host.pictureUrl,
+        aboutMe: host.aboutMe,
       },
-      {
-        title: "Lakeside Cottage",
-        description: "Rustic cottage by the lake.",
-        location: "Lake Tahoe, California",
-        pricePerNight: 95.0,
-        bedroomCount: 1,
-        bathRoomCount: 1,
-        maxGuestCount: 3,
-        rating: 5,
-        userId: users[2].id
+    });
+  }
+
+  // 4. Seed Properties
+  for (const property of properties) {
+    await prisma.property.create({
+      data: {
+        id: property.id,
+        title: property.title,
+        description: property.description,
+        location: property.location,
+        pricePerNight: property.pricePerNight,
+        bedroomCount: property.bedroomCount,
+        bathRoomCount: property.bathRoomCount,
+        maxGuestCount: property.maxGuestCount,
+        rating: property.rating,
+        hostId: property.hostId,
+        images: property.images ?? "default.jpg",
       },
-      {
-        title: "Beachfront Villa",
-        description: "Luxurious villa right on the beach.",
-        location: "Malibu, California",
-        pricePerNight: 310.25,
-        bedroomCount: 4,
-        bathRoomCount: 3,
-        maxGuestCount: 8,
-        rating: 5,
-        userId: users[3].id
+    });
+  }
+
+  // 5. Seed Bookings
+  for (const booking of bookings) {
+    await prisma.booking.create({
+      data: {
+        id: booking.id,
+        userId: booking.userId,
+        propertyId: booking.propertyId,
+        startDate: new Date(booking.checkinDate),
+        endDate: new Date(booking.checkoutDate),
+        numberOfGuests: booking.numberOfGuests,
+        totalPrice: booking.totalPrice,
+        bookingStatus: booking.bookingStatus,
       },
-      {
-        title: "Country Farmhouse",
-        description: "Traditional farmhouse with vintage charm.",
-        location: "Nashville, Tennessee",
-        pricePerNight: 85.0,
-        bedroomCount: 3,
-        bathRoomCount: 2,
-        maxGuestCount: 6,
-        rating: 4,
-        userId: users[4].id
-      }
-    ]
-  });
+    });
+  }
 
-  const properties = await prisma.property.findMany();
+  // 6. Seed Reviews
+  for (const review of reviews) {
+    await prisma.review.create({
+      data: {
+        id: review.id,
+        userId: review.userId,
+        propertyId: review.propertyId,
+        rating: review.rating,
+        comment: review.comment,
+      },
+    });
+  }
 
-  // ============================================================
-  // 3. AMENITIES
-  // ============================================================
-  await prisma.amenity.createMany({
-    data: [
-      { name: "WiFi" },
-      { name: "Air Conditioning" },
-      { name: "Heating" },
-      { name: "Kitchen" },
-      { name: "Washer" },
-      { name: "Dryer" },
-      { name: "TV" },
-      { name: "Parking" },
-      { name: "Pool" },
-      { name: "Gym" }
-    ]
-  });
-
-  // ============================================================
-  // 4. BOOKINGS
-  // ============================================================
-  await prisma.booking.createMany({
-    data: [
-      {
-        userId: users[0].id,
-        propertyId: properties[0].id,
-        checkinDate: new Date("2025-12-13"),
-        checkoutDate: new Date("2025-12-19"),
-        numberOfGuests: 2,
-        totalPrice: 150.25,
-        bookingStatus: "confirmed",
-        name: "John Doe",
-        email: "johndoe@example.com",
-        notes: "Looking forward to my stay!"
-      }
-    ]
-  });
-
-  // ============================================================
-  // 5. REVIEWS
-  // ============================================================
-  await prisma.review.createMany({
-    data: [
-      {
-        userId: users[0].id,
-        propertyId: properties[0].id,
-        rating: 5,
-        comment: "Amazing stay! Beautiful location and very clean."
-      }
-    ]
-  });
-
-  console.log("✅ Database seeded!");
+  console.log("✅ Database seeded successfully!");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seeding error:", e);
+    console.error("❌ Error while seeding:", e);
     process.exit(1);
   })
   .finally(async () => {
