@@ -22,8 +22,11 @@ export default function RegisterPage() {
   const toast = useToast();
 
   const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [errorField, setErrorField] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -40,18 +43,22 @@ export default function RegisterPage() {
     setErrorMessage("");
 
     try {
-      await registerUser(username, email, password);
+      await registerUser(username, email, password, name, phoneNumber);
+
       toast({
         title: "Account aangemaakt!",
         status: "success",
         duration: 3000,
         isClosable: true,
       });
+
       navigate("/login");
     } catch (err) {
       const msg = err.message.toLowerCase();
 
       if (msg.includes("username")) setErrorField("username");
+      else if (msg.includes("name")) setErrorField("name");
+      else if (msg.includes("phonenumber")) setErrorField("phoneNumber");
       else if (msg.includes("email")) setErrorField("email");
       else if (msg.includes("password")) setErrorField("password");
       else setErrorField("form");
@@ -77,11 +84,12 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">
 
+          {/* USERNAME */}
           <FormControl isRequired isInvalid={errorField === "username"}>
             <FormLabel>Username</FormLabel>
             <Input
               type="text"
-              placeholder="Choose a nickname"
+              placeholder="Kies een gebruikersnaam"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               {...inputStyle}
@@ -91,6 +99,37 @@ export default function RegisterPage() {
             )}
           </FormControl>
 
+          {/* NAME */}
+          <FormControl isRequired isInvalid={errorField === "name"}>
+            <FormLabel>Naam</FormLabel>
+            <Input
+              type="text"
+              placeholder="Volledige naam"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              {...inputStyle}
+            />
+            {errorField === "name" && (
+              <FormErrorMessage>{errorMessage}</FormErrorMessage>
+            )}
+          </FormControl>
+
+          {/* PHONE NUMBER */}
+          <FormControl isInvalid={errorField === "phoneNumber"}>
+            <FormLabel>Telefoonnummer (optioneel)</FormLabel>
+            <Input
+              type="text"
+              placeholder="Telefoonnummer"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              {...inputStyle}
+            />
+            {errorField === "phoneNumber" && (
+              <FormErrorMessage>{errorMessage}</FormErrorMessage>
+            )}
+          </FormControl>
+
+          {/* EMAIL */}
           <FormControl isRequired isInvalid={errorField === "email"}>
             <FormLabel>Email</FormLabel>
             <Input
@@ -105,6 +144,7 @@ export default function RegisterPage() {
             )}
           </FormControl>
 
+          {/* PASSWORD */}
           <FormControl isRequired isInvalid={errorField === "password"}>
             <FormLabel>Wachtwoord</FormLabel>
             <Input
@@ -119,16 +159,19 @@ export default function RegisterPage() {
             )}
           </FormControl>
 
+          {/* FORM ERROR */}
           {errorField === "form" && (
             <Text color="red.400" fontSize="sm" textAlign="center">
               {errorMessage}
             </Text>
           )}
 
+          {/* SUBMIT */}
           <Button colorScheme="teal" type="submit" width="100%">
             Account aanmaken
           </Button>
 
+          {/* LOGIN LINK */}
           <Text fontSize="sm" textAlign="center">
             Heb je al een account?{" "}
             <ChakraLink as={Link} to="/login" color="teal.500">

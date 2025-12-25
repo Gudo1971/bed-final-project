@@ -1,35 +1,26 @@
 import { useEffect, useState } from "react";
-import EditReviewModal from "../reviews/EditReviewModal";
-import { updateReview, getMyReviews, deleteReview } from "../../services/reviewService";
-import { useDisclosure, VStack, HStack, Text, Box, Image, Spinner, Button } from "@chakra-ui/react";
-import { useAuth0 } from "@auth0/auth0-react";
-import { Link } from "react-router-dom";
-import { useToast } from "@chakra-ui/react";
+import { Box, Text, Spinner } from "@chakra-ui/react";
+import { getUserReviews } from "../../api/reviews";
+
+function getUserIdFromToken() {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  const payload = JSON.parse(atob(token.split(".")[1]));
+  return payload.id;
+}
 
 export default function MyReviews() {
-  const { getAccessTokenSilently } = useAuth0();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [selectedReview, setSelectedReview] = useState(null);
-  const toast = useToast();
-  const [sortBy, setSortBy] = useState("date_desc");
 
-
+  const userId = getUserIdFromToken();
 
   async function loadReviews() {
     try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: "https://staybnhttps://staybnb.gudo.dev/api" },
-      });
-
-      const res = await getMyReviews(token);
-
-      const sorted = res.data.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-
-      setReviews(sorted);
+      const token = localStorage.getItem("token");
+      const data = await getUserReviews(userId, token);
+      setReviews(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Kon reviews niet laden:", err);
     } finally {
@@ -40,6 +31,7 @@ export default function MyReviews() {
   useEffect(() => {
     loadReviews();
   }, []);
+
 
   async function handleDelete(id) {
     if (!confirm("Weet je zeker dat je deze review wilt verwijderen?")) return;

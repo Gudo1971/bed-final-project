@@ -1,71 +1,126 @@
 import prisma from "../lib/prisma.js";
+import { mapBooking } from "../utils/bookingMapper.js";
 
+// ---------------------------------------------------------
+// CREATE BOOKING
+// ---------------------------------------------------------
 export const createBooking = async (data) => {
-  return await prisma.booking.create({
+  const booking = await prisma.booking.create({
     data: {
-      ...data,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
+      startDate: new Date(data.checkinDate),
+      endDate: new Date(data.checkoutDate),
+      numberOfGuests: data.numberOfGuests,
+      totalPrice: data.totalPrice,
+      bookingStatus: data.bookingStatus ?? "CONFIRMED",
+      propertyId: data.propertyId,
+      userId: data.userId,
     },
     include: {
       user: true,
       property: true,
     },
   });
+
+  return mapBooking(booking);
 };
 
+// ---------------------------------------------------------
+// GET ALL BOOKINGS
+// ---------------------------------------------------------
 export const getAllBookings = async () => {
-  return await prisma.booking.findMany({
+  const bookings = await prisma.booking.findMany({
     include: {
       user: true,
       property: true,
     },
   });
+
+  return bookings.map(mapBooking);
 };
 
+// ---------------------------------------------------------
+// GET BOOKING BY ID
+// ---------------------------------------------------------
 export const getBookingById = async (id) => {
-  return await prisma.booking.findUnique({
-    where: { id }, // ❗ geen Number()
+  const booking = await prisma.booking.findUnique({
+    where: { id },
     include: {
       user: true,
       property: true,
     },
   });
+
+  return booking ? mapBooking(booking) : null;
 };
 
+// ---------------------------------------------------------
+// GET BOOKINGS BY USER
+// ---------------------------------------------------------
 export const getBookingsByUserId = async (userId) => {
-  return await prisma.booking.findMany({
-    where: { userId }, // ❗ geen Number()
+  const bookings = await prisma.booking.findMany({
+    where: { userId },
     include: {
-      user: true,
-      property: true,
+      property: {
+        select: {
+          id: true,
+          title: true,
+          location: true,
+          images: true,
+          pricePerNight: true,
+          rating: true,
+        },
+      },
     },
   });
+
+  return bookings.map(mapBooking);
 };
 
+// ---------------------------------------------------------
+// GET BOOKINGS BY PROPERTY
+// ---------------------------------------------------------
 export const getBookingsByPropertyId = async (propertyId) => {
-  return await prisma.booking.findMany({
-    where: { propertyId }, // ❗ geen Number()
+  const bookings = await prisma.booking.findMany({
+    where: { propertyId },
     include: {
       user: true,
       property: true,
     },
   });
+
+  return bookings.map(mapBooking);
 };
 
+// ---------------------------------------------------------
+// UPDATE BOOKING
+// ---------------------------------------------------------
 export const updateBooking = async (id, data) => {
-  return await prisma.booking.update({
-    where: { id }, // ❗ geen Number()
-    data,
+  const updated = await prisma.booking.update({
+    where: { id },
+    data: {
+      startDate: data.checkinDate ? new Date(data.checkinDate) : undefined,
+      endDate: data.checkoutDate ? new Date(data.checkoutDate) : undefined,
+      numberOfGuests: data.numberOfGuests,
+      totalPrice: data.totalPrice,
+      bookingStatus: data.bookingStatus,
+      propertyId: data.propertyId,
+    },
     include: {
       user: true,
       property: true,
     },
   });
+
+  return mapBooking(updated);
 };
 
+// ---------------------------------------------------------
+// DELETE BOOKING
+// ---------------------------------------------------------
 export const deleteBooking = async (id) => {
-  return await prisma.booking.delete({
-    where: { id }, // ❗ geen Number()
+  const deleted = await prisma.booking.delete({
+    where: { id },
   });
+
+  return mapBooking(deleted);
 };

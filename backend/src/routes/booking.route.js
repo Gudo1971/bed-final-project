@@ -36,10 +36,10 @@ router.put("/:id",  updateBookingController);
 
 
 // POST create booking
-router.post("/", createBookingController);
+router.post("/",authenticateToken, createBookingController);
 
 // DELETE booking
-router.delete("/:id", deleteBookingController);
+router.delete("/:id",authenticateToken, deleteBookingController);
 
 
 
