@@ -9,7 +9,7 @@ import propertiesRoutes from "./src/routes/property.route.js";
 import reviewsRoutes from "./src/routes/review.route.js";
 import hostRoutes from "./src/routes/host.route.js";
 
-import { login } from "./src/controllers/auth.controller.js";
+import { loginController} from "./src/controllers/auth.controller.js";
 
 
 
@@ -34,7 +34,7 @@ app.get("/", (req, res) => {
 
 
 // Routes
-app.post("/login", login);
+app.post("/login", loginController);
 app.use("/auth", authRoutes); 
 app.use("/users", userRoutes);
 app.use("/bookings", bookingRoutes);

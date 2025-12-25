@@ -1,11 +1,11 @@
 import express from "express";
-import { login,register } from "../controllers/auth.controller.js";
+import { loginController,register } from "../controllers/auth.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 // LOGIN
-router.post("/login", login);
+router.post("/login", loginController);
 console.log("AUTH ROUTE FILE IS LOADED");
 
 // CHECK TOKEN

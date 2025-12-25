@@ -3,10 +3,17 @@ import { createContext, useContext, useState } from "react";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
+  // SAFE PARSE
+  const safeParse = (key) => {
+    try {
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : null;
+    } catch {
+      return null;
+    }
+  };
 
+  const [user, setUser] = useState(safeParse("user"));
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
   // -----------------------------
@@ -25,21 +32,34 @@ export const AuthProvider = ({ children }) => {
       throw new Error(data.error || "Login mislukt");
     }
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    // Backend stuurt volledige user terug
+    const userData = data.user;
 
-    setToken(data.token);
-    setUser(data.user);
+    // Token opslaan (alleen als backend hem meestuurt)
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      setToken(data.token);
+    }
+
+    // User opslaan
+    localStorage.setItem("user", JSON.stringify(userData));
+    setUser(userData);
   };
 
   // -----------------------------
   // REGISTER
   // -----------------------------
-  const registerUser = async (username, email, password) => {
+  const registerUser = async (username, email, password, name, phoneNumber) => {
     const res = await fetch("http://localhost:3000/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+        name,
+        phoneNumber,
+      }),
     });
 
     const data = await res.json();

@@ -14,30 +14,61 @@ import {
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { updateBooking } from "../../services/bookings";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 
-export default function BookingEditModal({ isOpen, onClose, booking }) {
+export default function BookingEditModal({
+  isOpen,
+  onClose,
+  booking,
+  disabledDates = [],
+  refresh,
+}) {
   const toast = useToast();
 
-  const { register, handleSubmit, reset } = useForm({
+  // Vandaag in YYYY-MM-DD formaat (blokkeert verleden)
+  const today = useMemo(() => {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  }, []);
+
+  const { register, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
-      startDate: booking?.startDate,
-      endDate: booking?.endDate,
+      checkinDate: booking?.checkinDate,
+      checkoutDate: booking?.checkoutDate,
     },
   });
 
-  // Reset form when booking changes
+  // Reset wanneer booking verandert
   useEffect(() => {
     if (booking) {
       reset({
-        startDate: booking.startDate,
-        endDate: booking.endDate,
+        checkinDate: booking.checkinDate,
+        checkoutDate: booking.checkoutDate,
       });
     }
   }, [booking, reset]);
 
-  // ✔ Correcte onSubmit
+  // Check of datum geblokkeerd is
+  function isDateDisabled(dateStr) {
+    return disabledDates.includes(dateStr);
+  }
+
+  // Submit handler
   async function onSubmit(values) {
+    const { checkinDate, checkoutDate } = values;
+
+    // Blokkeer disabled dates
+    if (isDateDisabled(checkinDate) || isDateDisabled(checkoutDate)) {
+      toast({
+        title: "Datum niet beschikbaar",
+        description: "Deze datum is al geboekt.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
       await updateBooking(booking.id, values);
 
@@ -49,6 +80,7 @@ export default function BookingEditModal({ isOpen, onClose, booking }) {
         isClosable: true,
       });
 
+      refresh();
       onClose();
     } catch (err) {
       toast({
@@ -71,18 +103,70 @@ export default function BookingEditModal({ isOpen, onClose, booking }) {
 
         <ModalBody>
           <Text mb={4} fontWeight="bold">
-            {booking.propertyName}
+            {booking.property?.title}
           </Text>
 
           <form id="edit-booking-form" onSubmit={handleSubmit(onSubmit)}>
+            {/* CHECK-IN */}
             <FormControl mb={4}>
-              <FormLabel>Startdatum</FormLabel>
-              <Input type="date" {...register("startDate")} />
+              <FormLabel>Check‑in</FormLabel>
+              <Input
+                type="date"
+                min={today} // blokkeer verleden
+                {...register("checkinDate")}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (isDateDisabled(value)) {
+                    toast({
+                      title: "Datum niet beschikbaar",
+                      description: "Deze datum is al geboekt.",
+                      status: "error",
+                      duration: 3000,
+                      isClosable: true,
+                    });
+
+                    reset({
+                      checkinDate: booking.checkinDate,
+                      checkoutDate: booking.checkoutDate,
+                    });
+                    return;
+                  }
+
+                  setValue("checkinDate", value);
+                }}
+              />
             </FormControl>
 
+            {/* CHECK-OUT */}
             <FormControl mb={4}>
-              <FormLabel>Einddatum</FormLabel>
-              <Input type="date" {...register("endDate")} />
+              <FormLabel>Check‑out</FormLabel>
+              <Input
+                type="date"
+                min={today} // blokkeer verleden
+                {...register("checkoutDate")}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (isDateDisabled(value)) {
+                    toast({
+                      title: "Datum niet beschikbaar",
+                      description: "Deze datum is al geboekt.",
+                      status: "error",
+                      duration: 3000,
+                      isClosable: true,
+                    });
+
+                    reset({
+                      checkinDate: booking.checkinDate,
+                      checkoutDate: booking.checkoutDate,
+                    });
+                    return;
+                  }
+
+                  setValue("checkoutDate", value);
+                }}
+              />
             </FormControl>
           </form>
         </ModalBody>

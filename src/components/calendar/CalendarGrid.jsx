@@ -1,3 +1,6 @@
+// CalendarGrid.jsx
+// Clean calendar grid without hover icons or hover overlays
+
 import { Grid, Box, Text } from "@chakra-ui/react";
 
 export default function CalendarGrid({
@@ -8,10 +11,7 @@ export default function CalendarGrid({
   onDateClick,
   isInteractive = true,
 }) {
-  // ---------------------------------------------------------
-  // HULPFUNCTIES
-  // ---------------------------------------------------------
-
+  // Format a Date object into YYYY-MM-DD
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -19,35 +19,37 @@ export default function CalendarGrid({
     return `${y}-${m}-${d}`;
   };
 
+  // Check if date is disabled based on backend list
   const isDisabled = (date) => {
     if (!Array.isArray(disabledDates)) return false;
     return disabledDates.includes(formatDate(date));
   };
 
+  // Check if date is before today
   const isPastDate = (date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return date < today;
   };
 
-  const isSelected = (date) => {
+  // Determine if date is check-in or check-out
+  const getSelectionType = (date) => {
     const dateStr = formatDate(date);
     if (dateStr === checkIn) return "checkin";
     if (dateStr === checkOut) return "checkout";
     return "";
   };
 
+  // Determine if date is between check-in and check-out
   const isInRange = (date) => {
     if (!checkIn || !checkOut) return false;
     const t = date.getTime();
     return t > new Date(checkIn).getTime() && t < new Date(checkOut).getTime();
   };
 
-  // ---------------------------------------------------------
-  // RENDER
-  // ---------------------------------------------------------
   return (
     <>
+      {/* Weekday labels */}
       <Grid templateColumns="repeat(7, 1fr)" mb={2}>
         {["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"].map((day) => (
           <Box
@@ -62,13 +64,44 @@ export default function CalendarGrid({
         ))}
       </Grid>
 
+      {/* Days grid */}
       <Grid templateColumns="repeat(7, 1fr)" gap={0.5}>
         {days.map((date) => {
           const dateStr = formatDate(date);
           const past = isPastDate(date);
           const disabled = isDisabled(date) || past;
-          const selected = isSelected(date);
+          const selectionType = getSelectionType(date);
           const inRange = isInRange(date);
+
+          // Border radius for start/end of range
+          const borderRadius =
+            selectionType === "checkin"
+              ? "md 0 0 md"
+              : selectionType === "checkout"
+              ? "0 md md 0"
+              : inRange
+              ? "blue.500"
+              : "white"
+              ? "0"
+              : "md";
+
+          // Background color based on state
+          const bgColor = disabled
+            ? "red.300"
+            : selectionType === "checkin"
+            ? "green.400"
+            : selectionType === "checkout"
+            ? "blue.700"
+            : inRange
+            ? "blue.100"
+            : "white";
+
+          // Text color
+          const textColor = disabled
+            ? "red.700"
+            : selectionType
+            ? "white"
+            : "black";
 
           return (
             <Box
@@ -77,13 +110,7 @@ export default function CalendarGrid({
               minW="28px"
               textAlign="center"
               position="relative"
-              borderRadius={
-                selected === "checkin"
-                  ? "md 0 0 md"
-                  : selected === "checkout"
-                  ? "0 md md 0"
-                  : "md"
-              }
+              borderRadius={borderRadius}
               cursor={
                 !isInteractive
                   ? "default"
@@ -91,40 +118,21 @@ export default function CalendarGrid({
                   ? "not-allowed"
                   : "pointer"
               }
-              bg={
-                disabled
-                  ? "red.300"
-                  : selected === "checkin"
-                  ? "green.400"
-                  : selected === "checkout"
-                  ? "blue.700"
-                  : inRange
-                  ? "blue.100"
-                  : "white"
-              }
-              color={
-                disabled
-                  ? "red.700"
-                  : selected
-                  ? "white"
-                  : "black"
-              }
+              bg={bgColor}
+              color={textColor}
+              // Subtle hover only, no icons or overlays
               _hover={
-                !isInteractive
+                !isInteractive || disabled
                   ? {}
-                  : disabled
-                  ? { bg: "red.300" }
                   : {
-                      bg: "green.50",
-                      _after: {
-                        content: '"✔"',
-                        position: "absolute",
-                        top: "2px",
-                        right: "4px",
-                        color: "green.500",
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                      },
+                      bg:
+                        selectionType === "checkin"
+                          ? "green.500"
+                          : selectionType === "checkout"
+                          ? "blue.800"
+                          : inRange
+                          ? "blue.200"
+                          : "gray.100",
                     }
               }
               onClick={() => {
@@ -133,20 +141,24 @@ export default function CalendarGrid({
               }}
               boxShadow={!isInteractive || disabled ? "none" : "sm"}
             >
+              {/* Day number */}
               <Text fontWeight="medium">{date.getDate()}</Text>
 
-              {selected === "checkin" && (
+              {/* Check-in label */}
+              {selectionType === "checkin" && (
                 <Text fontSize="xs" color="white" mt={1}>
                   Check-in
                 </Text>
               )}
 
-              {selected === "checkout" && (
+              {/* Check-out label */}
+              {selectionType === "checkout" && (
                 <Text fontSize="xs" color="white" mt={1}>
                   Check-out
                 </Text>
               )}
 
+              {/* Disabled indicator */}
               {disabled && (
                 <Text fontSize="xs" color="red.700">
                   🔒

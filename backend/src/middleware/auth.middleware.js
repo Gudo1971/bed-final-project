@@ -2,23 +2,20 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
 export const authenticateToken = (req, res, next) => {
-  const header = req.headers["authorization"];
+  const authHeader = req.headers.authorization;
 
-  if (!header) {
-    return res.status(401).json({ error: "Missing token" });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Geen geldige token meegegeven" });
   }
 
-  const token = header.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ error: "Invalid token format" });
-  }
+  const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded; // { id: "uuid" }
+    req.user = decoded; // bevat { id: "uuid" }
     next();
   } catch (error) {
-    return res.status(403).json({ error: "Invalid token" });
+    console.error("❌ TOKEN VERIFICATIE FOUT:", error);
+    return res.status(403).json({ error: "Token is ongeldig of verlopen" });
   }
 };

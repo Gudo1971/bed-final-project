@@ -7,15 +7,15 @@ import {
   deleteBooking,
   updateBooking,
 } from "../services/booking.service.js";
+
 import prisma from "../lib/prisma.js";
 import { Prisma } from "@prisma/client";
+import { mapBooking } from "../utils/bookingMapper.js";
 
 // ---------------------------------------------------------
 // CREATE BOOKING
 // ---------------------------------------------------------
-
-
-export const createBookingController = async (req, res, next) => {
+export const createBookingController = async (req, res) => {
   try {
     const {
       checkinDate,
@@ -23,11 +23,18 @@ export const createBookingController = async (req, res, next) => {
       numberOfGuests,
       totalPrice,
       propertyId,
-      userId,
     } = req.body;
 
-    // Basic validation
-    if (!checkinDate || !checkoutDate || !numberOfGuests || !totalPrice || !propertyId || !userId) {
+    const userId = req.user?.id;
+
+    if (
+      !checkinDate ||
+      !checkoutDate ||
+      !numberOfGuests ||
+      !totalPrice ||
+      !propertyId ||
+      !userId
+    ) {
       return res.status(400).json({ error: "Invalid input" });
     }
 
@@ -43,10 +50,9 @@ export const createBookingController = async (req, res, next) => {
       },
     });
 
-    return res.status(201).json(booking);
-
+    return res.status(201).json(mapBooking(booking));
   } catch (error) {
-    console.error("❌ ERROR (createBooking):", error);
+    console.error("❌ BOOKING ERROR:", error);
 
     if (error instanceof Prisma.PrismaClientValidationError) {
       return res.status(400).json({ error: "Invalid input" });
@@ -56,14 +62,13 @@ export const createBookingController = async (req, res, next) => {
   }
 };
 
-
 // ---------------------------------------------------------
 // GET ALL BOOKINGS
 // ---------------------------------------------------------
 export const getAllBookingsController = async (req, res) => {
   try {
     const bookings = await getAllBookings();
-    return res.status(200).json(bookings);
+    return res.status(200).json(bookings.map(mapBooking));
   } catch (error) {
     console.error("❌ ERROR (getAllBookings):", error);
     return res.status(500).json({ error: "Something went wrong" });
@@ -73,26 +78,21 @@ export const getAllBookingsController = async (req, res) => {
 // ---------------------------------------------------------
 // GET BOOKING BY ID
 // ---------------------------------------------------------
-export async function getBookingByIdController(req, res) {
+export const getBookingByIdController = async (req, res) => {
   try {
     const id = req.params.id;
-
-    if (!id || typeof id !== "string") {
-      return res.status(404).json({ error: "Booking not found" });
-    }
-
     const booking = await getBookingById(id);
 
     if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
     }
 
-    return res.status(200).json(booking);
+    return res.status(200).json(mapBooking(booking));
   } catch (err) {
     console.error("❌ ERROR (getBookingById):", err);
     return res.status(500).json({ error: "Something went wrong" });
   }
-}
+};
 
 // ---------------------------------------------------------
 // GET BOOKINGS BY USER
@@ -100,9 +100,9 @@ export async function getBookingByIdController(req, res) {
 export const getBookingsByUserIdController = async (req, res) => {
   try {
     const userId = req.params.userId;
-
     const bookings = await getBookingsByUserId(userId);
-    return res.status(200).json(bookings);
+
+    return res.status(200).json(bookings.map(mapBooking));
   } catch (error) {
     console.error("❌ ERROR (getBookingsByUserId):", error);
     return res.status(500).json({ error: "Something went wrong" });
@@ -115,9 +115,9 @@ export const getBookingsByUserIdController = async (req, res) => {
 export const getBookingsByPropertyIdController = async (req, res) => {
   try {
     const propertyId = req.params.propertyId;
-
     const bookings = await getBookingsByPropertyId(propertyId);
-    return res.status(200).json(bookings);
+
+    return res.status(200).json(bookings.map(mapBooking));
   } catch (error) {
     console.error("❌ ERROR (getBookingsByPropertyId):", error);
     return res.status(500).json({ error: "Something went wrong" });
@@ -127,7 +127,7 @@ export const getBookingsByPropertyIdController = async (req, res) => {
 // ---------------------------------------------------------
 // UPDATE BOOKING
 // ---------------------------------------------------------
-export const updateBookingController= async (req, res, next) => {
+export const updateBookingController = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -142,7 +142,7 @@ export const updateBookingController= async (req, res, next) => {
       numberOfGuests,
       totalPrice,
       bookingStatus,
-      propertyId
+      propertyId,
     } = req.body;
 
     const updated = await prisma.booking.update({
@@ -153,15 +153,14 @@ export const updateBookingController= async (req, res, next) => {
         numberOfGuests: numberOfGuests ?? existing.numberOfGuests,
         totalPrice: totalPrice ?? existing.totalPrice,
         bookingStatus: bookingStatus ?? existing.bookingStatus,
-        propertyId: propertyId ?? existing.propertyId
-      }
+        propertyId: propertyId ?? existing.propertyId,
+      },
     });
 
     return res.status(200).json({
       message: "Booking updated",
-      booking: updated
+      booking: mapBooking(updated),
     });
-
   } catch (error) {
     console.error("❌ ERROR (updateBooking):", error);
     return res.status(500).json({ error: "Something went wrong" });
@@ -175,10 +174,6 @@ export const deleteBookingController = async (req, res) => {
   try {
     const id = req.params.id;
 
-    if (!id || typeof id !== "string") {
-      return res.status(404).json({ error: "Booking not found" });
-    }
-
     const existing = await getBookingById(id);
     if (!existing) {
       return res.status(404).json({ error: "Booking not found" });
@@ -188,12 +183,15 @@ export const deleteBookingController = async (req, res) => {
 
     return res.status(200).json({
       message: "Booking deleted",
-      booking: deleted,
+      booking: mapBooking(deleted),
     });
   } catch (error) {
     console.error("❌ ERROR (deleteBooking):", error);
 
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
       return res.status(404).json({ error: "Booking not found" });
     }
 
@@ -207,7 +205,6 @@ export const deleteBookingController = async (req, res) => {
 export const getDisabledDatesByPropertyIdController = async (req, res) => {
   try {
     const propertyId = req.params.propertyId;
-
     const bookings = await getBookingsByPropertyId(propertyId);
 
     const disabledDates = [];

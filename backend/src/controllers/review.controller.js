@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 // GET ALL REVIEWS FOR A PROPERTY
 // ---------------------------------------------------------
 export async function getReviews(req, res) {
-  const propertyId = req.params.propertyId; // no Number()
+  const propertyId = req.params.propertyId;
 
   try {
     if (!propertyId || typeof propertyId !== "string") {
@@ -33,7 +33,7 @@ export async function getReviews(req, res) {
 // GET ONE REVIEW
 // ---------------------------------------------------------
 export async function getReview(req, res) {
-  const id = req.params.id; // no Number()
+  const id = req.params.id;
 
   try {
     if (!id || typeof id !== "string") {
@@ -42,7 +42,6 @@ export async function getReview(req, res) {
 
     const review = await prisma.review.findUnique({
       where: { id },
-     
     });
 
     if (!review) {
@@ -68,7 +67,6 @@ export async function createReview(req, res) {
   try {
     const { rating, comment, propertyId, userId } = req.body;
 
-    // Negative test expects 400 for invalid input
     if (!rating || !propertyId || !userId) {
       return res.status(400).json({ error: "Invalid input" });
     }
@@ -77,8 +75,8 @@ export async function createReview(req, res) {
       data: {
         rating,
         comment,
-        propertyId, 
-        userId,     
+        propertyId,
+        userId,
       },
     });
 
@@ -97,18 +95,14 @@ export async function createReview(req, res) {
 // ---------------------------------------------------------
 // UPDATE REVIEW
 // ---------------------------------------------------------
-
-
 export async function updateReview(req, res) {
   const { id } = req.params;
 
   try {
-    // Validate ID
     if (!id || typeof id !== "string") {
       return res.status(404).json({ error: "Review not found" });
     }
 
-    // Check if review exists
     const existing = await prisma.review.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ error: "Review not found" });
@@ -116,7 +110,6 @@ export async function updateReview(req, res) {
 
     const { rating, comment } = req.body;
 
-    // Update only allowed fields
     const updated = await prisma.review.update({
       where: { id },
       data: {
@@ -129,7 +122,6 @@ export async function updateReview(req, res) {
       message: "Review updated",
       review: updated,
     });
-
   } catch (error) {
     console.error("❌ ERROR (updateReview):", error);
 
@@ -141,12 +133,11 @@ export async function updateReview(req, res) {
   }
 }
 
-
 // ---------------------------------------------------------
 // DELETE REVIEW
 // ---------------------------------------------------------
 export async function deleteReview(req, res) {
-  const id = req.params.id; // no Number()
+  const id = req.params.id;
 
   try {
     if (!id || typeof id !== "string") {
@@ -187,3 +178,33 @@ export async function getAllReviews(req, res) {
     return res.status(500).json({ error: "Failed to fetch reviews" });
   }
 }
+
+// ---------------------------------------------------------
+// GET REVIEWS BY USER ID (FIXED VERSION)
+// ---------------------------------------------------------
+export const getReviewsByUserIdController = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const reviews = await prisma.review.findMany({
+      where: { userId },
+      include: {
+        property: {
+          select: {
+            id: true,
+            title: true,
+            location: true,
+            images: true,        // ✔ correct field
+            pricePerNight: true,
+            rating: true
+          }
+        }
+      }
+    });
+
+    return res.status(200).json(reviews);
+  } catch (err) {
+    console.error("❌ ERROR (getReviewsByUserId):", err);
+    return res.status(500).json({ error: "Something went wrong" });
+  }
+};

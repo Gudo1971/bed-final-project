@@ -1,34 +1,39 @@
-// src/pages/BookingPage.jsx
+// BookingPage.jsx
+// Kalender met maandnavigatie, prijsberekening, toast en BookingModal.
+
 import { useState, useEffect } from "react";
-import CalendarGrid from "../components/calendar/CalendarGrid";
 import {
   Box,
   Text,
-  Input,
   Button,
-  VStack,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
+  Flex,
+  IconButton,
+  useToast,
 } from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { useParams } from "react-router-dom";
-import { useAuth } from "../components/context/AuthContext";
-import { useBookingForm } from "../hoooks/useBookingForm";
-import ImageUploadTest from "../components/uploads/ImageUploadTest";
+import CalendarGrid from "../components/calendar/CalendarGrid";
+import BookingModal from "../components/booking/BookingModal";
+import { useNavigate } from "react-router-dom";
 
 export default function BookingPage() {
   const { propertyId } = useParams();
-  const { user } = useAuth();   // ← FIXED
 
-  // Property en kalender state
-  const [property, setProperty] = useState(null);
-  const [disabledDates, setDisabledDates] = useState([]);
   const [days, setDays] = useState([]);
-
+  const [disabledDates, setDisabledDates] = useState([]);
   const [checkIn, setCheckIn] = useState(null);
   const [checkOut, setCheckOut] = useState(null);
 
-  // Formatter voor datums (YYYY-MM-DD)
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const pricePerNight = 100;
+  const toast = useToast();
+  const navigate = useNavigate();
+
+
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -36,9 +41,62 @@ export default function BookingPage() {
     return `${y}-${m}-${d}`;
   };
 
+  // Disabled dates ophalen
+  const loadDisabled = async () => {
+    const res = await fetch(
+      `http://localhost:3000/bookings/disabled-dates/${propertyId}`
+    );
+    const data = await res.json();
+    setDisabledDates(data);
+  };
+
+  useEffect(() => {
+    loadDisabled();
+  }, [propertyId]);
+
+  // Dagen genereren
+  useEffect(() => {
+    const first = new Date(currentYear, currentMonth, 1);
+    const last = new Date(currentYear, currentMonth + 1, 0);
+
+    const temp = [];
+    for (
+      let d = first;
+      d <= last;
+      d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+    ) {
+      temp.push(new Date(d));
+    }
+    setDays(temp);
+  }, [currentYear, currentMonth]);
+
+  // Datumselectie
+  const handleDateSelection = (date) => {
+    const dateStr = formatDate(date);
+
+    if (!checkIn || (checkIn && checkOut)) {
+      setCheckIn(dateStr);
+      setCheckOut(null);
+      return;
+    }
+
+    if (new Date(dateStr) > new Date(checkIn)) {
+      setCheckOut(dateStr);
+    } else {
+      setCheckIn(dateStr);
+      setCheckOut(null);
+    }
+  };
+
   // Maandnavigatie
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const goToPreviousMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear((y) => y - 1);
+    } else {
+      setCurrentMonth((m) => m - 1);
+    }
+  };
 
   const goToNextMonth = () => {
     if (currentMonth === 11) {
@@ -49,154 +107,39 @@ export default function BookingPage() {
     }
   };
 
-  const goToPrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
-  };
+  const nightCount =
+    checkIn && checkOut
+      ? (new Date(checkOut) - new Date(checkIn)) /
+        (1000 * 60 * 60 * 24)
+      : 0;
 
-  // Genereer alle dagen van de geselecteerde maand
-  useEffect(() => {
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
-
-    const temp = [];
-    for (
-      let d = firstDay;
-      d <= lastDay;
-      d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
-    ) {
-      temp.push(new Date(d));
-    }
-
-    setDays(temp);
-  }, [currentYear, currentMonth]);
-
-  // Disabled dates ophalen
-  useEffect(() => {
-    async function fetchDisabledDates() {
-      try {
-        const res = await fetch(
-          `http://localhost:3000/bookings/disabled-dates/${propertyId}`
-        );
-        const data = await res.json();
-        setDisabledDates(data);
-      } catch (err) {
-        console.error("Error fetching disabled dates:", err);
-      }
-    }
-
-    fetchDisabledDates();
-  }, [propertyId]);
-
-  // Datumselectie voor check-in en check-out
-  const handleDateSelection = (date) => {
-    const dateStr = formatDate(date);
-
-    if (!checkIn || (checkIn && checkOut)) {
-      setCheckIn(dateStr);
-      setCheckOut(null);
-    } else {
-      if (new Date(dateStr) > new Date(checkIn)) {
-        setCheckOut(dateStr);
-      } else {
-        setCheckIn(dateStr);
-        setCheckOut(null);
-      }
-    }
-  };
-
-  // Aantal nachten berekenen
-  const getNightCount = () => {
-    if (!checkIn || !checkOut) return 0;
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    return (end - start) / (1000 * 60 * 60 * 24);
-  };
-
-  const nightCount = getNightCount();
-  const pricePerNight = 100;
   const totalPrice = nightCount * pricePerNight;
-
-  // React Hook Form + Yup
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-    setValue,
-  } = useBookingForm();
-
-  // Submit handler
-  const onSubmit = async (formData) => {
-    if (!checkIn || !checkOut) {
-      alert("Selecteer eerst een check-in en check-out datum.");
-      return;
-    }
-
-    if (!user) {
-      alert("Je moet ingelogd zijn om te boeken.");
-      return;
-    }
-    try {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch("http://localhost:3000/bookings", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,   // ← BELANGRIJK
-    },
-    body: JSON.stringify({
-      propertyId,
-      checkIn,
-      checkOut,
-      guests: Number(formData.guests),
-      notes: formData.notes,
-    }),
-  });
-     
-
-      if (response.status === 409) {
-        alert(
-          "Binnen uw geselecteerde periode zitten bezette datums. Selecteer een andere periode."
-        );
-        return;
-      }
-
-      if (!response.ok) {
-        alert("Er ging iets mis bij het boeken.");
-        return;
-      }
-
-      alert("Boeking succesvol.");
-      reset();
-      setCheckIn(null);
-      setCheckOut(null);
-    } catch (error) {
-      console.error("Booking error:", error);
-      alert("Er ging iets mis bij het boeken.");
-    }
-  };
 
   return (
     <Box p={6}>
-      {/* Maandnavigatie */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Button onClick={goToPrevMonth}>← Vorige maand</Button>
+      <Text fontSize="2xl" fontWeight="bold" mb={4}>
+        Selecteer je datums
+      </Text>
 
+      {/* Maandnavigatie */}
+      <Flex align="center" justify="space-between" mb={4}>
+        <IconButton
+          icon={<ChevronLeftIcon />}
+          onClick={goToPreviousMonth}
+          aria-label="Vorige maand"
+        />
         <Text fontSize="xl" fontWeight="bold">
           {new Date(currentYear, currentMonth).toLocaleString("nl-NL", {
             month: "long",
             year: "numeric",
           })}
         </Text>
-
-        <Button onClick={goToNextMonth}>Volgende maand →</Button>
-      </Box>
+        <IconButton
+          icon={<ChevronRightIcon />}
+          onClick={goToNextMonth}
+          aria-label="Volgende maand"
+        />
+      </Flex>
 
       {/* Kalender */}
       <CalendarGrid
@@ -205,77 +148,66 @@ export default function BookingPage() {
         checkIn={checkIn}
         checkOut={checkOut}
         onDateClick={handleDateSelection}
-        setDisabledDates={setDisabledDates}
         isInteractive={true}
       />
 
-      {/* Prijsindicatie */}
+      {/* Prijsweergave */}
       {nightCount > 0 && (
         <Box mt={6}>
           <Text fontSize="lg" fontWeight="bold">
-            {nightCount} nacht{nightCount > 1 ? "en" : ""} × €{pricePerNight} = €
-            {totalPrice}
+            {nightCount} nacht(en) × €{pricePerNight} = €{totalPrice}
           </Text>
         </Box>
       )}
 
-      {/* Formulier */}
-      <Box as="form" onSubmit={handleSubmit(onSubmit)} mt={8}>
-        <VStack spacing={4} align="stretch">
-          <FormControl isInvalid={!!errors.name} isRequired>
-            <FormLabel>Naam</FormLabel>
-            <Input
-              {...register("name")}
-              autoComplete="name"
-              onInput={(e) =>
-                setValue("name", e.target.value, { shouldValidate: true })
-              }
-            />
-            <FormErrorMessage>{errors.name?.message}</FormErrorMessage>
-          </FormControl>
+      {/* Boek nu */}
+      <Button
+        mt={6}
+        colorScheme="blue"
+        isDisabled={!checkIn || !checkOut}
+        onClick={() => setIsModalOpen(true)}
+      >
+        Boek nu
+      </Button>
 
-          <FormControl isInvalid={!!errors.email} isRequired>
-            <FormLabel>E-mail</FormLabel>
-            <Input
-              {...register("email")}
-              autoComplete="email"
-              onInput={(e) =>
-                setValue("email", e.target.value, { shouldValidate: true })
-              }
-            />
-            <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
-          </FormControl>
+      {/* Modal */}
+      <BookingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        propertyId={propertyId}
+        pricePerNight={pricePerNight}
+        checkIn={checkIn}
+        checkOut={checkOut}
+        
+        onBookingCreated={() => {
+          toast({
+            title: "Boeking geslaagd",
+            description: "Je reservering is succesvol aangemaakt.",
+            status: "success",
+            duration: 4000,
+            isClosable: true,
+          });
 
-          <FormControl isInvalid={!!errors.guests} isRequired>
-            <FormLabel>Aantal gasten</FormLabel>
-            <Input
-              type="number"
-              min={1}
-              {...register("guests")}
-              onInput={(e) =>
-                setValue("guests", e.target.value, { shouldValidate: true })
-              }
-            />
-            <FormErrorMessage>{errors.guests?.message}</FormErrorMessage>
-          </FormControl>
+          loadDisabled();
+          setCheckIn(null);
+          setCheckOut(null);
 
-          <FormControl>
-            <FormLabel>Opmerkingen</FormLabel>
-            <Input {...register("notes")} />
-          </FormControl>
+          navigate ("/profile?tab=bookings" )
+        }}
 
-          <Button
-            type="submit"
-            colorScheme="blue"
-            isDisabled={!checkIn || !checkOut || isSubmitting}
-            isLoading={isSubmitting}
-          >
-            Boek nu
-          </Button>
-        </VStack>
+        onBookingCancelled={() => {
+          toast({
+            title: "Geen boeking gemaakt",
+            description: "U heeft geen reservering voltooid.",
+            status: "info",
+            duration: 3000,
+            isClosable: true,
+          });
 
-        <ImageUploadTest />
-      </Box>
+          setCheckIn(null);
+          setCheckOut(null);
+        }}
+      />
     </Box>
   );
 }

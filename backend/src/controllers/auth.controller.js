@@ -9,11 +9,11 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 // ===============================
 export const register = async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    const { email, username, password,name, phoneNumber } = req.body;
 
     // Missing fields → 400
-    if (!email || !username || !password) {
-      return res.status(400).json({ error: "Missing fields" });
+    if (!email || !username || !password || !name ) {
+      return res.status(400).json({ error: "Vul alle verplichte velden in" });
     }
 
     // Email already exists → 409
@@ -21,7 +21,7 @@ export const register = async (req, res) => {
       where: { email },
     });
     if (existingEmail) {
-      return res.status(409).json({ error: "Email already in use" });
+      return res.status(409).json({ error: "Dit email adres is niet beschikbaar " });
     }
 
     // Username already exists → 409
@@ -29,7 +29,7 @@ export const register = async (req, res) => {
       where: { username },
     });
     if (existingUsername) {
-      return res.status(409).json({ error: "Username already in use" });
+      return res.status(409).json({ error: "Gebruikersnaaam is al in gebruik " });
     }
 
     // Hash password
@@ -41,6 +41,9 @@ export const register = async (req, res) => {
         email,
         username,
         password: hashed,
+        name, 
+        phoneNumber: phoneNumber ?? null,
+        pictureUrl: null, // optioneel → later via edit modal
       },
     });
 
@@ -51,45 +54,60 @@ export const register = async (req, res) => {
 
   } catch (error) {
     console.error("REGISTER ERROR:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+    return res.status(500).json({ error: "Er ging iets mis, probeer het later nog een keer " });
   }
 };
 
 // ===============================
 // LOGIN
 // ===============================
-export const login = async (req, res) => {
+
+export const loginController = async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    const { email, password } = req.body;
 
-    const identifier = email || username;
-
-    if (!identifier || !password) {
-      return res.status(400).json({ error: "Missing fields" });
-    }
-
+    // 1. Check if email exists
     const user = await prisma.user.findUnique({
-      where: email ? { email } : { username },
+      where: { email }
     });
 
     if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(404).json({
+        error: "Er is geen account gevonden met dit e-mailadres."
+      });
     }
 
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+    // 2. Check password
+    const isValid = await bcrypt.compare(password, user.password);
 
+    if (!isValid) {
+      return res.status(401).json({
+        error: "Het wachtwoord is onjuist."
+      });
+    }
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
-    return res.status(200).json({ token, user });
+console.log("LOGIN RETURNING USER:", user);
+
+          // 3. Success
+      return res.status(200).json({
+        message: "Login succesvol",
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name
+        }
+      });
+
+
 
   } catch (error) {
-    console.error("LOGIN ERROR:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+    console.error("❌ ERROR (loginController):", error);
+    return res.status(500).json({ error: "Er ging iets mis tijdens het inloggen." });
   }
 };
+
 
 
 // ===============================
@@ -97,5 +115,5 @@ export const login = async (req, res) => {
 // ===============================
 export default {
   register,
-  login,
+  loginController,
 };
