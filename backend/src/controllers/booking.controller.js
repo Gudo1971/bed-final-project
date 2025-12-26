@@ -12,6 +12,7 @@ import prisma from "../lib/prisma.js";
 import { Prisma } from "@prisma/client";
 import { mapBooking } from "../utils/bookingMapper.js";
 
+
 // ---------------------------------------------------------
 // CREATE BOOKING
 // ---------------------------------------------------------
@@ -25,7 +26,7 @@ export const createBookingController = async (req, res) => {
       propertyId,
     } = req.body;
 
-    const userId = req.user?.id;
+    let userId = req.user?.id;
 
     if (
       !checkinDate ||
@@ -38,6 +39,39 @@ export const createBookingController = async (req, res) => {
       return res.status(400).json({ error: "Invalid input" });
     }
 
+
+// FIX: userId of email koppelen aan bestaande user, of nieuwe user aanmaken
+let existingUser = await prisma.user.findUnique({
+  where: { id: userId }
+});
+
+// Als user niet bestaat op id → check op email
+if (!existingUser) {
+  existingUser = await prisma.user.findUnique({
+    where: { email: req.user.email }
+  });
+}
+
+if (existingUser) {
+  // Gebruik bestaande user
+  userId = existingUser.id;
+} else {
+  // Maak nieuwe user aan voor oude host
+  const newUser = await prisma.user.create({
+    data: {
+      id: userId, // host.id wordt user.id
+      email: req.user.email,
+      username: req.user.username,
+      name: req.user.name,
+      password: "host-placeholder",
+    },
+  });
+
+  userId = newUser.id;
+}
+
+
+    // ⭐ Booking aanmaken
     const booking = await prisma.booking.create({
       data: {
         startDate: new Date(checkinDate),
@@ -61,6 +95,7 @@ export const createBookingController = async (req, res) => {
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
+
 
 // ---------------------------------------------------------
 // GET ALL BOOKINGS

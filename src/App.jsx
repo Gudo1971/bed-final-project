@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 
 // Pagina's
 import HostDashboardPage from "./pages/host/HostDashboardPage";
+import HostProperties from "./pages/host/HostProperties";   // <-- deze ontbrak
 import PropertyPage from "./pages/PropertyPage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
 import BookingPage from "./pages/BookingPage";
@@ -18,23 +19,25 @@ export default function App() {
     <>
       <Navbar />
 
-    <Routes>
-  <Route path="/" element={<PropertyPage />} />
-  <Route path="/login" element={<LoginPage />} /> 
-  <Route path="/register" element={<RegisterPage />} />
+      <Routes>
+        <Route path="/" element={<PropertyPage />} />
+        <Route path="/login" element={<LoginPage />} /> 
+        <Route path="/register" element={<RegisterPage />} />
 
-  <Route path="/properties" element={<PropertyForm />} />
-  <Route path="/properties/:id" element={<PropertyDetailPage />} />
-  <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/properties" element={<PropertyForm />} />
+        <Route path="/properties/:id" element={<PropertyDetailPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
 
-  {/* Host routes */}
-  <Route path="/host" element={<HostDashboardPage />} />
-  <Route path="/host/dashboard" element={<HostDashboardPage />} />
+        {/* Host routes */}
+        <Route path="/host" element={<HostDashboardPage />} />
+        <Route path="/host/dashboard" element={<HostDashboardPage />} />
 
-  <Route path="/booking/:propertyId" element={<BookingPage />} />
-  <Route path="/add-property" element={<PropertyForm />} />
-</Routes>
+        {/* DEZE WAS JE VERGETEN */}
+        <Route path="/host/properties" element={<HostProperties />} />
 
+        <Route path="/booking/:propertyId" element={<BookingPage />} />
+        <Route path="/add-property" element={<PropertyForm />} />
+      </Routes>
     </>
   );
 }
