@@ -1,20 +1,22 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // SAFE PARSE
-  const safeParse = (key) => {
+  // -----------------------------
+  // INIT STATE
+  // -----------------------------
+  const [user, setUser] = useState(() => {
     try {
-      const value = localStorage.getItem(key);
-      return value ? JSON.parse(value) : null;
+      return JSON.parse(localStorage.getItem("user")) || null;
     } catch {
       return null;
     }
-  };
+  });
 
-  const [user, setUser] = useState(safeParse("user"));
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem("token") || null;
+  });
 
   // -----------------------------
   // LOGIN
@@ -25,25 +27,64 @@ export const AuthProvider = ({ children }) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-
+  
     const data = await res.json();
-
+  
     if (!res.ok) {
       throw new Error(data.error || "Login mislukt");
     }
+  
+    // Alleen token opslaan
+    localStorage.setItem("token", data.token);
+    setToken(data.token);
+  
+    // User NIET opslaan vanuit login
+    // /auth/me haalt de echte user op
+  };
 
-    // Backend stuurt volledige user terug
-    const userData = data.user;
 
-    // Token opslaan (alleen als backend hem meestuurt)
-    if (data.token) {
-      localStorage.setItem("token", data.token);
-      setToken(data.token);
-    }
+  // -----------------------------
+  // FETCH AUTH USER (/auth/me)
+  // -----------------------------
+  useEffect(() => {
+    if (!token) return;
 
-    // User opslaan
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Token ongeldig → automatisch uitloggen
+        if (res.status === 401 || res.status === 403 || res.status === 404) {
+          logout();
+          return;
+        }
+
+        const data = await res.json();
+
+        if (res.ok) {
+          setUser(data);
+          localStorage.setItem("user", JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error("❌ Fout bij ophalen /auth/me:", err);
+      }
+    };
+
+    fetchUser();
+  }, [token]);
+
+  // -----------------------------
+  // LOGOUT
+  // -----------------------------
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
   };
 
   // -----------------------------
@@ -72,13 +113,49 @@ export const AuthProvider = ({ children }) => {
   };
 
   // -----------------------------
-  // LOGOUT
+  // BECOME HOST
   // -----------------------------
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
+  const becomeHost = async () => {
+    const res = await fetch("http://localhost:3000/auth/become-host", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Kon geen host worden");
+    }
+
+    // Nieuwe token opslaan
+    localStorage.setItem("token", data.token);
+    setToken(data.token);
+
+    // Nieuwe user ophalen via /auth/me
+    const meRes = await fetch("http://localhost:3000/auth/me", {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
+
+    const meData = await meRes.json();
+
+    if (meRes.ok) {
+      setUser(meData);
+      localStorage.setItem("user", JSON.stringify(meData));
+    }
+
+    return true;
+  };
+
+  // -----------------------------
+  // UPDATE USER STATE (bijv. na Become Host)
+  // -----------------------------
+  const updateUser = (updated) => {
+    setUser(updated);
+    localStorage.setItem("user", JSON.stringify(updated));
   };
 
   return (
@@ -89,6 +166,8 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         registerUser,
+        updateUser,
+        becomeHost, // <— NIEUW
       }}
     >
       {children}

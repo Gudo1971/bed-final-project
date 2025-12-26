@@ -18,19 +18,23 @@ export default function App() {
     <>
       <Navbar />
 
-      <Routes>
-        <Route path="/" element={<PropertyPage />} />
-        <Route path="/login" element={<LoginPage />} /> 
-        <Route path="/register" element={<RegisterPage />} />
+    <Routes>
+  <Route path="/" element={<PropertyPage />} />
+  <Route path="/login" element={<LoginPage />} /> 
+  <Route path="/register" element={<RegisterPage />} />
 
+  <Route path="/properties" element={<PropertyForm />} />
+  <Route path="/properties/:id" element={<PropertyDetailPage />} />
+  <Route path="/profile" element={<ProfilePage />} />
 
-        <Route path="/properties" element={<PropertyForm />} />
-        <Route path="/properties/:id" element={<PropertyDetailPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/host" element={<HostDashboardPage />} />
-        <Route path="/booking/:propertyId" element={<BookingPage />} />
-        <Route path="/add-property" element={<PropertyForm />} />
-      </Routes>
+  {/* Host routes */}
+  <Route path="/host" element={<HostDashboardPage />} />
+  <Route path="/host/dashboard" element={<HostDashboardPage />} />
+
+  <Route path="/booking/:propertyId" element={<BookingPage />} />
+  <Route path="/add-property" element={<PropertyForm />} />
+</Routes>
+
     </>
   );
 }

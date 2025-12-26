@@ -8,32 +8,35 @@ import {
   HStack,
   Badge,
   Divider,
+  Button,
+  useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { useAuth0 } from "@auth0/auth0-react";
+
+import { useAuth } from "../../components/context/AuthContext.jsx";
+import PropertyForm from "../../components/properties/PropertyForm.jsx";
 import { getHostProperties } from "../../api/host.js";
 
 export default function HostProperties() {
-  const { getAccessTokenSilently } = useAuth0();
+  const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const { user, token } = useAuth();
 
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const toast = useToast();
+  // Blokkeer niet-hosts (maar alleen als user geladen is)
+  if (user && user.isHost === false) {
+    window.location.href = "/profile";
+    return null;
+  }
 
   async function fetchProperties() {
     try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: {
-          audience: "https://staybnb.gudo.dev/api",
-        },
-      });
-
       const data = await getHostProperties(token);
-      setProperties(data);
+      setProperties(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
-
       toast({
         title: "Fout bij ophalen",
         description: "Kon jouw properties niet laden.",
@@ -47,8 +50,11 @@ export default function HostProperties() {
   }
 
   useEffect(() => {
+    // Wacht tot token bestaat
+    if (!token) return;
+
     fetchProperties();
-  }, []);
+  }, [token]);
 
   if (loading) {
     return (
@@ -61,9 +67,13 @@ export default function HostProperties() {
 
   return (
     <Box>
-      <Heading size="md" mb={4}>
-        Mijn Properties
-      </Heading>
+      <HStack justify="space-between" mb={4}>
+        <Heading size="md">Mijn Properties</Heading>
+
+        <Button colorScheme="teal" size="sm" onClick={onOpen}>
+          Nieuwe Property
+        </Button>
+      </HStack>
 
       {properties.length === 0 && (
         <Text>Je hebt nog geen properties toegevoegd.</Text>
@@ -81,7 +91,7 @@ export default function HostProperties() {
             <HStack justify="space-between">
               <Heading size="sm">{property.title}</Heading>
 
-              <Badge colorScheme="green">
+              <Badge colorScheme={property.isActive ? "green" : "red"}>
                 {property.isActive ? "Actief" : "Inactief"}
               </Badge>
             </HStack>
@@ -89,7 +99,7 @@ export default function HostProperties() {
             <Divider my={2} />
 
             <Text>
-              <strong>Locatie:</strong> {property.location || "Onbekend"}
+              <strong>Locatie:</strong> {property.location}
             </Text>
 
             <Text>
@@ -102,6 +112,13 @@ export default function HostProperties() {
           </Box>
         ))}
       </VStack>
+
+      {/* MODAL */}
+      <PropertyForm
+        isOpen={isOpen}
+        onClose={onClose}
+        onSuccess={fetchProperties}
+      />
     </Box>
   );
 }

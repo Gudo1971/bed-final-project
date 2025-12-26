@@ -1,28 +1,26 @@
-import { HStack, Link as ChakraLink } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import { HStack, Link } from "@chakra-ui/react";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export default function NavLinks({ direction = "row", onClick }) {
-  // Gebruik je eigen backend-auth
-  const isAuthenticated = Boolean(localStorage.getItem("token"));
+export default function NavLinks() {
+  const { user } = useAuth();
 
   return (
-    <HStack spacing={6} flexDirection={direction}>
-      <ChakraLink as={Link} to="/" onClick={onClick}>
+    <HStack spacing={6}>
+      <Link as={NavLink} to="/">
         Home
-      </ChakraLink>
+      </Link>
 
-      <ChakraLink as={Link} to="/properties" onClick={onClick}>
-        Properties
-      </ChakraLink>
+      {user && (
+        <Link as={NavLink} to="/profile">
+          Mijn Profiel
+        </Link>
+      )}
 
-      <ChakraLink as={Link} to="/bookings" onClick={onClick}>
-        Bookings
-      </ChakraLink>
-
-      {isAuthenticated && (
-        <ChakraLink as={Link} to="/profile" onClick={onClick}>
-          Mijn profiel
-        </ChakraLink>
+      {user?.isHost && (
+        <Link as={NavLink} to="/host">
+          Host Dashboard
+        </Link>
       )}
     </HStack>
   );

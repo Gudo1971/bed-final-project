@@ -15,7 +15,6 @@ function loadJson(relativePath) {
   const fullPath = path.join(__dirname, "..", relativePath);
   const parsed = JSON.parse(fs.readFileSync(fullPath, "utf-8"));
 
-  // If JSON is { key: [...] }, extract the array
   if (typeof parsed === "object" && !Array.isArray(parsed)) {
     const firstKey = Object.keys(parsed)[0];
     return parsed[firstKey];
@@ -37,6 +36,7 @@ async function main() {
   // 1. Clear tables in correct FK order
   await prisma.review.deleteMany();
   await prisma.booking.deleteMany();
+  await prisma.propertyImage.deleteMany();
   await prisma.property.deleteMany();
   await prisma.host.deleteMany();
   await prisma.user.deleteMany();
@@ -53,11 +53,12 @@ async function main() {
         phoneNumber: user.phoneNumber,
         pictureUrl: user.pictureUrl,
         aboutMe: user.aboutMe,
+        isHost: false,
       },
     });
   }
 
-  // 3. Seed Hosts
+  // 3. Seed Hosts (GEEN koppeling aan Users!)
   for (const host of hosts) {
     await prisma.host.create({
       data: {
@@ -73,7 +74,7 @@ async function main() {
     });
   }
 
-  // 4. Seed Properties
+  // 4. Seed Properties + PropertyImages
   for (const property of properties) {
     await prisma.property.create({
       data: {
@@ -87,7 +88,12 @@ async function main() {
         maxGuestCount: property.maxGuestCount,
         rating: property.rating,
         hostId: property.hostId,
-        images: property.images ?? "default.jpg",
+
+        images: {
+          create: Array.isArray(property.images)
+            ? property.images.map((url) => ({ url }))
+            : [],
+        },
       },
     });
   }

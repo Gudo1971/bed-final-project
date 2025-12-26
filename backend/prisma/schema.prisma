@@ -21,8 +21,6 @@ model User {
   reviews     Review[]
 }
 
-
-
 model Host {
   id          String   @id @default(uuid())
   username    String   @unique
@@ -36,12 +34,8 @@ model Host {
   properties  Property[]
 }
 
-
-
-
-
 model Property {
-  id            String     @id @default(uuid())
+  id            String   @id @default(uuid())
   title         String
   description   String
   location      String
@@ -50,17 +44,25 @@ model Property {
   bathRoomCount Int
   maxGuestCount Int
   rating        Int
-  images        String
+
+  images        PropertyImage[]
 
   hostId        String
-  host          Host       @relation(fields: [hostId], references: [id])
+  host          Host      @relation(fields: [hostId], references: [id])
 
   bookings      Booking[]
   reviews       Review[]
 }
 
+model PropertyImage {
+  id         String   @id @default(uuid())
+  url        String
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
+
 model Booking {
-  id             String     @id @default(uuid())
+  id             String   @id @default(uuid())
   userId         String
   propertyId     String
   startDate      DateTime
@@ -69,17 +71,17 @@ model Booking {
   totalPrice     Float
   bookingStatus  String
 
-  user           User       @relation(fields: [userId], references: [id])
-  property       Property   @relation(fields: [propertyId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
+  property       Property @relation(fields: [propertyId], references: [id])
 }
 
 model Review {
-  id         String     @id @default(uuid())
+  id         String   @id @default(uuid())
   userId     String
   propertyId String
   rating     Int
   comment    String
 
-  user       User       @relation(fields: [userId], references: [id])
-  property   Property   @relation(fields: [propertyId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])
 }

@@ -8,24 +8,55 @@ import {
   getPropertyBookings
 } from "../controllers/property.controller.js";
 
+import authenticateToken, { requireHost } from "../middleware/auth.middleware.js";
+import upload from "../../config/cloudinaryStorage.js";
+
 const router = express.Router();
 
-// READ
+/* ============================================================
+   PUBLIC ROUTES
+============================================================ */
+
+// Iedereen mag properties bekijken
 router.get("/", getProperties);
 router.get("/:id", getProperty);
 
-// CREATE
-router.post("/", createProperty);
+/* ============================================================
+   HOST-ONLY ROUTES
+============================================================ */
 
-// UPDATE
-router.patch("/:id", updateProperty);
-router.put("/:id", updateProperty);
+// Nieuwe property aanmaken (met Cloudinary upload)
+router.post(
+  "/",
+  authenticateToken,
+  requireHost,
+  upload.array("images", 10),
+  createProperty
+);
 
+// Property updaten (optioneel met nieuwe foto's)
+router.patch(
+  "/:id",
+  authenticateToken,
+  requireHost,
+  upload.array("images", 10),
+  updateProperty
+);
 
-// DELETE
-router.delete("/:id", deleteProperty);
+// Property verwijderen
+router.delete(
+  "/:id",
+  authenticateToken,
+  requireHost,
+  deleteProperty
+);
 
-// EXTRA
-router.get("/:id/bookings", getPropertyBookings);
+// Boekingen voor property
+router.get(
+  "/:id/bookings",
+  authenticateToken,
+  requireHost,
+  getPropertyBookings
+);
 
 export default router;
