@@ -8,6 +8,8 @@ import bookingRoutes from "./src/routes/booking.route.js";
 import propertiesRoutes from "./src/routes/property.route.js";
 import reviewsRoutes from "./src/routes/review.route.js";
 import hostRoutes from "./src/routes/host.route.js";
+import uploadRoutes from "./src/routes/upload.routes.js";
+
 
 import { loginController} from "./src/controllers/auth.controller.js";
 
@@ -41,6 +43,7 @@ app.use("/bookings", bookingRoutes);
 app.use("/properties", propertiesRoutes);
 app.use("/reviews", reviewsRoutes);
 app.use("/hosts", hostRoutes);
+app.use("/upload", uploadRoutes);
 
 // 404 handler
 app.use((req, res, next) => {

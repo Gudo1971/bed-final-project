@@ -120,6 +120,59 @@ export const updateUserController = async (req, res, next) => {
 };
 
 
+
+// ===============================
+// BECOME HOST
+// ===============================
+export const becomeHost = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // 1. Haal de user op
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // 2. Check of deze user al host is
+    const existingHost = await prisma.host.findUnique({
+      where: { email: user.email },
+    });
+
+    if (existingHost) {
+      return res.status(400).json({ error: "Je bent al host" });
+    }
+
+    // 3. Maak een Host record aan
+    const host = await prisma.host.create({
+      data: {
+        username: user.username,
+        password: user.password, // hashed password hergebruiken
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        pictureUrl: user.pictureUrl,
+        aboutMe: user.aboutMe,
+      },
+    });
+
+    return res.json({
+      message: "Je bent nu host!",
+      host,
+    });
+
+  } catch (error) {
+    console.error("❌ Become Host error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+
+
 // ---------------------------------------------------------
 // DELETE USER
 // ---------------------------------------------------------

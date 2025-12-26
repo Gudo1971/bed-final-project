@@ -9,7 +9,7 @@ import {
   updateBookingController,
   getDisabledDatesByPropertyIdController,
 } from "../controllers/booking.controller.js";
-import { authenticateToken } from "../middleware/auth.middleware.js";
+import  authenticateToken  from "../middleware/auth.middleware.js";
 
 const router = Router();
 

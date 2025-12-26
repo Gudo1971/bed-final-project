@@ -7,6 +7,7 @@ import {
   deleteHost,
 } from "../controllers/host.controller.js";
 
+
 const router = Router();
 
 // GET all hosts

@@ -10,27 +10,27 @@ import {
   Divider,
   useToast,
 } from "@chakra-ui/react";
-import { useAuth0 } from "@auth0/auth0-react";
+
+import { useAuth } from "../../components/context/AuthContext.jsx";
 import { getHostBookings } from "../../api/host.js";
 
 export default function HostBookings() {
-  const { getAccessTokenSilently } = useAuth0();
+  const { user, token } = useAuth();
+  const toast = useToast();
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const toast = useToast();
+  // Niet-hosts blokkeren
+  if (user && !user.isHost) {
+    window.location.href = "/profile";
+    return null;
+  }
 
   async function fetchBookings() {
     try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: {
-          audience: "https://staybnb.gudo.dev/api",
-        },
-      });
-
       const data = await getHostBookings(token);
-      setBookings(data);
+      setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
 
