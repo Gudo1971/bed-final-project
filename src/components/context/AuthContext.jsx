@@ -3,9 +3,9 @@ import { createContext, useContext, useState, useEffect } from "react";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // -----------------------------
-  // INIT STATE
-  // -----------------------------
+  // ---------------------------------------------------------
+  // USER STATE (komt altijd uit /auth/me)
+  // ---------------------------------------------------------
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("user")) || null;
@@ -14,82 +14,81 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  const [token, setToken] = useState(() => {
-    return localStorage.getItem("token") || null;
+  // ---------------------------------------------------------
+  // TOKEN KOMT ALTIJD UIT LOCALSTORAGE — GEEN STATE MEER
+  // ---------------------------------------------------------
+  const getToken = () => localStorage.getItem("token");
+
+ // ---------------------------------------------------------
+// LOGIN
+// ---------------------------------------------------------
+const login = async (email, password) => {
+  const res = await fetch("http://localhost:3000/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
   });
 
-  // -----------------------------
-  // LOGIN
-  // -----------------------------
-  const login = async (email, password) => {
-    const res = await fetch("http://localhost:3000/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-  
-    const data = await res.json();
-  
-    if (!res.ok) {
-      throw new Error(data.error || "Login mislukt");
-    }
-  
-    // Alleen token opslaan
-    localStorage.setItem("token", data.token);
-    setToken(data.token);
-  
-    // User NIET opslaan vanuit login
-    // /auth/me haalt de echte user op
-  };
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || "Login mislukt");
+  }
+
+  // Token opslaan
+  localStorage.setItem("token", data.token);
+
+  // ⭐ BELANGRIJK: user ophalen
+  await fetchUser();
+};
 
 
-  // -----------------------------
-  // FETCH AUTH USER (/auth/me)
-  // -----------------------------
-  useEffect(() => {
+  // ---------------------------------------------------------
+  // FETCH USER VIA /auth/me
+  // ---------------------------------------------------------
+  const fetchUser = async () => {
+    const token = getToken();
     if (!token) return;
 
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    try {
+      const res = await fetch("http://localhost:3000/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        // Token ongeldig → automatisch uitloggen
-        if (res.status === 401 || res.status === 403 || res.status === 404) {
-          logout();
-          return;
-        }
-
-        const data = await res.json();
-
-        if (res.ok) {
-          setUser(data);
-          localStorage.setItem("user", JSON.stringify(data));
-        }
-      } catch (err) {
-        console.error("❌ Fout bij ophalen /auth/me:", err);
+      if (!res.ok) {
+        logout();
+        return;
       }
-    };
 
+      const data = await res.json();
+      setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
+    } catch (err) {
+      console.error("❌ Fout bij ophalen /auth/me:", err);
+    }
+  };
+
+  // ---------------------------------------------------------
+  // AUTO FETCH USER BIJ START
+  // ---------------------------------------------------------
+  useEffect(() => {
     fetchUser();
-  }, [token]);
+  }, []);
 
-  // -----------------------------
+  // ---------------------------------------------------------
   // LOGOUT
-  // -----------------------------
+  // ---------------------------------------------------------
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setToken(null);
     setUser(null);
   };
 
-  // -----------------------------
+  // ---------------------------------------------------------
   // REGISTER
-  // -----------------------------
+  // ---------------------------------------------------------
   const registerUser = async (username, email, password, name, phoneNumber) => {
     const res = await fetch("http://localhost:3000/auth/register", {
       method: "POST",
@@ -112,10 +111,12 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
-  // -----------------------------
+  // ---------------------------------------------------------
   // BECOME HOST
-  // -----------------------------
+  // ---------------------------------------------------------
   const becomeHost = async () => {
+    const token = getToken();
+
     const res = await fetch("http://localhost:3000/auth/become-host", {
       method: "POST",
       headers: {
@@ -131,28 +132,14 @@ export const AuthProvider = ({ children }) => {
 
     // Nieuwe token opslaan
     localStorage.setItem("token", data.token);
-    setToken(data.token);
 
-    // Nieuwe user ophalen via /auth/me
-    const meRes = await fetch("http://localhost:3000/auth/me", {
-      headers: {
-        Authorization: `Bearer ${data.token}`,
-      },
-    });
-
-    const meData = await meRes.json();
-
-    if (meRes.ok) {
-      setUser(meData);
-      localStorage.setItem("user", JSON.stringify(meData));
-    }
-
-    return true;
+    // DIRECT refreshen zodat nieuwe token wordt gebruikt
+   
   };
 
-  // -----------------------------
-  // UPDATE USER STATE (bijv. na Become Host)
-  // -----------------------------
+  // ---------------------------------------------------------
+  // UPDATE USER
+  // ---------------------------------------------------------
   const updateUser = (updated) => {
     setUser(updated);
     localStorage.setItem("user", JSON.stringify(updated));
@@ -162,12 +149,12 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        token,
+        token: getToken(), // altijd de actuele token
         login,
         logout,
         registerUser,
         updateUser,
-        becomeHost, // <— NIEUW
+        becomeHost,
       }}
     >
       {children}

@@ -53,12 +53,11 @@ async function main() {
         phoneNumber: user.phoneNumber,
         pictureUrl: user.pictureUrl,
         aboutMe: user.aboutMe,
-        isHost: false,
       },
     });
   }
 
-  // 3. Seed Hosts (GEEN koppeling aan Users!)
+  // 3. Seed Hosts
   for (const host of hosts) {
     await prisma.host.create({
       data: {
@@ -75,28 +74,28 @@ async function main() {
   }
 
   // 4. Seed Properties + PropertyImages
-  for (const property of properties) {
-    await prisma.property.create({
-      data: {
-        id: property.id,
-        title: property.title,
-        description: property.description,
-        location: property.location,
-        pricePerNight: property.pricePerNight,
-        bedroomCount: property.bedroomCount,
-        bathRoomCount: property.bathRoomCount,
-        maxGuestCount: property.maxGuestCount,
-        rating: property.rating,
-        hostId: property.hostId,
+for (const property of properties) {
+  await prisma.property.create({
+    data: {
+      id: property.id,
+      title: property.title,
+      description: property.description,
+      location: property.location,
+      pricePerNight: property.pricePerNight,
+      bedroomCount: property.bedroomCount,
+      bathRoomCount: property.bathRoomCount,
+      maxGuestCount: property.maxGuestCount,
+      rating: property.rating,
+      hostId: property.hostId,
 
-        images: {
-          create: Array.isArray(property.images)
-            ? property.images.map((url) => ({ url }))
-            : [],
-        },
+      images: {
+        create: Array.isArray(property.images)
+          ? property.images.map((url) => ({ url }))
+          : [], // <-- snelle fix: geen images? dan lege array
       },
-    });
-  }
+    },
+  });
+}
 
   // 5. Seed Bookings
   for (const booking of bookings) {

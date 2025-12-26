@@ -26,12 +26,19 @@ export default function HostProperties() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Blokkeer niet-hosts (maar alleen als user geladen is)
-  if (user && user.isHost === false) {
-    window.location.href = "/profile";
-    return null;
-  }
+  /* -----------------------------------------------------------
+     Redirect voor niet-hosts
+     Dit gebeurt in een effect zodat het niet tijdens render gebeurt.
+     ----------------------------------------------------------- */
+  useEffect(() => {
+    if (user && user.isHost === false) {
+      window.location.href = "/profile";
+    }
+  }, [user]);
 
+  /* -----------------------------------------------------------
+     Ophalen van properties van de ingelogde host
+     ----------------------------------------------------------- */
   async function fetchProperties() {
     try {
       const data = await getHostProperties(token);
@@ -49,13 +56,17 @@ export default function HostProperties() {
     }
   }
 
+  /* -----------------------------------------------------------
+     Fetch uitvoeren zodra token beschikbaar is
+     ----------------------------------------------------------- */
   useEffect(() => {
-    // Wacht tot token bestaat
     if (!token) return;
-
     fetchProperties();
   }, [token]);
 
+  /* -----------------------------------------------------------
+     Loading state tijdens het ophalen
+     ----------------------------------------------------------- */
   if (loading) {
     return (
       <HStack>
@@ -65,6 +76,9 @@ export default function HostProperties() {
     );
   }
 
+  /* -----------------------------------------------------------
+     Render van de properties lijst en de modal voor nieuwe property
+     ----------------------------------------------------------- */
   return (
     <Box>
       <HStack justify="space-between" mb={4}>
@@ -113,7 +127,7 @@ export default function HostProperties() {
         ))}
       </VStack>
 
-      {/* MODAL */}
+      {/* Modal voor nieuwe property */}
       <PropertyForm
         isOpen={isOpen}
         onClose={onClose}

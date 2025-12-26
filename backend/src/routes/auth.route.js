@@ -15,35 +15,45 @@ router.post("/login", loginController);
 console.log("✅ AUTH ROUTE FILE IS LOADED");
 
 // ============================================================
-// CHECK TOKEN / CURRENT USER
+// /auth/me — ALTIJD CORRECTE USER OF HOST TERUG
 // ============================================================
 router.get("/me", authenticateToken, async (req, res) => {
   try {
-    const { id, email } = req.user;
+    const { email } = req.user; // <-- BELANGRIJK: email gebruiken
 
-    // Probeer user op te halen
-    const user = await prisma.user.findUnique({ where: { id } });
+    // 1. Haal user op via email
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-    // Als user niet bestaat → probeer host
     if (!user) {
-      const host = await prisma.host.findUnique({ where: { id } });
-
-      if (!host) {
-        return res.status(404).json({ error: "Gebruiker niet gevonden" });
-      }
-
-      return res.json({
-        ...host,
-        isHost: true,
-      });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    // Check of user ook host is
-    const host = await prisma.host.findUnique({ where: { email: user.email } });
+    // 2. Check of deze user ook een host-profiel heeft
+    const host = await prisma.host.findUnique({
+      where: { email }, // koppeling via email
+    });
 
+    // 3. Als user een host is → stuur host-id terug
+    if (host) {
+  return res.json({
+    id: user.id,
+    hostId: host.id,
+    email: user.email,
+    name: user.name,
+    username: user.username,
+    isHost: true,
+  });
+}
+
+
+    // 4. Anders: normale user
     return res.json({
-      ...user,
-      isHost: !!host,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      isHost: false,
     });
   } catch (error) {
     console.error("❌ /me error:", error);
@@ -61,15 +71,15 @@ router.post("/register", register);
 // ============================================================
 router.post("/become-host", authenticateToken, async (req, res) => {
   try {
-    const { id } = req.user;
+    const { email } = req.user;
 
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    const existingHost = await prisma.host.findUnique({ where: { email: user.email } });
+    let host = await prisma.host.findUnique({ where: { email } });
 
-    if (!existingHost) {
-      await prisma.host.create({
+    if (!host) {
+      host = await prisma.host.create({
         data: {
           username: user.username,
           password: user.password,
@@ -84,24 +94,26 @@ router.post("/become-host", authenticateToken, async (req, res) => {
 
     const token = jwt.sign(
       {
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        email: user.email,
+        id: host.id,
+        username: host.username,
+        name: host.name,
+        email: host.email,
         isHost: true,
       },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    return res.json({
-      message: "Je bent nu een host!",
-      token,
-    });
+    return res.json({ token });
+
   } catch (error) {
     console.error("❌ /become-host error:", error);
     return res.status(500).json({ error: "Host worden mislukt" });
   }
 });
+
+
+
+
 
 export default router;
