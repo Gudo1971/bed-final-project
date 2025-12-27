@@ -105,7 +105,7 @@ export default function PropertyDetailPage() {
           checkOut={null}
           onDateClick={() => {}}
           setDisabledDates={() => {}}
-          isInteractive={false}
+          isInteractive={true}
         />
       </Box>
 

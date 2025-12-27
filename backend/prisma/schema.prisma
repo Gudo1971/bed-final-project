@@ -45,7 +45,7 @@ model Property {
   bathRoomCount Int
   maxGuestCount Int
   rating        Int
-
+  isActive      Boolean  @default(true)
   images        PropertyImage[]
 
   hostId        String

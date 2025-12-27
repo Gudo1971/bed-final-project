@@ -9,27 +9,54 @@ import {
   Badge,
   Divider,
   Button,
+  Switch,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
 
 import { useAuth } from "../../components/context/AuthContext.jsx";
 import PropertyForm from "../../components/properties/PropertyForm.jsx";
-import { getHostProperties } from "../../api/host.js";
+import { getHostProperties, toggleProperty } from "../../api/host.js";
+import EditPropertyModal from "../../components/properties/EditPropertyModal.jsx";
+
 
 export default function HostProperties() {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+  isOpen: isEditOpen,
+  onOpen: onEditOpen,
+  onClose: onEditClose,
+} = useDisclosure();
 
   const { user, token } = useAuth();
 
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+
+
+  /* -----------------------------------------------------------
+     Toggle active/inactive
+  ----------------------------------------------------------- */
+  async function handleToggle(propertyId, newState) {
+    try {
+      await toggleProperty(propertyId, newState, token);
+      fetchProperties(); // refresh lijst
+    } catch (err) {
+      toast({
+        title: "Fout bij wijzigen",
+        description: "Kon de status niet aanpassen.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  }
 
   /* -----------------------------------------------------------
      Redirect voor niet-hosts
-     Dit gebeurt in een effect zodat het niet tijdens render gebeurt.
-     ----------------------------------------------------------- */
+  ----------------------------------------------------------- */
   useEffect(() => {
     if (user && user.isHost === false) {
       window.location.href = "/profile";
@@ -38,7 +65,7 @@ export default function HostProperties() {
 
   /* -----------------------------------------------------------
      Ophalen van properties van de ingelogde host
-     ----------------------------------------------------------- */
+  ----------------------------------------------------------- */
   async function fetchProperties() {
     try {
       const data = await getHostProperties(token);
@@ -58,15 +85,15 @@ export default function HostProperties() {
 
   /* -----------------------------------------------------------
      Fetch uitvoeren zodra token beschikbaar is
-     ----------------------------------------------------------- */
+  ----------------------------------------------------------- */
   useEffect(() => {
     if (!token) return;
     fetchProperties();
   }, [token]);
 
   /* -----------------------------------------------------------
-     Loading state tijdens het ophalen
-     ----------------------------------------------------------- */
+     Loading state
+  ----------------------------------------------------------- */
   if (loading) {
     return (
       <HStack>
@@ -77,8 +104,8 @@ export default function HostProperties() {
   }
 
   /* -----------------------------------------------------------
-     Render van de properties lijst en de modal voor nieuwe property
-     ----------------------------------------------------------- */
+     Render
+  ----------------------------------------------------------- */
   return (
     <Box>
       <HStack justify="space-between" mb={4}>
@@ -102,27 +129,45 @@ export default function HostProperties() {
             p={4}
             _hover={{ boxShadow: "md" }}
           >
-            <HStack justify="space-between">
+            {/* Titel + Toggle */}
+            <HStack justify="space-between" mb={2}>
               <Heading size="sm">{property.title}</Heading>
 
-              <Badge colorScheme={property.isActive ? "green" : "red"}>
-                {property.isActive ? "Actief" : "Inactief"}
-              </Badge>
+              <HStack spacing={3}>
+                <Badge colorScheme={property.isActive ? "green" : "red"}>
+                  {property.isActive ? "Actief" : "Inactief"}
+                </Badge>
+
+                <Switch
+                  size="md"
+                  colorScheme="teal"
+                  isChecked={property.isActive}
+                  onChange={(e) =>
+                    handleToggle(property.id, e.target.checked)
+                  }
+                  
+                />
+                <Button size="xs" colorScheme="blue" onClick={() => { setSelectedProperty(property);
+                   onEditOpen(); }}> Bewerken </Button>
+              </HStack>
             </HStack>
 
-            <Divider my={2} />
+            <Divider my={3} />
 
-            <Text>
-              <strong>Locatie:</strong> {property.location}
-            </Text>
+            {/* Details */}
+            <VStack align="start" spacing={1}>
+              <Text>
+                <strong>Locatie:</strong> {property.location}
+              </Text>
 
-            <Text>
-              <strong>Prijs per nacht:</strong> € {property.pricePerNight}
-            </Text>
+              <Text>
+                <strong>Prijs per nacht:</strong> € {property.pricePerNight}
+              </Text>
 
-            <Text mt={2}>
-              <strong>Afbeeldingen:</strong> {property.images?.length || 0}
-            </Text>
+              <Text>
+                <strong>Afbeeldingen:</strong> {property.images?.length || 0}
+              </Text>
+            </VStack>
           </Box>
         ))}
       </VStack>
@@ -133,6 +178,14 @@ export default function HostProperties() {
         onClose={onClose}
         onSuccess={fetchProperties}
       />
+      <EditPropertyModal
+  isOpen={isEditOpen}
+  onClose={onEditClose}
+  property={selectedProperty}
+  token={token}
+  onSuccess={fetchProperties}
+/>
+
     </Box>
   );
 }

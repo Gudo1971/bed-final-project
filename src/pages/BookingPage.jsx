@@ -11,14 +11,15 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import BookingModal from "../components/booking/BookingModal";
-import { useNavigate } from "react-router-dom";
 
 export default function BookingPage() {
   const { propertyId } = useParams();
 
+  const [property, setProperty] = useState(null);
   const [days, setDays] = useState([]);
   const [disabledDates, setDisabledDates] = useState([]);
   const [checkIn, setCheckIn] = useState(null);
@@ -33,15 +34,22 @@ export default function BookingPage() {
   const toast = useToast();
   const navigate = useNavigate();
 
-
-  const formatDate = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+  /* -----------------------------------------------------------
+     Property ophalen (voor isActive)
+  ----------------------------------------------------------- */
+  const loadProperty = async () => {
+    const res = await fetch(`http://localhost:3000/properties/${propertyId}`);
+    const data = await res.json();
+    setProperty(data);
   };
 
-  // Disabled dates ophalen
+  useEffect(() => {
+    loadProperty();
+  }, [propertyId]);
+
+  /* -----------------------------------------------------------
+     Disabled dates ophalen
+  ----------------------------------------------------------- */
   const loadDisabled = async () => {
     const res = await fetch(
       `http://localhost:3000/bookings/disabled-dates/${propertyId}`
@@ -54,7 +62,9 @@ export default function BookingPage() {
     loadDisabled();
   }, [propertyId]);
 
-  // Dagen genereren
+  /* -----------------------------------------------------------
+     Dagen genereren voor de kalender
+  ----------------------------------------------------------- */
   useEffect(() => {
     const first = new Date(currentYear, currentMonth, 1);
     const last = new Date(currentYear, currentMonth + 1, 0);
@@ -70,8 +80,19 @@ export default function BookingPage() {
     setDays(temp);
   }, [currentYear, currentMonth]);
 
-  // Datumselectie
+  /* -----------------------------------------------------------
+     Datumselectie
+  ----------------------------------------------------------- */
+  const formatDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
   const handleDateSelection = (date) => {
+    if (!property?.isActive) return; // property inactief → geen selectie
+
     const dateStr = formatDate(date);
 
     if (!checkIn || (checkIn && checkOut)) {
@@ -88,7 +109,9 @@ export default function BookingPage() {
     }
   };
 
-  // Maandnavigatie
+  /* -----------------------------------------------------------
+     Maandnavigatie
+  ----------------------------------------------------------- */
   const goToPreviousMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -107,14 +130,19 @@ export default function BookingPage() {
     }
   };
 
+  /* -----------------------------------------------------------
+     Prijsberekening
+  ----------------------------------------------------------- */
   const nightCount =
     checkIn && checkOut
-      ? (new Date(checkOut) - new Date(checkIn)) /
-        (1000 * 60 * 60 * 24)
+      ? (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
       : 0;
 
   const totalPrice = nightCount * pricePerNight;
 
+  /* -----------------------------------------------------------
+     Render
+  ----------------------------------------------------------- */
   return (
     <Box p={6}>
       <Text fontSize="2xl" fontWeight="bold" mb={4}>
@@ -148,7 +176,7 @@ export default function BookingPage() {
         checkIn={checkIn}
         checkOut={checkOut}
         onDateClick={handleDateSelection}
-        isInteractive={true}
+        isInteractive={property?.isActive ?? true} // ⭐ correcte boolean
       />
 
       {/* Prijsweergave */}
@@ -164,8 +192,11 @@ export default function BookingPage() {
       <Button
         mt={6}
         colorScheme="blue"
-        isDisabled={!checkIn || !checkOut}
-        onClick={() => setIsModalOpen(true)}
+        isDisabled={!checkIn || !checkOut || !property?.isActive}
+        onClick={() => {
+          if (!property?.isActive) return;
+          setIsModalOpen(true);
+        }}
       >
         Boek nu
       </Button>
@@ -178,7 +209,8 @@ export default function BookingPage() {
         pricePerNight={pricePerNight}
         checkIn={checkIn}
         checkOut={checkOut}
-        
+        isActive={property?.isActive ?? true} // ⭐ doorgeven aan BookingForm
+
         onBookingCreated={() => {
           toast({
             title: "Boeking geslaagd",
@@ -192,7 +224,7 @@ export default function BookingPage() {
           setCheckIn(null);
           setCheckOut(null);
 
-          navigate ("/profile?tab=bookings" )
+          navigate("/profile?tab=bookings");
         }}
 
         onBookingCancelled={() => {

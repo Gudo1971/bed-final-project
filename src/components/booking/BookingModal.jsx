@@ -1,5 +1,4 @@
 // BookingModal.jsx
-// Modal die het BookingForm toont en de geselecteerde datums doorgeeft.
 
 import {
   Modal,
@@ -18,8 +17,9 @@ export default function BookingModal({
   pricePerNight,
   checkIn,
   checkOut,
-  onBookingCreated,   // callback vanuit BookingPage
-  onBookingCancelled, // nieuwe callback voor annuleren
+  isActive,              // ⭐ FIX 1
+  onBookingCreated,
+  onBookingCancelled,
 }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
@@ -34,6 +34,7 @@ export default function BookingModal({
             pricePerNight={pricePerNight}
             checkIn={checkIn}
             checkOut={checkOut}
+            isActive={isActive}   // ⭐ FIX 2
             onBookingCreated={(booking) => {
               if (onBookingCreated) onBookingCreated(booking);
               onClose();

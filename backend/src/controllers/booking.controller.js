@@ -69,6 +69,23 @@ if (existingUser) {
 
   userId = newUser.id;
 }
+// ---------------------------------------------------------
+// CHECK OF PROPERTY ACTIEF IS
+// ---------------------------------------------------------
+const property = await prisma.property.findUnique({
+  where: { id: propertyId },
+  select: { isActive: true }
+});
+
+if (!property) {
+  return res.status(404).json({ error: "Property niet gevonden" });
+}
+
+if (!property.isActive) {
+  return res.status(400).json({
+    error: "Deze accommodatie is momenteel niet beschikbaar."
+  });
+}
 
 
     // ⭐ Booking aanmaken

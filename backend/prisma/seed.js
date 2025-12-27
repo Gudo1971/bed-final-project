@@ -87,11 +87,11 @@ for (const property of properties) {
       maxGuestCount: property.maxGuestCount,
       rating: property.rating,
       hostId: property.hostId,
-
+      isActive: true,
       images: {
         create: Array.isArray(property.images)
           ? property.images.map((url) => ({ url }))
-          : [], // <-- snelle fix: geen images? dan lege array
+          : [], 
       },
     },
   });

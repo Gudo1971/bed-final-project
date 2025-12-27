@@ -1,6 +1,3 @@
-// BookingForm.jsx
-// Formulier dat de boeking aanmaakt. Inclusief validatie op handmatige datums.
-
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -12,7 +9,8 @@ import {
   Flex,
   useToast,
 } from "@chakra-ui/react";
-import axios from "axios";
+
+import { createBooking } from "../../api/bookings"; 
 
 export default function BookingForm({
   propertyId,
@@ -21,7 +19,8 @@ export default function BookingForm({
   checkOut,
   onBookingCreated,
   onCancel,
-  disabledDates, // nieuwe prop
+  disabledDates,
+  isActive, // ⭐ nieuwe prop
 }) {
   const toast = useToast();
 
@@ -31,22 +30,26 @@ export default function BookingForm({
   const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Functie om te checken of een datum verboden is
+  /* -----------------------------------------------------------
+     Datum blokkade (verleden + disabledDates)
+  ----------------------------------------------------------- */
   const isDateDisabled = (dateStr) => {
     if (!dateStr) return false;
 
     const date = new Date(dateStr);
 
-    // 1. Verleden blokkeren
+    // Verleden blokkeren
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (date < today) return true;
 
-    // 2. Disabled dates blokkeren
+    // Geblokkeerde datums
     return disabledDates.includes(dateStr);
   };
 
-  // Automatische prijsberekening
+  /* -----------------------------------------------------------
+     Automatische prijsberekening
+  ----------------------------------------------------------- */
   useEffect(() => {
     if (!checkinDate || !checkoutDate) return;
 
@@ -57,16 +60,28 @@ export default function BookingForm({
     setTotalPrice(nights > 0 ? nights * pricePerNight : 0);
   }, [checkinDate, checkoutDate, pricePerNight]);
 
-  // Submit handler
+  /* -----------------------------------------------------------
+     Submit handler
+  ----------------------------------------------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isActive) {
+      toast({
+        title: "Niet beschikbaar",
+        description: "Deze accommodatie staat op inactief en kan niet geboekt worden.",
+        status: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.post(
-        "http://localhost:3000/bookings",
+      await createBooking(
         {
           checkinDate,
           checkoutDate,
@@ -74,21 +89,18 @@ export default function BookingForm({
           totalPrice,
           propertyId,
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        token
       );
 
-      if (onBookingCreated) onBookingCreated(res.data);
-    } catch (err) {
-      console.error("Booking error:", err.response?.data || err);
+     
 
+      if (onBookingCreated) onBookingCreated();
+    } catch (err) {
       toast({
         title: "Boeking mislukt",
-        description: "Er ging iets mis bij het aanmaken van de boeking.",
+        description: err.message, // ⭐ toont backend error correct
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     } finally {
       setLoading(false);
@@ -99,12 +111,28 @@ export default function BookingForm({
     <Box as="form" onSubmit={handleSubmit}>
       <VStack spacing={3} align="stretch">
 
+        {/* ⭐ Banner voor inactieve property */}
+        {!isActive && (
+          <Box
+            bg="red.50"
+            border="1px solid"
+            borderColor="red.200"
+            p={3}
+            borderRadius="md"
+            color="red.700"
+            fontWeight="bold"
+          >
+            Deze accommodatie is momenteel niet beschikbaar voor boekingen.
+          </Box>
+        )}
+
         {/* Check-in veld */}
         <Box>
           <FormLabel>Check-in</FormLabel>
           <Input
             type="date"
             value={checkinDate}
+            disabled={!isActive}
             onChange={(e) => {
               const value = e.target.value;
 
@@ -114,7 +142,6 @@ export default function BookingForm({
                   description: "Deze datum kan niet worden geselecteerd.",
                   status: "error",
                   duration: 3000,
-                  isClosable: true,
                 });
                 return;
               }
@@ -130,6 +157,7 @@ export default function BookingForm({
           <Input
             type="date"
             value={checkoutDate}
+            disabled={!isActive}
             onChange={(e) => {
               const value = e.target.value;
 
@@ -139,7 +167,6 @@ export default function BookingForm({
                   description: "Deze datum kan niet worden geselecteerd.",
                   status: "error",
                   duration: 3000,
-                  isClosable: true,
                 });
                 return;
               }
@@ -155,6 +182,7 @@ export default function BookingForm({
           <Input
             type="number"
             min="1"
+            disabled={!isActive}
             value={numberOfGuests}
             onChange={(e) => setNumberOfGuests(e.target.value)}
           />
@@ -163,13 +191,18 @@ export default function BookingForm({
         {/* Totale prijs */}
         <Text fontWeight="bold">Totale prijs: €{totalPrice.toFixed(2)}</Text>
 
-        {/* Knoppenbalk */}
+        {/* Knoppen */}
         <Flex justify="space-between" mt={6}>
           <Button variant="outline" onClick={onCancel}>
             Annuleren
           </Button>
 
-          <Button type="submit" colorScheme="blue" isLoading={loading}>
+          <Button
+            type="submit"
+            colorScheme="blue"
+            isLoading={loading}
+            isDisabled={!isActive} // ⭐ voorkomt boeken
+          >
             Bevestig boeking
           </Button>
         </Flex>

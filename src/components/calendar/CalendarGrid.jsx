@@ -11,7 +11,6 @@ export default function CalendarGrid({
   onDateClick,
   isInteractive = true,
 }) {
-  // Format a Date object into YYYY-MM-DD
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -19,20 +18,17 @@ export default function CalendarGrid({
     return `${y}-${m}-${d}`;
   };
 
-  // Check if date is disabled based on backend list
   const isDisabled = (date) => {
     if (!Array.isArray(disabledDates)) return false;
     return disabledDates.includes(formatDate(date));
   };
 
-  // Check if date is before today
   const isPastDate = (date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return date < today;
   };
 
-  // Determine if date is check-in or check-out
   const getSelectionType = (date) => {
     const dateStr = formatDate(date);
     if (dateStr === checkIn) return "checkin";
@@ -40,7 +36,6 @@ export default function CalendarGrid({
     return "";
   };
 
-  // Determine if date is between check-in and check-out
   const isInRange = (date) => {
     if (!checkIn || !checkOut) return false;
     const t = date.getTime();
@@ -70,38 +65,41 @@ export default function CalendarGrid({
           const dateStr = formatDate(date);
           const past = isPastDate(date);
           const disabled = isDisabled(date) || past;
+
+          // Property inactive → full disabled mode
+          const fullyDisabled = !isInteractive;
+
           const selectionType = getSelectionType(date);
           const inRange = isInRange(date);
 
-          // Border radius for start/end of range
+          // Clean border radius (no broken ternary)
           const borderRadius =
             selectionType === "checkin"
               ? "md 0 0 md"
               : selectionType === "checkout"
               ? "0 md md 0"
+              : "0";
+
+          // Background color logic
+          const bgColor =
+            fullyDisabled
+              ? "red.300"
+              : disabled
+              ? "red.300"
+              : selectionType === "checkin"
+              ? "green.400"
+              : selectionType === "checkout"
+              ? "blue.700"
               : inRange
-              ? "blue.500"
-              : "white"
-              ? "0"
-              : "md";
+              ? "blue.100"
+              : "white";
 
-          // Background color based on state
-          const bgColor = disabled
-            ? "red.300"
-            : selectionType === "checkin"
-            ? "green.400"
-            : selectionType === "checkout"
-            ? "blue.700"
-            : inRange
-            ? "blue.100"
-            : "white";
-
-          // Text color
-          const textColor = disabled
-            ? "red.700"
-            : selectionType
-            ? "white"
-            : "black";
+          const textColor =
+            fullyDisabled || disabled
+              ? "red.700"
+              : selectionType
+              ? "white"
+              : "black";
 
           return (
             <Box
@@ -112,7 +110,7 @@ export default function CalendarGrid({
               position="relative"
               borderRadius={borderRadius}
               cursor={
-                !isInteractive
+                fullyDisabled
                   ? "default"
                   : disabled
                   ? "not-allowed"
@@ -120,9 +118,8 @@ export default function CalendarGrid({
               }
               bg={bgColor}
               color={textColor}
-              // Subtle hover only, no icons or overlays
               _hover={
-                !isInteractive || disabled
+                fullyDisabled || disabled
                   ? {}
                   : {
                       bg:
@@ -136,30 +133,26 @@ export default function CalendarGrid({
                     }
               }
               onClick={() => {
-                if (!isInteractive) return;
+                if (fullyDisabled) return;
                 if (!disabled) onDateClick(date);
               }}
-              boxShadow={!isInteractive || disabled ? "none" : "sm"}
+              boxShadow={fullyDisabled || disabled ? "none" : "sm"}
             >
-              {/* Day number */}
               <Text fontWeight="medium">{date.getDate()}</Text>
 
-              {/* Check-in label */}
               {selectionType === "checkin" && (
                 <Text fontSize="xs" color="white" mt={1}>
                   Check-in
                 </Text>
               )}
 
-              {/* Check-out label */}
               {selectionType === "checkout" && (
                 <Text fontSize="xs" color="white" mt={1}>
                   Check-out
                 </Text>
               )}
 
-              {/* Disabled indicator */}
-              {disabled && (
+              {(fullyDisabled || disabled) && (
                 <Text fontSize="xs" color="red.700">
                   🔒
                 </Text>
