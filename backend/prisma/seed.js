@@ -57,21 +57,45 @@ async function main() {
     });
   }
 
-  // 3. Seed Hosts
-  for (const host of hosts) {
-    await prisma.host.create({
+  // 3. Seed Hosts — ensure every host has a matching user
+for (const host of hosts) {
+  // 3A — check if user exists
+  let user = await prisma.user.findUnique({
+    where: { email: host.email },
+  });
+
+  // 3B — if no user exists → create one
+  if (!user) {
+    user = await prisma.user.create({
       data: {
-        id: host.id,
-        username: host.username,
-        password: await bcrypt.hash(host.password, 10),
-        name: host.name,
         email: host.email,
+        username: host.username,
+        name: host.name,
+        password: await bcrypt.hash(host.password, 10),
         phoneNumber: host.phoneNumber,
         pictureUrl: host.pictureUrl,
         aboutMe: host.aboutMe,
       },
     });
   }
+
+  // 3C — create host record
+  await prisma.host.create({
+    data: {
+      id: host.id,
+      username: host.username,
+      password: await bcrypt.hash(host.password, 10),
+      name: host.name,
+      email: host.email,
+      phoneNumber: host.phoneNumber,
+      pictureUrl: host.pictureUrl,
+      aboutMe: host.aboutMe,
+    },
+  });
+}
+
+
+
 
   // 4. Seed Properties + PropertyImages
 for (const property of properties) {

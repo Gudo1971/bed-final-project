@@ -39,63 +39,63 @@ export const createBookingController = async (req, res) => {
       return res.status(400).json({ error: "Invalid input" });
     }
 
+    // ---------------------------------------------------------
+    // USER FIX: user koppelen of aanmaken
+    // ---------------------------------------------------------
+    let existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
 
-// FIX: userId of email koppelen aan bestaande user, of nieuwe user aanmaken
-let existingUser = await prisma.user.findUnique({
-  where: { id: userId }
-});
+    if (!existingUser) {
+      existingUser = await prisma.user.findUnique({
+        where: { email: req.user.email },
+      });
+    }
 
-// Als user niet bestaat op id → check op email
-if (!existingUser) {
-  existingUser = await prisma.user.findUnique({
-    where: { email: req.user.email }
-  });
-}
+    if (existingUser) {
+      userId = existingUser.id;
+    } else {
+      const newUser = await prisma.user.create({
+        data: {
+          id: userId,
+          email: req.user.email,
+          username: req.user.username,
+          name: req.user.name,
+          password: "host-placeholder",
+        },
+      });
 
-if (existingUser) {
-  // Gebruik bestaande user
-  userId = existingUser.id;
-} else {
-  // Maak nieuwe user aan voor oude host
-  const newUser = await prisma.user.create({
-    data: {
-      id: userId, // host.id wordt user.id
-      email: req.user.email,
-      username: req.user.username,
-      name: req.user.name,
-      password: "host-placeholder",
-    },
-  });
+      userId = newUser.id;
+    }
 
-  userId = newUser.id;
-}
-// ---------------------------------------------------------
-// CHECK OF PROPERTY ACTIEF IS
-// ---------------------------------------------------------
-const property = await prisma.property.findUnique({
-  where: { id: propertyId },
-  select: { isActive: true }
-});
+    // ---------------------------------------------------------
+    // CHECK OF PROPERTY ACTIEF IS
+    // ---------------------------------------------------------
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      select: { isActive: true },
+    });
 
-if (!property) {
-  return res.status(404).json({ error: "Property niet gevonden" });
-}
+    if (!property) {
+      return res.status(404).json({ error: "Property niet gevonden" });
+    }
 
-if (!property.isActive) {
-  return res.status(400).json({
-    error: "Deze accommodatie is momenteel niet beschikbaar."
-  });
-}
+    if (!property.isActive) {
+      return res.status(400).json({
+        error: "Deze accommodatie is momenteel niet beschikbaar.",
+      });
+    }
 
-
-    // ⭐ Booking aanmaken
+    // ---------------------------------------------------------
+    // BOOKING AANMAKEN (altijd PENDING)
+    // ---------------------------------------------------------
     const booking = await prisma.booking.create({
       data: {
         startDate: new Date(checkinDate),
         endDate: new Date(checkoutDate),
         numberOfGuests,
         totalPrice,
-        bookingStatus: "CONFIRMED",
+        bookingStatus: "PENDING",
         propertyId,
         userId,
       },
@@ -127,6 +127,7 @@ export const getAllBookingsController = async (req, res) => {
   }
 };
 
+
 // ---------------------------------------------------------
 // GET BOOKING BY ID
 // ---------------------------------------------------------
@@ -146,6 +147,7 @@ export const getBookingByIdController = async (req, res) => {
   }
 };
 
+
 // ---------------------------------------------------------
 // GET BOOKINGS BY USER
 // ---------------------------------------------------------
@@ -161,6 +163,7 @@ export const getBookingsByUserIdController = async (req, res) => {
   }
 };
 
+
 // ---------------------------------------------------------
 // GET BOOKINGS BY PROPERTY
 // ---------------------------------------------------------
@@ -175,6 +178,7 @@ export const getBookingsByPropertyIdController = async (req, res) => {
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
+
 
 // ---------------------------------------------------------
 // UPDATE BOOKING
@@ -193,24 +197,40 @@ export const updateBookingController = async (req, res) => {
       checkoutDate,
       numberOfGuests,
       totalPrice,
-      bookingStatus,
       propertyId,
     } = req.body;
 
+    // ---------------------------------------------------------
+    // ❗ VALIDATIE: checkout mag nooit vóór checkin liggen
+    // ---------------------------------------------------------
+    const newStart = checkinDate ? new Date(checkinDate) : existing.startDate;
+    const newEnd = checkoutDate ? new Date(checkoutDate) : existing.endDate;
+
+    if (newEnd <= newStart) {
+      return res.status(400).json({
+        error: "Checkout date must be after checkin date",
+      });
+    }
+
+    // ---------------------------------------------------------
+    // UPDATE BOOKING + status terug naar PENDING
+    // ---------------------------------------------------------
     const updated = await prisma.booking.update({
       where: { id },
       data: {
-        startDate: checkinDate ? new Date(checkinDate) : existing.startDate,
-        endDate: checkoutDate ? new Date(checkoutDate) : existing.endDate,
+        startDate: newStart,
+        endDate: newEnd,
         numberOfGuests: numberOfGuests ?? existing.numberOfGuests,
         totalPrice: totalPrice ?? existing.totalPrice,
-        bookingStatus: bookingStatus ?? existing.bookingStatus,
         propertyId: propertyId ?? existing.propertyId,
+
+        // ⭐ Elke wijziging → terug naar PENDING
+        bookingStatus: "PENDING",
       },
     });
 
     return res.status(200).json({
-      message: "Booking updated",
+      message: "Booking updated — awaiting host confirmation",
       booking: mapBooking(updated),
     });
   } catch (error) {
@@ -218,6 +238,8 @@ export const updateBookingController = async (req, res) => {
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
+
+
 
 // ---------------------------------------------------------
 // DELETE BOOKING
@@ -250,6 +272,7 @@ export const deleteBookingController = async (req, res) => {
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
+
 
 // ---------------------------------------------------------
 // GET DISABLED DATES FOR PROPERTY
