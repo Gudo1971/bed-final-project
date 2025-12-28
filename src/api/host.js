@@ -119,3 +119,34 @@ export async function uploadPropertyImages(propertyId, files, token) {
   return res.json();
 }
 
+/* ============================================================
+   HOST: CONFIRM BOOKING
+============================================================ */
+export async function confirmBooking(id, token) {
+  const res = await fetch(`${BASE_URL}/bookings/${id}/confirm`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) throw new Error("Failed to confirm booking");
+  return res.json();
+}
+
+/* ============================================================
+   HOST: REJECT BOOKING
+============================================================ */
+export async function rejectBooking(id, token) {
+  const res = await fetch(`${BASE_URL}/bookings/${id}/reject`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) throw new Error("Failed to reject booking");
+  return res.json();
+}

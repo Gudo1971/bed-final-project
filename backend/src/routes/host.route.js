@@ -5,6 +5,7 @@ import {
   createHostController,
   updateHost,
   deleteHost,
+  getHostEarnings,   // ⭐ FIXED
 } from "../controllers/host.controller.js";
 import authenticateToken from "../middleware/auth.middleware.js";
 import { PrismaClient } from "@prisma/client";
@@ -13,16 +14,16 @@ const prisma = new PrismaClient();
 const router = Router();
 
 /* ============================================================
-   GET ALL HOSTS
-   ============================================================ */
+   GET ALL HOSTS (public)
+============================================================ */
 router.get("/", getAllHostsController);
 
 /* ============================================================
    GET PROPERTIES FOR LOGGED-IN HOST
-   ============================================================ */
+============================================================ */
 router.get("/properties", authenticateToken, async (req, res) => {
   try {
-    const hostId = req.user.hostId; // ⭐ DIT IS DE FIX
+    const hostId = req.user.hostId;
 
     const properties = await prisma.property.findMany({
       where: { hostId },
@@ -36,25 +37,29 @@ router.get("/properties", authenticateToken, async (req, res) => {
   }
 });
 
+/* ============================================================
+   HOST EARNINGS
+============================================================ */
+router.get("/:id/earnings", authenticateToken, getHostEarnings);
 
 /* ============================================================
-   GET HOST BY ID
-   ============================================================ */
+   GET HOST BY ID (public)
+============================================================ */
 router.get("/:id", getHostById);
 
 /* ============================================================
-   CREATE HOST
-   ============================================================ */
-router.post("/", createHostController);
+   CREATE HOST (protected)
+============================================================ */
+router.post("/", authenticateToken, createHostController);
 
 /* ============================================================
-   UPDATE HOST
-   ============================================================ */
-router.put("/:id", updateHost);
+   UPDATE HOST (protected)
+============================================================ */
+router.put("/:id", authenticateToken, updateHost);
 
 /* ============================================================
-   DELETE HOST
-   ============================================================ */
-router.delete("/:id", deleteHost);
+   DELETE HOST (protected)
+============================================================ */
+router.delete("/:id", authenticateToken, deleteHost);
 
 export default router;

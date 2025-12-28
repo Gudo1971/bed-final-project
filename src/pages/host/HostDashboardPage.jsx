@@ -28,7 +28,7 @@ export default function HostDashboardPage() {
       </Heading>
 
       <Text fontSize="lg" mb={6}>
-        Welkom terug, <strong>{user?.name}</strong> — je bent nu officieel host.
+        Welkom terug, <strong>{user?.name}</strong> je bent nu officieel host.
       </Text>
 
       <Divider mb={8} />

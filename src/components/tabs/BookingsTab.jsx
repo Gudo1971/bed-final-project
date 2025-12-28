@@ -168,89 +168,106 @@ export default function BookingsTab() {
 
       <Stack spacing={4}>
         {Array.isArray(bookings) &&
-          bookings.map((booking) => (
-            <Box
-              key={booking.id}
-              p={4}
-              borderWidth="1px"
-              borderRadius="lg"
-              boxShadow="sm"
-              _hover={{ boxShadow: "lg", transform: "translateY(-2px)" }}
-              transition="all 0.2s"
-            >
-              <Stack direction="row" spacing={4}>
-                {/* FOTO */}
-                <Box
-                  w="150px"
-                  h="120px"
-                  borderRadius="md"
-                  overflow="hidden"
-                  bg="gray.100"
-                  flexShrink={0}
-                >
-                  <img
-                    src={booking.property?.images || "/placeholder.jpg"}
-                    alt={booking.property?.title || "Accommodatie"}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Box>
+          bookings.map((booking) => {
+            const isPastBooking =
+              new Date(booking.checkoutDate) < new Date();
 
-                {/* INFO */}
-                <Stack spacing={1} flex="1">
-                  <Text fontSize="lg" fontWeight="bold">
-                    {booking.property?.title || "Accommodatie"}
-                  </Text>
+            return (
+              <Box
+                key={booking.id}
+                p={4}
+                borderWidth="1px"
+                borderRadius="lg"
+                boxShadow="sm"
+                _hover={{ boxShadow: "lg", transform: "translateY(-2px)" }}
+                transition="all 0.2s"
+              >
+                <Stack direction="row" spacing={4}>
+                  {/* FOTO */}
+                  <Box
+                    w="150px"
+                    h="120px"
+                    borderRadius="md"
+                    overflow="hidden"
+                    bg="gray.100"
+                    flexShrink={0}
+                  >
+                    <img
+                      src={booking.property?.images || "/placeholder.jpg"}
+                      alt={booking.property?.title || "Accommodatie"}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </Box>
 
-                  <Text color="gray.600" fontSize="sm">
-                    {booking.property?.location}
-                  </Text>
+                  {/* INFO */}
+                  <Stack spacing={1} flex="1">
+                    <Text fontSize="lg" fontWeight="bold">
+                      {booking.property?.title || "Accommodatie"}
+                    </Text>
 
-                  <Text fontSize="sm">
-                    <strong>Check‑in:</strong> {booking.checkinDate}
-                  </Text>
-                  <Text fontSize="sm">
-                    <strong>Check‑out:</strong> {booking.checkoutDate}
-                  </Text>
+                    <Text color="gray.600" fontSize="sm">
+                      {booking.property?.location}
+                    </Text>
 
-                  <Text fontWeight="semibold" mt={1}>
-                    €{booking.totalPrice}
-                  </Text>
+                    <Text fontSize="sm">
+                      <strong>Check‑in:</strong> {booking.checkinDate}
+                    </Text>
+                    <Text fontSize="sm">
+                      <strong>Check‑out:</strong> {booking.checkoutDate}
+                    </Text>
 
-                  <Stack direction="row" mt={3}>
-                    <Button
-                      colorScheme="blue"
-                      size="sm"
-                      onClick={() => openModal(booking)}
-                    >
-                      Bewerken
-                    </Button>
+                    <Text fontWeight="semibold" mt={1}>
+                      €{booking.totalPrice}
+                    </Text>
 
-                    <Button
-                      colorScheme="red"
-                      size="sm"
-                      isLoading={deletingId === booking.id}
-                      onClick={() => askDelete(booking.id)}
-                    >
-                      Annuleren
-                    </Button>
+                    {/* ⭐ KNOPPEN — alleen tonen als boeking NIET in het verleden ligt */}
+                    <Stack direction="row" mt={3}>
+                      {!isPastBooking && (
+                        <>
+                          <Button
+                            colorScheme="blue"
+                            size="sm"
+                            onClick={() => openModal(booking)}
+                          >
+                            Bewerken
+                          </Button>
 
-                    <Button
-                      as={Link}
-                      to={`/properties/${booking.property?.id}`}
-                      size="sm"
-                      variant="outline"
-                    >
-                      Bekijk accommodatie
-                    </Button>
+                          <Button
+                            colorScheme="red"
+                            size="sm"
+                            isLoading={deletingId === booking.id}
+                            onClick={() => askDelete(booking.id)}
+                          >
+                            Annuleren
+                          </Button>
+                        </>
+                      )}
+
+                      <Button
+                        as={Link}
+                        to={`/properties/${booking.property?.id}`}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Bekijk accommodatie
+                      </Button>
+                    </Stack>
+
+                    {/* Optioneel: badge voor verlopen boeking */}
+                    {isPastBooking && (
+                      <Text fontSize="xs" color="gray.500" mt={1}>
+                        Deze boeking is verlopen en kan niet meer worden bewerkt.
+                      </Text>
+                    )}
                   </Stack>
                 </Stack>
-              </Stack>
-            </Box>
-          ))}
+              </Box>
+            );
+          })}
       </Stack>
 
       {/* Confirm Modal */}

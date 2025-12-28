@@ -9,12 +9,17 @@ import {
   Text,
   FormControl,
   FormLabel,
-  Input,
+  NumberInput,
+  NumberInputField,
+  HStack,
+  IconButton,
+  Box,
   useToast,
 } from "@chakra-ui/react";
-import { useForm } from "react-hook-form";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { useEffect, useState } from "react";
+import CalendarGrid from "../calendar/CalendarGrid";
 import { updateBooking } from "../../services/bookings";
-import { useEffect, useMemo } from "react";
 
 export default function BookingEditModal({
   isOpen,
@@ -25,59 +30,135 @@ export default function BookingEditModal({
 }) {
   const toast = useToast();
 
-  // Vandaag in YYYY-MM-DD formaat (blokkeert verleden)
-  const today = useMemo(() => {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
-  }, []);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [days, setDays] = useState([]);
 
-  const { register, handleSubmit, reset, setValue } = useForm({
-    defaultValues: {
-      checkinDate: booking?.checkinDate,
-      checkoutDate: booking?.checkoutDate,
-    },
-  });
+  const [checkIn, setCheckIn] = useState(null);
+  const [checkOut, setCheckOut] = useState(null);
+  const [guests, setGuests] = useState(1);
 
-  // Reset wanneer booking verandert
-  useEffect(() => {
-    if (booking) {
-      reset({
-        checkinDate: booking.checkinDate,
-        checkoutDate: booking.checkoutDate,
-      });
-    }
-  }, [booking, reset]);
+  /* -----------------------------------------------------------
+     ⭐ PERFECTE NORMALIZE — GEEN UTC SHIFT MEER
+  ----------------------------------------------------------- */
+  function normalize(date) {
+    if (!date) return null;
 
-  // Check of datum geblokkeerd is
-  function isDateDisabled(dateStr) {
-    return disabledDates.includes(dateStr);
+    const d = new Date(date);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+
+    return `${y}-${m}-${day}`;
   }
 
-  // Submit handler
-  async function onSubmit(values) {
-    const { checkinDate, checkoutDate } = values;
+  /* -----------------------------------------------------------
+     Disabled dates filteren (eigen boeking niet blokkeren)
+  ----------------------------------------------------------- */
+  const filteredDisabledDates = disabledDates.filter(
+    (d) =>
+      d < normalize(booking?.checkinDate) ||
+      d > normalize(booking?.checkoutDate)
+  );
 
-    // Blokkeer disabled dates
-    if (isDateDisabled(checkinDate) || isDateDisabled(checkoutDate)) {
+  /* -----------------------------------------------------------
+     ⭐ DAGEN GENEREREN — timezone‑safe
+  ----------------------------------------------------------- */
+  function generateDays(monthDate) {
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+
+    const arr = [];
+
+    for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
+      // Maak een pure datum zonder tijd
+      arr.push(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+    }
+
+    return arr;
+  }
+
+  useEffect(() => {
+    setDays(generateDays(currentMonth));
+  }, [currentMonth]);
+
+  /* -----------------------------------------------------------
+     ⭐ Reset bij openen
+  ----------------------------------------------------------- */
+  useEffect(() => {
+    if (booking) {
+      const start = new Date(booking.checkinDate);
+
+      setCurrentMonth(new Date(start.getFullYear(), start.getMonth(), 1));
+
+      setCheckIn(normalize(booking.checkinDate));
+      setCheckOut(normalize(booking.checkoutDate));
+      setGuests(booking.numberOfGuests || 1);
+    }
+  }, [booking]);
+
+  if (!booking) return null;
+
+  /* -----------------------------------------------------------
+     ⭐ Datum klik — volledig timezone‑safe
+  ----------------------------------------------------------- */
+  function handleDateClick(dateObj) {
+    const normalized = normalize(dateObj);
+
+    if (filteredDisabledDates.includes(normalized)) return;
+
+    // 1. Nog geen check‑in
+    if (!checkIn) {
+      setCheckIn(normalized);
+      setCheckOut(null);
+      return;
+    }
+
+    // 2. Check‑in gekozen, check‑out nog niet
+    if (checkIn && !checkOut) {
+      if (new Date(normalized) <= new Date(checkIn)) {
+        toast({
+          title: "Ongeldige datum",
+          description: "Check‑out moet na check‑in liggen.",
+          status: "error",
+        });
+        return;
+      }
+      setCheckOut(normalized);
+      return;
+    }
+
+    // 3. Beide gekozen → opnieuw beginnen
+    setCheckIn(normalized);
+    setCheckOut(null);
+  }
+
+  /* -----------------------------------------------------------
+     ⭐ Opslaan
+  ----------------------------------------------------------- */
+  async function handleSave() {
+    if (!checkIn || !checkOut) {
       toast({
-        title: "Datum niet beschikbaar",
-        description: "Deze datum is al geboekt.",
+        title: "Datums ontbreken",
+        description: "Selecteer een check‑in en check‑out datum.",
         status: "error",
-        duration: 3000,
-        isClosable: true,
       });
       return;
     }
 
     try {
-      await updateBooking(booking.id, values);
+      await updateBooking(booking.id, {
+        checkinDate: checkIn,
+        checkoutDate: checkOut,
+        numberOfGuests: guests,
+      });
 
       toast({
         title: "Boeking bijgewerkt",
         description: "De wijzigingen zijn opgeslagen.",
         status: "success",
-        duration: 3000,
-        isClosable: true,
       });
 
       refresh();
@@ -85,18 +166,32 @@ export default function BookingEditModal({
     } catch (err) {
       toast({
         title: "Fout bij opslaan",
-        description: "Probeer het opnieuw.",
+        description: err?.response?.data?.error || "Probeer het opnieuw.",
         status: "error",
-        duration: 3000,
-        isClosable: true,
       });
     }
   }
 
-  if (!booking) return null;
+  /* -----------------------------------------------------------
+     ⭐ Maand navigatie
+  ----------------------------------------------------------- */
+  function prevMonth() {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+    );
+  }
 
+  function nextMonth() {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+    );
+  }
+
+  /* -----------------------------------------------------------
+     ⭐ Render
+  ----------------------------------------------------------- */
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Boeking bewerken</ModalHeader>
@@ -106,76 +201,56 @@ export default function BookingEditModal({
             {booking.property?.title}
           </Text>
 
-          <form id="edit-booking-form" onSubmit={handleSubmit(onSubmit)}>
-            {/* CHECK-IN */}
-            <FormControl mb={4}>
-              <FormLabel>Check‑in</FormLabel>
-              <Input
-                type="date"
-                min={today} // blokkeer verleden
-                {...register("checkinDate")}
-                onChange={(e) => {
-                  const value = e.target.value;
+          {/* Aantal personen */}
+          <FormControl mb={4}>
+            <FormLabel>Aantal personen</FormLabel>
+            <NumberInput
+              min={1}
+              value={guests}
+              onChange={(vStr, vNum) => setGuests(vNum || 1)}
+            >
+              <NumberInputField />
+            </NumberInput>
+          </FormControl>
 
-                  if (isDateDisabled(value)) {
-                    toast({
-                      title: "Datum niet beschikbaar",
-                      description: "Deze datum is al geboekt.",
-                      status: "error",
-                      duration: 3000,
-                      isClosable: true,
-                    });
+          {/* Maand navigatie */}
+          <HStack justify="space-between" mb={2}>
+            <IconButton
+              icon={<ChevronLeftIcon />}
+              onClick={prevMonth}
+              aria-label="Vorige maand"
+            />
+            <Text fontWeight="bold">
+              {currentMonth.toLocaleString("nl-NL", {
+                month: "long",
+                year: "numeric",
+              })}
+            </Text>
+            <IconButton
+              icon={<ChevronRightIcon />}
+              onClick={nextMonth}
+              aria-label="Volgende maand"
+            />
+          </HStack>
 
-                    reset({
-                      checkinDate: booking.checkinDate,
-                      checkoutDate: booking.checkoutDate,
-                    });
-                    return;
-                  }
-
-                  setValue("checkinDate", value);
-                }}
-              />
-            </FormControl>
-
-            {/* CHECK-OUT */}
-            <FormControl mb={4}>
-              <FormLabel>Check‑out</FormLabel>
-              <Input
-                type="date"
-                min={today} // blokkeer verleden
-                {...register("checkoutDate")}
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  if (isDateDisabled(value)) {
-                    toast({
-                      title: "Datum niet beschikbaar",
-                      description: "Deze datum is al geboekt.",
-                      status: "error",
-                      duration: 3000,
-                      isClosable: true,
-                    });
-
-                    reset({
-                      checkinDate: booking.checkinDate,
-                      checkoutDate: booking.checkoutDate,
-                    });
-                    return;
-                  }
-
-                  setValue("checkoutDate", value);
-                }}
-              />
-            </FormControl>
-          </form>
+          {/* Kalender */}
+          <Box>
+            <CalendarGrid
+              days={days}
+              disabledDates={filteredDisabledDates}
+              checkIn={checkIn}
+              checkOut={checkOut}
+              onDateClick={handleDateClick}
+              isInteractive={true}
+            />
+          </Box>
         </ModalBody>
 
         <ModalFooter>
           <Button mr={3} onClick={onClose}>
             Annuleren
           </Button>
-          <Button colorScheme="teal" type="submit" form="edit-booking-form">
+          <Button colorScheme="teal" onClick={handleSave}>
             Opslaan
           </Button>
         </ModalFooter>

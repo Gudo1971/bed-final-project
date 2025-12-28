@@ -19,15 +19,15 @@ import PropertyForm from "../../components/properties/PropertyForm.jsx";
 import { getHostProperties, toggleProperty } from "../../api/host.js";
 import EditPropertyModal from "../../components/properties/EditPropertyModal.jsx";
 
-
 export default function HostProperties() {
   const toast = useToast();
+
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
-  isOpen: isEditOpen,
-  onOpen: onEditOpen,
-  onClose: onEditClose,
-} = useDisclosure();
+    isOpen: isEditOpen,
+    onOpen: onEditOpen,
+    onClose: onEditClose,
+  } = useDisclosure();
 
   const { user, token } = useAuth();
 
@@ -35,6 +35,8 @@ export default function HostProperties() {
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState(null);
 
+  // ⭐ Loading state voor verwijderen
+  const [deleteLoadingId, setDeleteLoadingId] = useState(null);
 
   /* -----------------------------------------------------------
      Toggle active/inactive
@@ -42,7 +44,7 @@ export default function HostProperties() {
   async function handleToggle(propertyId, newState) {
     try {
       await toggleProperty(propertyId, newState, token);
-      fetchProperties(); // refresh lijst
+      fetchProperties();
     } catch (err) {
       toast({
         title: "Fout bij wijzigen",
@@ -53,6 +55,50 @@ export default function HostProperties() {
       });
     }
   }
+
+  /* -----------------------------------------------------------
+     Property verwijderen
+  ----------------------------------------------------------- */
+  async function handleDelete(id) {
+  const confirmDelete = window.confirm(
+    "Weet je zeker dat je deze property wilt verwijderen?"
+  );
+  if (!confirmDelete) return;
+
+  try {
+    setDeleteLoadingId(id);
+
+    const res = await fetch(`http://localhost:3000/properties/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      const { message } = await res.json();
+      throw new Error(message);
+    }
+
+    toast({
+      title: "Property verwijderd",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+
+    setProperties((prev) => prev.filter((p) => p.id !== id));
+  } catch (err) {
+    toast({
+      title: "Fout bij verwijderen",
+      description: err.message,
+      status: "error",
+      duration: 3000,
+      isClosable: true,
+    });
+  } finally {
+    setDeleteLoadingId(null);
+  }
+}
+  
 
   /* -----------------------------------------------------------
      Redirect voor niet-hosts
@@ -129,7 +175,7 @@ export default function HostProperties() {
             p={4}
             _hover={{ boxShadow: "md" }}
           >
-            {/* Titel + Toggle */}
+            {/* Titel + Toggle + Acties */}
             <HStack justify="space-between" mb={2}>
               <Heading size="sm">{property.title}</Heading>
 
@@ -145,10 +191,29 @@ export default function HostProperties() {
                   onChange={(e) =>
                     handleToggle(property.id, e.target.checked)
                   }
-                  
                 />
-                <Button size="xs" colorScheme="blue" onClick={() => { setSelectedProperty(property);
-                   onEditOpen(); }}> Bewerken </Button>
+
+                <Button
+                  size="xs"
+                  colorScheme="blue"
+                  onClick={() => {
+                    setSelectedProperty(property);
+                    onEditOpen();
+                  }}
+                >
+                  Bewerken
+                </Button>
+
+                {/* ⭐ Delete knop */}
+                <Button
+                  size="xs"
+                  colorScheme="red"
+                  variant="outline"
+                  onClick={() => handleDelete(property.id)}
+                  isLoading={deleteLoadingId === property.id}
+                >
+                  Verwijderen
+                </Button>
               </HStack>
             </HStack>
 
@@ -178,14 +243,15 @@ export default function HostProperties() {
         onClose={onClose}
         onSuccess={fetchProperties}
       />
-      <EditPropertyModal
-  isOpen={isEditOpen}
-  onClose={onEditClose}
-  property={selectedProperty}
-  token={token}
-  onSuccess={fetchProperties}
-/>
 
+      {/* Modal voor bewerken */}
+      <EditPropertyModal
+        isOpen={isEditOpen}
+        onClose={onEditClose}
+        property={selectedProperty}
+        token={token}
+        onSuccess={fetchProperties}
+      />
     </Box>
   );
 }

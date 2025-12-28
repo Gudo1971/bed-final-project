@@ -11,6 +11,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../components/context/AuthContext.jsx";
 
 import ProfileTab from "../components/tabs/ProfileTab.jsx";
@@ -20,9 +21,21 @@ import MyReviews from "../components/profile/MyReviews.jsx";
 
 export default function ProfilePage() {
   const toast = useToast();
-
-  // Haal user + token + updateUser uit AuthContext
   const { user, token, updateUser } = useAuth();
+
+  // ⭐ Lees query-parameter
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get("tab");
+
+  // ⭐ Map query naar tab index
+  const defaultIndex =
+    tab === "bookings"
+      ? 1 // 📅 Mijn Boekingen
+      : tab === "reviews"
+      ? 2 // 📃 Mijn Reviews
+      : tab === "account"
+      ? 3 // 🔐 Account
+      : 0; // 👤 Persoonsgegevens (default)
 
   async function handleBecomeHost() {
     try {
@@ -36,8 +49,6 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error("Host worden mislukt");
 
       const data = await res.json();
-
-      // Update user in AuthContext
       updateUser(data);
 
       toast({
@@ -47,7 +58,6 @@ export default function ProfilePage() {
         isClosable: true,
       });
 
-      // Redirect naar Host Dashboard
       window.location.href = "/host/dashboard";
     } catch (err) {
       toast({
@@ -64,7 +74,6 @@ export default function ProfilePage() {
     <Container maxW="6xl" py={10}>
       <Heading mb={6}>Mijn Profiel</Heading>
 
-      {/* Word Host knop (alleen tonen als user geen host is) */}
       {!user?.isHost && (
         <Box mb={6}>
           <Button colorScheme="teal" onClick={handleBecomeHost}>
@@ -73,7 +82,13 @@ export default function ProfilePage() {
         </Box>
       )}
 
-      <Tabs variant="enclosed" colorScheme="teal" isFitted>
+      {/* ⭐ Tabs met automatische selectie */}
+      <Tabs
+        variant="enclosed"
+        colorScheme="teal"
+        isFitted
+        defaultIndex={defaultIndex}
+      >
         <TabList>
           <Tab>👤 Persoonsgegevens</Tab>
           <Tab>📅 Mijn Boekingen</Tab>

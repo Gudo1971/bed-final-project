@@ -5,9 +5,9 @@ import {
   createUserController,
   updateUserController,
   deleteUserController,
+  becomeHost,
 } from "../controllers/user.controller.js";
-import authenticateToken, { requireHost } from "../middleware/auth.middleware.js";
-import { becomeHost } from "../controllers/user.controller.js";
+import authenticateToken from "../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -20,12 +20,13 @@ router.get("/:id", getUserByIdController);
 // CREATE user (public)
 router.post("/", createUserController);
 
-// UPDATE user (public - Winc expects PUT)
-router.put("/:id", updateUserController);
+// UPDATE user (protected)
+router.put("/:id", authenticateToken, updateUserController);
 
+// BECOME HOST (protected)
 router.patch("/become-host", authenticateToken, becomeHost);
 
-// DELETE user (public)
-router.delete("/:id", deleteUserController);
+// DELETE user (protected)
+router.delete("/:id", authenticateToken, deleteUserController);
 
 export default router;

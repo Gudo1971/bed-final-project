@@ -2,12 +2,19 @@ import { useState, useEffect } from "react";
 import { Text, Button, HStack, VStack, useDisclosure } from "@chakra-ui/react";
 import AddReviewModal from "./AddreviewModal";
 
+// Gebruik jouw eigen AuthContext (NIET Auth0)
+import { useAuth } from "../context/AuthContext";
+
 export default function ReviewCarousel({ reviews, onRefresh }) {
   const [index, setIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // ⭐ Hooks
+  // AuthContext
+  const { user, token } = useAuth();
+  const isAuthenticated = !!user && !!token;
+
+  // Auto‑carousel
   useEffect(() => {
     if (isPaused || !reviews || reviews.length === 0) return;
 
@@ -18,15 +25,18 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
     return () => clearInterval(interval);
   }, [isPaused, reviews]);
 
-  // ⭐ Guard
+  // Geen reviews
   if (!reviews || reviews.length === 0) {
     return (
       <>
         <HStack justify="space-between" w="100%" mb={2}>
           <Text fontSize="xl" fontWeight="bold">Reviews</Text>
-          <Button colorScheme="blue" size="sm" onClick={onOpen}>
-            Review toevoegen
-          </Button>
+
+          {isAuthenticated && (
+            <Button colorScheme="blue" size="sm" onClick={onOpen}>
+              Review toevoegen
+            </Button>
+          )}
         </HStack>
 
         <Text>Geen reviews beschikbaar.</Text>
@@ -45,16 +55,16 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
 
   return (
     <>
-      {/* ⭐ Titel + knop */}
       <HStack justify="space-between" w="100%" mb={2}>
         <Text fontSize="xl" fontWeight="bold">Reviews</Text>
 
-        <Button colorScheme="blue" size="sm" onClick={onOpen}>
-          Review toevoegen
-        </Button>
+        {isAuthenticated && (
+          <Button colorScheme="blue" size="sm" onClick={onOpen}>
+            Review toevoegen
+          </Button>
+        )}
       </HStack>
 
-      {/* ⭐ Carousel */}
       <VStack spacing={4} p={6} border="1px solid #ddd" borderRadius="md">
         <Text fontSize="lg" fontWeight="bold">
           ⭐ {review.rating} / 5
@@ -83,7 +93,6 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
         </HStack>
       </VStack>
 
-      {/* ⭐ Modal */}
       <AddReviewModal
         isOpen={isOpen}
         onClose={onClose}

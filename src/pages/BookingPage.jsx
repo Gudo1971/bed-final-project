@@ -1,5 +1,5 @@
 // BookingPage.jsx
-// Kalender met maandnavigatie, prijsberekening, toast en BookingModal.
+// Volledig gecorrigeerde versie — geen hook errors, veilige auth guard, spinner werkt
 
 import { useState, useEffect } from "react";
 import {
@@ -8,6 +8,7 @@ import {
   Button,
   Flex,
   IconButton,
+  Spinner,
   useToast,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
@@ -15,13 +16,21 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import BookingModal from "../components/booking/BookingModal";
+import { useAuth } from "../components/context/AuthContext";
 
 export default function BookingPage() {
   const { propertyId } = useParams();
+  const navigate = useNavigate();
+  const toast = useToast();
 
+  const { user, token } = useAuth();
+  const isAuthenticated = !!user && !!token;
+
+  // ⭐ ALLE HOOKS STAAN HIER — nooit onder een condition
   const [property, setProperty] = useState(null);
-  const [days, setDays] = useState([]);
   const [disabledDates, setDisabledDates] = useState([]);
+  const [days, setDays] = useState([]);
+
   const [checkIn, setCheckIn] = useState(null);
   const [checkOut, setCheckOut] = useState(null);
 
@@ -29,41 +38,70 @@ export default function BookingPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const pricePerNight = 100;
-  const toast = useToast();
-  const navigate = useNavigate();
 
   /* -----------------------------------------------------------
-     Property ophalen (voor isActive)
+     AUTH GUARD — veilig in useEffect
+  ----------------------------------------------------------- */
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: { message: "Je moet ingelogd zijn om een boeking te plaatsen." },
+      });
+    }
+  }, [isAuthenticated, navigate]);
+
+  /* -----------------------------------------------------------
+     Data ophalen
   ----------------------------------------------------------- */
   const loadProperty = async () => {
     const res = await fetch(`http://localhost:3000/properties/${propertyId}`);
-    const data = await res.json();
-    setProperty(data);
+    return res.json();
   };
 
-  useEffect(() => {
-    loadProperty();
-  }, [propertyId]);
-
-  /* -----------------------------------------------------------
-     Disabled dates ophalen
-  ----------------------------------------------------------- */
   const loadDisabled = async () => {
     const res = await fetch(
       `http://localhost:3000/bookings/disabled-dates/${propertyId}`
     );
-    const data = await res.json();
-    setDisabledDates(data);
+    return res.json();
   };
 
   useEffect(() => {
-    loadDisabled();
-  }, [propertyId]);
+    async function loadAll() {
+      // Als niet ingelogd, niet eens proberen te laden
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [propertyData, disabledData] = await Promise.all([
+          loadProperty(),
+          loadDisabled(),
+        ]);
+
+        setProperty(propertyData);
+        setDisabledDates(disabledData);
+      } catch (err) {
+        toast({
+          title: "Fout bij laden",
+          description: "Kon de gegevens niet ophalen.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAll();
+  }, [propertyId, isAuthenticated, toast]);
 
   /* -----------------------------------------------------------
-     Dagen genereren voor de kalender
+     Kalender genereren
   ----------------------------------------------------------- */
   useEffect(() => {
     const first = new Date(currentYear, currentMonth, 1);
@@ -81,6 +119,31 @@ export default function BookingPage() {
   }, [currentYear, currentMonth]);
 
   /* -----------------------------------------------------------
+     CONDITIONELE RENDERS — NA ALLE HOOKS
+  ----------------------------------------------------------- */
+
+  // Niet ingelogd → spinner (of eventueel null)
+  if (!isAuthenticated) {
+    return (
+      <Flex justify="center" mt={20}>
+        <Spinner size="xl" />
+      </Flex>
+    );
+  }
+
+  // Laden van property/disabled dates
+  if (loading) {
+    return (
+      <Flex align="center" justify="center" mt={20}>
+        <Spinner size="xl" color="blue.500" />
+        <Text ml={4} fontSize="lg">
+          Bezig met laden...
+        </Text>
+      </Flex>
+    );
+  }
+
+  /* -----------------------------------------------------------
      Datumselectie
   ----------------------------------------------------------- */
   const formatDate = (date) => {
@@ -91,7 +154,7 @@ export default function BookingPage() {
   };
 
   const handleDateSelection = (date) => {
-    if (!property?.isActive) return; // property inactief → geen selectie
+    if (!property?.isActive) return;
 
     const dateStr = formatDate(date);
 
@@ -176,7 +239,7 @@ export default function BookingPage() {
         checkIn={checkIn}
         checkOut={checkOut}
         onDateClick={handleDateSelection}
-        isInteractive={property?.isActive ?? true} // ⭐ correcte boolean
+        isInteractive={property?.isActive ?? true}
       />
 
       {/* Prijsweergave */}
@@ -193,10 +256,7 @@ export default function BookingPage() {
         mt={6}
         colorScheme="blue"
         isDisabled={!checkIn || !checkOut || !property?.isActive}
-        onClick={() => {
-          if (!property?.isActive) return;
-          setIsModalOpen(true);
-        }}
+        onClick={() => setIsModalOpen(true)}
       >
         Boek nu
       </Button>
@@ -209,8 +269,7 @@ export default function BookingPage() {
         pricePerNight={pricePerNight}
         checkIn={checkIn}
         checkOut={checkOut}
-        isActive={property?.isActive ?? true} // ⭐ doorgeven aan BookingForm
-
+        isActive={property?.isActive ?? true}
         onBookingCreated={() => {
           toast({
             title: "Boeking geslaagd",
@@ -226,7 +285,6 @@ export default function BookingPage() {
 
           navigate("/profile?tab=bookings");
         }}
-
         onBookingCancelled={() => {
           toast({
             title: "Geen boeking gemaakt",

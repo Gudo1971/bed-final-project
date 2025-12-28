@@ -30,11 +30,15 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
   const [bedroomCount, setBedroomCount] = useState(1);
   const [bathRoomCount, setBathRoomCount] = useState(1);
 
-  // IMPORTANT: File objects
   const [images, setImages] = useState([]);
+
+  // ⭐ LOADING STATE TOEGEVOEGD
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
     try {
+      setLoading(true); // ⭐ spinner aan
+
       const formData = new FormData();
 
       formData.append("title", title);
@@ -76,6 +80,8 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setLoading(false); // ⭐ spinner uit
     }
   }
 
@@ -134,8 +140,19 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
         </ModalBody>
 
         <ModalFooter>
-          <Button mr={3} onClick={onClose}>Annuleren</Button>
-          <Button colorScheme="teal" onClick={handleSubmit}>Opslaan</Button>
+          <Button mr={3} onClick={onClose} disabled={loading}>
+            Annuleren
+          </Button>
+
+          {/* ⭐ SPINNER OP DE OPSLAAN KNOP */}
+          <Button
+            colorScheme="teal"
+            onClick={handleSubmit}
+            isLoading={loading}
+            loadingText="Opslaan..."
+          >
+            Opslaan
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
