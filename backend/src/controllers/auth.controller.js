@@ -1,28 +1,32 @@
+// src/controllers/auth.controller.js
+
 import prisma from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
-// ============================================================
-// HELPER: JWT genereren
-// ============================================================
-function generateToken(user) {
+/* ============================================================
+   HELPER: JWT genereren
+============================================================ */
+function generateToken(user, host = null) {
   return jwt.sign(
     {
-      id: user.id,
+      id: user.id,          // ⭐ ALTIJD user.id
+      email: user.email,
       username: user.username,
       name: user.name,
-      email: user.email,
+      isHost: !!host,
+      hostId: host?.id || null,
     },
     JWT_SECRET,
     { expiresIn: "7d" }
   );
 }
 
-// ============================================================
-// REGISTER
-// ============================================================
+/* ============================================================
+   REGISTER
+============================================================ */
 export const register = async (req, res) => {
   try {
     const { email, username, password, name, phoneNumber } = req.body;
@@ -64,6 +68,8 @@ export const register = async (req, res) => {
         username: user.username,
         name: user.name,
         email: user.email,
+        isHost: false,
+        hostId: null,
       },
     });
 
@@ -73,12 +79,9 @@ export const register = async (req, res) => {
   }
 };
 
-// ============================================================
-// LOGIN
-// ============================================================
-// ============================================================
-// LOGIN (volledig aligned met user + host systeem)
-// ============================================================
+/* ============================================================
+   LOGIN
+============================================================ */
 export const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -86,106 +89,32 @@ export const loginController = async (req, res) => {
     // 1. Zoek user op
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // 2. Als user bestaat → wachtwoord checken
-    if (user) {
-      const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) {
-        return res.status(401).json({ error: "Het wachtwoord is onjuist." });
-      }
-
-      // 3. Check of deze user ook host is
-      const host = await prisma.host.findUnique({ where: { email } });
-
-      // 3A. User is ook host → HOST JWT
-if (host) {
-  const token = jwt.sign(
-    {
-      id: user.id,
-      hostId: host.id,
-      email: user.email,
-      username: user.username,
-      name: user.name,
-      isHost: true,
-    },
-    JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  return res.status(200).json({
-    message: "Login succesvol",
-    token,
-    user: {
-      id: user.id,
-      hostId: host.id,
-      email: user.email,
-      name: user.name,
-      username: user.username,
-      isHost: true,
-    },
-  });
-}
-
-
-      // 3B. User is GEEN host → USER JWT
-      const token = jwt.sign(
-        {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          username: user.username,
-          isHost: false,
-        },
-        JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-
-      return res.status(200).json({
-        message: "Login succesvol",
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          username: user.username,
-          isHost: false,
-        },
-      });
-    }
-
-    // 4. User bestaat niet → probeer host login
-    const host = await prisma.host.findUnique({ where: { email } });
-
-    if (!host) {
+    if (!user) {
       return res.status(404).json({ error: "Geen account gevonden met dit e-mailadres." });
     }
 
-    const isValid = await bcrypt.compare(password, host.password);
+    // 2. Check wachtwoord
+    const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return res.status(401).json({ error: "Het wachtwoord is onjuist." });
     }
 
-    // 5. Host login
-    const token = jwt.sign(
-      {
-        id: host.id,
-        email: host.email,
-        name: host.name,
-        username: host.username,
-        isHost: true,
-      },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // 3. Check of user ook host is
+    const host = await prisma.host.findUnique({ where: { email } });
+
+    // 4. JWT genereren
+    const token = generateToken(user, host);
 
     return res.status(200).json({
       message: "Login succesvol",
       token,
       user: {
-        id: host.id,
-        email: host.email,
-        name: host.name,
-        username: host.username,
-        isHost: true,
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        username: user.username,
+        isHost: !!host,
+        hostId: host?.id || null,
       },
     });
 
@@ -194,4 +123,3 @@ if (host) {
     return res.status(500).json({ error: "Er ging iets mis tijdens het inloggen." });
   }
 };
-

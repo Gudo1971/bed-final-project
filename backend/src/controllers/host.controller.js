@@ -49,12 +49,10 @@ export const createHostController = async (req, res, next) => {
       aboutMe
     } = req.body;
 
-    // Required fields
     if (!username || !password || !name || !email) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Check username uniqueness
     const existingUsername = await prisma.host.findUnique({
       where: { username }
     });
@@ -62,7 +60,6 @@ export const createHostController = async (req, res, next) => {
       return res.status(409).json({ error: "Username already exists" });
     }
 
-    // Check email uniqueness
     const existingEmail = await prisma.host.findUnique({
       where: { email }
     });
@@ -70,7 +67,6 @@ export const createHostController = async (req, res, next) => {
       return res.status(409).json({ error: "Email already exists" });
     }
 
-    // Create host
     const host = await prisma.host.create({
       data: {
         username,
@@ -88,8 +84,6 @@ export const createHostController = async (req, res, next) => {
     next(err);
   }
 };
-
-
 
 // ---------------------------------------------------------
 // UPDATE HOST
@@ -127,8 +121,6 @@ export const updateHost = async (req, res, next) => {
   }
 };
 
-
-
 // ---------------------------------------------------------
 // DELETE HOST
 // ---------------------------------------------------------
@@ -136,13 +128,11 @@ export async function deleteHost(req, res, next) {
   try {
     const { id } = req.params;
 
-    // 1. Check if host exists
     const host = await prisma.host.findUnique({ where: { id } });
     if (!host) {
       return res.status(404).json({ error: "Host not found" });
     }
 
-    // 2. Delete reviews of properties of this host
     await prisma.review.deleteMany({
       where: {
         property: {
@@ -151,7 +141,6 @@ export async function deleteHost(req, res, next) {
       }
     });
 
-    // 3. Delete bookings of properties of this host
     await prisma.booking.deleteMany({
       where: {
         property: {
@@ -160,12 +149,10 @@ export async function deleteHost(req, res, next) {
       }
     });
 
-    // 4. Delete properties of this host
     await prisma.property.deleteMany({
       where: { hostId: id }
     });
 
-    // 5. Delete the host
     await prisma.host.delete({
       where: { id }
     });
@@ -176,3 +163,93 @@ export async function deleteHost(req, res, next) {
   }
 }
 
+// ---------------------------------------------------------
+// GET HOST EARNINGS (VERDIEND + VERWACHT)
+// ---------------------------------------------------------
+export const getHostEarnings = async (req, res) => {
+  try {
+    const hostId = req.params.id;
+
+    const host = await prisma.host.findUnique({ where: { id: hostId } });
+    if (!host) return res.status(404).json({ error: "Host not found" });
+
+    const properties = await prisma.property.findMany({
+      where: { hostId },
+      select: { id: true, title: true },
+    });
+
+    if (properties.length === 0) {
+      return res.json({
+        hostId,
+        totalEarningsToDate: 0,
+        expectedEarnings: 0,
+        totalBookings: 0,
+        bookingsCompleted: 0,
+        bookingsUpcoming: 0,
+        properties: [],
+      });
+    }
+
+    const propertyIds = properties.map((p) => p.id);
+    const today = new Date();
+
+    const allBookings = await prisma.booking.findMany({
+      where: {
+        propertyId: { in: propertyIds },
+        bookingStatus: "CONFIRMED",
+      },
+      select: {
+        id: true,
+        totalPrice: true,
+        propertyId: true,
+        endDate: true,
+      },
+    });
+
+    const completedBookings = allBookings.filter(
+      (b) => new Date(b.endDate) <= today
+    );
+
+    const upcomingBookings = allBookings.filter(
+      (b) => new Date(b.endDate) > today
+    );
+
+    const totalEarningsToDate = completedBookings.reduce(
+      (sum, b) => sum + b.totalPrice,
+      0
+    );
+
+    const expectedEarnings = allBookings.reduce(
+      (sum, b) => sum + b.totalPrice,
+      0
+    );
+
+    const earningsPerProperty = properties.map((p) => {
+      const completed = completedBookings.filter((b) => b.propertyId === p.id);
+      const upcoming = upcomingBookings.filter((b) => b.propertyId === p.id);
+      return {
+        propertyId: p.id,
+        title: p.title,
+        bookingsCompleted: completed.length,
+        bookingsUpcoming: upcoming.length,
+        earningsToDate: completed.reduce((sum, b) => sum + b.totalPrice, 0),
+        expectedEarnings: completed
+          .concat(upcoming)
+          .reduce((sum, b) => sum + b.totalPrice, 0),
+      };
+    });
+
+    return res.json({
+      hostId,
+      totalEarningsToDate,
+      expectedEarnings,
+      totalBookings: allBookings.length,
+      bookingsCompleted: completedBookings.length,
+      bookingsUpcoming: upcomingBookings.length,
+      properties: earningsPerProperty,
+    });
+  } catch (error) {
+    console.error("❌ Host earnings error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};

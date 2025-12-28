@@ -11,7 +11,7 @@ export const createBooking = async (data) => {
       endDate: new Date(data.checkoutDate),
       numberOfGuests: data.numberOfGuests,
       totalPrice: data.totalPrice,
-      bookingStatus: data.bookingStatus ?? "CONFIRMED",
+      bookingStatus: data.bookingStatus ?? "PENDING",
       propertyId: data.propertyId,
       userId: data.userId,
     },
@@ -100,10 +100,10 @@ export const updateBooking = async (id, data) => {
     data: {
       startDate: data.checkinDate ? new Date(data.checkinDate) : undefined,
       endDate: data.checkoutDate ? new Date(data.checkoutDate) : undefined,
-      numberOfGuests: data.numberOfGuests,
-      totalPrice: data.totalPrice,
-      bookingStatus: data.bookingStatus,
-      propertyId: data.propertyId,
+      numberOfGuests: data.numberOfGuests ?? undefined,
+      totalPrice: data.totalPrice ?? undefined,
+      bookingStatus: undefined,
+      propertyId: data.propertyId ?? undefined,
     },
     include: {
       user: true,

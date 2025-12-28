@@ -1,5 +1,5 @@
 // BookingPage.jsx
-// Kalender met maandnavigatie, prijsberekening, toast en BookingModal.
+// Volledig gecorrigeerde versie — geen hook errors, veilige auth guard, spinner werkt
 
 import { useState, useEffect } from "react";
 import {
@@ -8,19 +8,29 @@ import {
   Button,
   Flex,
   IconButton,
+  Spinner,
   useToast,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import BookingModal from "../components/booking/BookingModal";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../components/context/AuthContext";
 
 export default function BookingPage() {
   const { propertyId } = useParams();
+  const navigate = useNavigate();
+  const toast = useToast();
 
-  const [days, setDays] = useState([]);
+  const { user, token } = useAuth();
+  const isAuthenticated = !!user && !!token;
+
+  // ⭐ ALLE HOOKS STAAN HIER — nooit onder een condition
+  const [property, setProperty] = useState(null);
   const [disabledDates, setDisabledDates] = useState([]);
+  const [days, setDays] = useState([]);
+
   const [checkIn, setCheckIn] = useState(null);
   const [checkOut, setCheckOut] = useState(null);
 
@@ -28,33 +38,71 @@ export default function BookingPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const pricePerNight = 100;
-  const toast = useToast();
-  const navigate = useNavigate();
 
+  /* -----------------------------------------------------------
+     AUTH GUARD — veilig in useEffect
+  ----------------------------------------------------------- */
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: { message: "Je moet ingelogd zijn om een boeking te plaatsen." },
+      });
+    }
+  }, [isAuthenticated, navigate]);
 
-  const formatDate = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+  /* -----------------------------------------------------------
+     Data ophalen
+  ----------------------------------------------------------- */
+  const loadProperty = async () => {
+    const res = await fetch(`http://localhost:3000/properties/${propertyId}`);
+    return res.json();
   };
 
-  // Disabled dates ophalen
   const loadDisabled = async () => {
     const res = await fetch(
       `http://localhost:3000/bookings/disabled-dates/${propertyId}`
     );
-    const data = await res.json();
-    setDisabledDates(data);
+    return res.json();
   };
 
   useEffect(() => {
-    loadDisabled();
-  }, [propertyId]);
+    async function loadAll() {
+      // Als niet ingelogd, niet eens proberen te laden
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
 
-  // Dagen genereren
+      try {
+        const [propertyData, disabledData] = await Promise.all([
+          loadProperty(),
+          loadDisabled(),
+        ]);
+
+        setProperty(propertyData);
+        setDisabledDates(disabledData);
+      } catch (err) {
+        toast({
+          title: "Fout bij laden",
+          description: "Kon de gegevens niet ophalen.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadAll();
+  }, [propertyId, isAuthenticated, toast]);
+
+  /* -----------------------------------------------------------
+     Kalender genereren
+  ----------------------------------------------------------- */
   useEffect(() => {
     const first = new Date(currentYear, currentMonth, 1);
     const last = new Date(currentYear, currentMonth + 1, 0);
@@ -70,8 +118,44 @@ export default function BookingPage() {
     setDays(temp);
   }, [currentYear, currentMonth]);
 
-  // Datumselectie
+  /* -----------------------------------------------------------
+     CONDITIONELE RENDERS — NA ALLE HOOKS
+  ----------------------------------------------------------- */
+
+  // Niet ingelogd → spinner (of eventueel null)
+  if (!isAuthenticated) {
+    return (
+      <Flex justify="center" mt={20}>
+        <Spinner size="xl" />
+      </Flex>
+    );
+  }
+
+  // Laden van property/disabled dates
+  if (loading) {
+    return (
+      <Flex align="center" justify="center" mt={20}>
+        <Spinner size="xl" color="blue.500" />
+        <Text ml={4} fontSize="lg">
+          Bezig met laden...
+        </Text>
+      </Flex>
+    );
+  }
+
+  /* -----------------------------------------------------------
+     Datumselectie
+  ----------------------------------------------------------- */
+  const formatDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
   const handleDateSelection = (date) => {
+    if (!property?.isActive) return;
+
     const dateStr = formatDate(date);
 
     if (!checkIn || (checkIn && checkOut)) {
@@ -88,7 +172,9 @@ export default function BookingPage() {
     }
   };
 
-  // Maandnavigatie
+  /* -----------------------------------------------------------
+     Maandnavigatie
+  ----------------------------------------------------------- */
   const goToPreviousMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -107,14 +193,19 @@ export default function BookingPage() {
     }
   };
 
+  /* -----------------------------------------------------------
+     Prijsberekening
+  ----------------------------------------------------------- */
   const nightCount =
     checkIn && checkOut
-      ? (new Date(checkOut) - new Date(checkIn)) /
-        (1000 * 60 * 60 * 24)
+      ? (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
       : 0;
 
   const totalPrice = nightCount * pricePerNight;
 
+  /* -----------------------------------------------------------
+     Render
+  ----------------------------------------------------------- */
   return (
     <Box p={6}>
       <Text fontSize="2xl" fontWeight="bold" mb={4}>
@@ -148,7 +239,7 @@ export default function BookingPage() {
         checkIn={checkIn}
         checkOut={checkOut}
         onDateClick={handleDateSelection}
-        isInteractive={true}
+        isInteractive={property?.isActive ?? true}
       />
 
       {/* Prijsweergave */}
@@ -164,7 +255,7 @@ export default function BookingPage() {
       <Button
         mt={6}
         colorScheme="blue"
-        isDisabled={!checkIn || !checkOut}
+        isDisabled={!checkIn || !checkOut || !property?.isActive}
         onClick={() => setIsModalOpen(true)}
       >
         Boek nu
@@ -178,7 +269,7 @@ export default function BookingPage() {
         pricePerNight={pricePerNight}
         checkIn={checkIn}
         checkOut={checkOut}
-        
+        isActive={property?.isActive ?? true}
         onBookingCreated={() => {
           toast({
             title: "Boeking geslaagd",
@@ -192,9 +283,8 @@ export default function BookingPage() {
           setCheckIn(null);
           setCheckOut(null);
 
-          navigate ("/profile?tab=bookings" )
+          navigate("/profile?tab=bookings");
         }}
-
         onBookingCancelled={() => {
           toast({
             title: "Geen boeking gemaakt",
