@@ -1,3 +1,8 @@
+// ==============================================
+// = REVIEW FORM                                 =
+// = Rating + comment voor een property          =
+// ==============================================
+
 import { useState } from "react";
 import {
   VStack,
@@ -10,10 +15,13 @@ import {
   Text,
   useToast,
 } from "@chakra-ui/react";
-import { createReview } from "../../services/reviewService";
-import { useAuth0 } from "@auth0/auth0-react";
 
-// ⭐ Klikbare sterren component
+import { createReview } from "../../services/reviewService";
+import { useAuth } from "../../components/context/AuthContext.jsx";
+
+// ==============================================
+// = STAR RATING COMPONENT                       =
+// ==============================================
 function StarRating({ rating, setRating }) {
   const [hover, setHover] = useState(0);
 
@@ -45,12 +53,16 @@ function StarRating({ rating, setRating }) {
   );
 }
 
-
-
+// ==============================================
+// = REVIEW FORM                                 =
+// ==============================================
 export default function ReviewForm({ propertyId, onReviewAdded }) {
-  const { getAccessTokenSilently } = useAuth0();
+  const { token } = useAuth();
   const toast = useToast();
 
+  // ==============================================
+  // = FORM STATE                                 =
+  // ==============================================
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -58,19 +70,15 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
   const isRatingInvalid = rating < 1 || rating > 5;
   const isCommentInvalid = comment.trim().length < 5;
 
+  // ==============================================
+  // = SUBMIT HANDLER                             =
+  // ==============================================
   const handleSubmit = async () => {
     if (isRatingInvalid || isCommentInvalid) return;
 
     setIsLoading(true);
 
     try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: {
-          audience: "https://staybnb.gudo.dev/api",
-
-        },
-      });
-
       const newReview = await createReview(
         {
           rating,
@@ -80,13 +88,11 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
         token
       );
 
-      // ⭐ Succes toast
       toast({
         title: "Review geplaatst",
         description: "Bedankt voor je bijdrage!",
         status: "success",
         duration: 3000,
-        isClosable: true,
       });
 
       onReviewAdded?.(newReview);
@@ -97,22 +103,58 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
     } catch (err) {
       console.error("Review plaatsen mislukt:", err);
 
-      // ⭐ Error toast
+      const message = err.response?.data?.error;
+
+      // ==============================================
+      // = HOST MAG GEEN REVIEWS PLAATSEN             =
+      // ==============================================
+      if (message === "Hosts kunnen geen reviews plaatsen") {
+        toast({
+          title: "Review niet toegestaan",
+          description:
+            "Als geregistreerde host kun je geen reviews plaatsen. Dit zorgt voor eerlijke en betrouwbare beoordelingen.",
+          status: "warning",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // ==============================================
+      // = USER HEEFT AL EEN REVIEW GEPLAATST         =
+      // ==============================================
+      if (message === "Je hebt deze accommodatie al beoordeeld") {
+        toast({
+          title: "Je hebt al een review geplaatst",
+          description:
+            "Je kunt geen tweede review plaatsen. Je kunt je bestaande review wel bewerken via 'Mijn reviews'.",
+          status: "info",
+          duration: 4000,
+        });
+        return;
+      }
+
+      // ==============================================
+      // = ALGEMENE FOUT                              =
+      // ==============================================
       toast({
-        title: "Er ging iets mis",
-        description: "Probeer het later opnieuw.",
+        title: "Review plaatsen mislukt",
+        description: message || "Er ging iets mis.",
         status: "error",
-        duration: 3000,
-        isClosable: true,
+        duration: 4000,
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <VStack spacing={4} align="start" w="100%">
-      {/* ⭐ Rating */}
+      {/* ============================================== */}
+      {/* = RATING                                      = */}
+      {/* ============================================== */}
       <FormControl isInvalid={isRatingInvalid}>
         <FormLabel>Jouw rating</FormLabel>
         <StarRating rating={rating} setRating={setRating} />
@@ -123,7 +165,9 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
         )}
       </FormControl>
 
-      {/* ⭐ Comment */}
+      {/* ============================================== */}
+      {/* = COMMENT                                     = */}
+      {/* ============================================== */}
       <FormControl isInvalid={isCommentInvalid}>
         <FormLabel>Review</FormLabel>
         <Textarea
@@ -138,7 +182,9 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
         )}
       </FormControl>
 
-      {/* ⭐ Submit */}
+      {/* ============================================== */}
+      {/* = SUBMIT KNOP                                = */}
+      {/* ============================================== */}
       <Button
         colorScheme="blue"
         onClick={handleSubmit}

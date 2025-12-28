@@ -1,9 +1,9 @@
 import prisma from "../lib/prisma.js";
 import { mapBooking } from "../utils/bookingMapper.js";
 
-// ---------------------------------------------------------
-// CREATE BOOKING
-// ---------------------------------------------------------
+/* ============================================================
+   CREATE BOOKING
+============================================================ */
 export const createBooking = async (data) => {
   const booking = await prisma.booking.create({
     data: {
@@ -24,9 +24,9 @@ export const createBooking = async (data) => {
   return mapBooking(booking);
 };
 
-// ---------------------------------------------------------
-// GET ALL BOOKINGS
-// ---------------------------------------------------------
+/* ============================================================
+   GET ALL BOOKINGS
+============================================================ */
 export const getAllBookings = async () => {
   const bookings = await prisma.booking.findMany({
     include: {
@@ -38,9 +38,9 @@ export const getAllBookings = async () => {
   return bookings.map(mapBooking);
 };
 
-// ---------------------------------------------------------
-// GET BOOKING BY ID
-// ---------------------------------------------------------
+/* ============================================================
+   GET BOOKING BY ID
+============================================================ */
 export const getBookingById = async (id) => {
   const booking = await prisma.booking.findUnique({
     where: { id },
@@ -53,9 +53,9 @@ export const getBookingById = async (id) => {
   return booking ? mapBooking(booking) : null;
 };
 
-// ---------------------------------------------------------
-// GET BOOKINGS BY USER
-// ---------------------------------------------------------
+/* ============================================================
+   GET BOOKINGS BY USER
+============================================================ */
 export const getBookingsByUserId = async (userId) => {
   const bookings = await prisma.booking.findMany({
     where: { userId },
@@ -76,9 +76,9 @@ export const getBookingsByUserId = async (userId) => {
   return bookings.map(mapBooking);
 };
 
-// ---------------------------------------------------------
-// GET BOOKINGS BY PROPERTY
-// ---------------------------------------------------------
+/* ============================================================
+   GET BOOKINGS BY PROPERTY
+============================================================ */
 export const getBookingsByPropertyId = async (propertyId) => {
   const bookings = await prisma.booking.findMany({
     where: { propertyId },
@@ -91,9 +91,9 @@ export const getBookingsByPropertyId = async (propertyId) => {
   return bookings.map(mapBooking);
 };
 
-// ---------------------------------------------------------
-// UPDATE BOOKING
-// ---------------------------------------------------------
+/* ============================================================
+   UPDATE BOOKING (dates, guests, price)
+============================================================ */
 export const updateBooking = async (id, data) => {
   const updated = await prisma.booking.update({
     where: { id },
@@ -102,8 +102,8 @@ export const updateBooking = async (id, data) => {
       endDate: data.checkoutDate ? new Date(data.checkoutDate) : undefined,
       numberOfGuests: data.numberOfGuests ?? undefined,
       totalPrice: data.totalPrice ?? undefined,
-      bookingStatus: undefined,
-      propertyId: data.propertyId ?? undefined,
+      // bookingStatus wordt NIET aangepast hier
+      // propertyId wordt NIET aangepast hier
     },
     include: {
       user: true,
@@ -114,12 +114,16 @@ export const updateBooking = async (id, data) => {
   return mapBooking(updated);
 };
 
-// ---------------------------------------------------------
-// DELETE BOOKING
-// ---------------------------------------------------------
+/* ============================================================
+   DELETE BOOKING
+============================================================ */
 export const deleteBooking = async (id) => {
   const deleted = await prisma.booking.delete({
     where: { id },
+    include: {
+      user: true,
+      property: true,
+    },
   });
 
   return mapBooking(deleted);

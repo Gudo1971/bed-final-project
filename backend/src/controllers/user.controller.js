@@ -1,6 +1,6 @@
 // src/controllers/user.controller.js
 import prisma from "../lib/prisma.js";
-import bcrypt from "bcryptjs"; // ⭐ FIXED
+import bcrypt from "bcryptjs";
 import {
   getAllUsers,
   getUserById,
@@ -9,9 +9,9 @@ import {
   deleteUser,
 } from "../services/user.service.js";
 
-// ---------------------------------------------------------
-// GET ALL USERS
-// ---------------------------------------------------------
+/* ============================================================
+   GET ALL USERS (public)
+============================================================ */
 export const getAllUsersController = async (req, res, next) => {
   try {
     const users = await getAllUsers();
@@ -21,19 +21,18 @@ export const getAllUsersController = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// GET USER BY ID
-// ---------------------------------------------------------
+/* ============================================================
+   GET USER BY ID (public)
+============================================================ */
 export const getUserByIdController = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    if (!id || typeof id !== "string") {
+    if (!id) {
       return res.status(404).json({ error: "User not found" });
     }
 
     const user = await getUserById(id);
-
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -44,9 +43,9 @@ export const getUserByIdController = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// CREATE USER
-// ---------------------------------------------------------
+/* ============================================================
+   CREATE USER (public)
+============================================================ */
 export const createUserController = async (req, res, next) => {
   try {
     const { email, password, username } = req.body;
@@ -67,9 +66,9 @@ export const createUserController = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// UPDATE USER
-// ---------------------------------------------------------
+/* ============================================================
+   UPDATE USER (protected)
+============================================================ */
 export const updateUserController = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -87,7 +86,7 @@ export const updateUserController = async (req, res, next) => {
 
     const updateData = {};
 
-    // ⭐ EMAIL UNIQUE CHECK
+    // Email unique check
     if (email !== undefined) {
       const emailExists = await prisma.user.findUnique({ where: { email } });
       if (emailExists && emailExists.id !== id) {
@@ -96,7 +95,7 @@ export const updateUserController = async (req, res, next) => {
       updateData.email = email;
     }
 
-    // ⭐ USERNAME UNIQUE CHECK
+    // Username unique check
     if (username !== undefined) {
       const usernameExists = await prisma.user.findUnique({ where: { username } });
       if (usernameExists && usernameExists.id !== id) {
@@ -105,6 +104,7 @@ export const updateUserController = async (req, res, next) => {
       updateData.username = username;
     }
 
+    // Password hashing
     if (password !== undefined) {
       updateData.password = await bcrypt.hash(password, 10);
     }
@@ -120,46 +120,9 @@ export const updateUserController = async (req, res, next) => {
   }
 };
 
-// ===============================
-// BECOME HOST
-// ===============================
-export const becomeHost = async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    const existingHost = await prisma.host.findUnique({
-      where: { email: user.email },
-    });
-
-    if (existingHost) {
-      return res.status(400).json({ error: "Je bent al host" });
-    }
-
-    const host = await prisma.host.create({
-      data: {
-        username: user.username,
-        password: user.password,
-        name: user.name,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        pictureUrl: user.pictureUrl,
-        aboutMe: user.aboutMe,
-      },
-    });
-
-    return res.json({ message: "Je bent nu host!", host });
-  } catch (error) {
-    console.error("❌ Become Host error:", error);
-    return res.status(500).json({ error: "Server error" });
-  }
-};
-
-// ---------------------------------------------------------
-// DELETE USER
-// ---------------------------------------------------------
+/* ============================================================
+   DELETE USER (protected)
+============================================================ */
 export const deleteUserController = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -167,6 +130,7 @@ export const deleteUserController = async (req, res, next) => {
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) return res.status(404).json({ error: "User not found" });
 
+    // Cascade delete
     await prisma.review.deleteMany({ where: { userId: id } });
     await prisma.booking.deleteMany({ where: { userId: id } });
 
@@ -177,35 +141,31 @@ export const deleteUserController = async (req, res, next) => {
     next(error);
   }
 };
-// ---------------------------------------------------------
-// UPDATE USER PASSWORD
-// ---------------------------------------------------------
+
+/* ============================================================
+   UPDATE USER PASSWORD (protected)
+============================================================ */
 export const updateUserPasswordController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { currentPassword, newPassword } = req.body;
 
-    // 1. Check required fields
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // 2. Check if user exists
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // 3. Compare current password
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Ongeldige combinatie" });
     }
 
-    // 4. Hash new password
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    // 5. Update password
     await prisma.user.update({
       where: { id },
       data: { password: hashed },

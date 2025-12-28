@@ -1,3 +1,8 @@
+// ==============================================
+// = ADD REVIEW MODAL                            =
+// = Nieuwe review toevoegen via ReviewForm      =
+// ==============================================
+
 import {
   Modal,
   ModalOverlay,
@@ -6,24 +11,44 @@ import {
   ModalBody,
   ModalCloseButton,
 } from "@chakra-ui/react";
+
 import ReviewForm from "./ReviewForm";
 
-export default function AddReviewModal({ isOpen, onClose, propertyId, onReviewAdded }) {
+// ==============================================
+// = COMPONENT                                   =
+// ==============================================
+export default function AddReviewModal({
+  isOpen,
+  onClose,
+  propertyId,
+  onReviewAdded,
+}) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
+
       <ModalContent>
+        {/* ============================================== */}
+        {/* = HEADER                                      = */}
+        {/* ============================================== */}
         <ModalHeader>Review toevoegen</ModalHeader>
         <ModalCloseButton />
 
+        {/* ============================================== */}
+        {/* = BODY                                        = */}
+        {/* ============================================== */}
         <ModalBody pb={6}>
           <ReviewForm
             propertyId={propertyId}
             onReviewAdded={(review) => {
-              // ⭐ Alleen doorgeven aan parent
+              // ==============================================
+              // = REVIEW DOORGEVEN AAN PARENT                =
+              // ==============================================
               onReviewAdded?.(review);
 
-              // ⭐ Modal sluiten
+              // ==============================================
+              // = MODAL SLUITEN                              =
+              // ==============================================
               onClose();
             }}
           />

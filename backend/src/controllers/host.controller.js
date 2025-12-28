@@ -1,9 +1,12 @@
-import prisma from "../lib/prisma.js";
-import { Prisma } from "@prisma/client";
+// ==============================================
+// = HOST CONTROLLER                            =
+// ==============================================
 
-// ---------------------------------------------------------
-// GET ALL HOSTS
-// ---------------------------------------------------------
+import prisma from "../lib/prisma.js";
+
+/* ============================================================
+   GET ALL HOSTS (public)
+============================================================ */
 export const getAllHostsController = async (req, res, next) => {
   try {
     const hosts = await prisma.host.findMany();
@@ -13,17 +16,14 @@ export const getAllHostsController = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// GET HOST BY ID
-// ---------------------------------------------------------
+/* ============================================================
+   GET HOST BY EMAIL (public)
+============================================================ */
 export const getHostById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const host = await prisma.host.findUnique({
-      where: { id }
-    });
-
+    const host = await prisma.host.findUnique({ where: { id } });
     if (!host) {
       return res.status(404).json({ error: "Host not found" });
     }
@@ -34,9 +34,9 @@ export const getHostById = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// CREATE HOST
-// ---------------------------------------------------------
+/* ============================================================
+   CREATE HOST (admin / tooling)
+============================================================ */
 export const createHostController = async (req, res, next) => {
   try {
     const {
@@ -46,7 +46,7 @@ export const createHostController = async (req, res, next) => {
       email,
       phoneNumber,
       pictureUrl,
-      aboutMe
+      aboutMe,
     } = req.body;
 
     if (!username || !password || !name || !email) {
@@ -54,14 +54,14 @@ export const createHostController = async (req, res, next) => {
     }
 
     const existingUsername = await prisma.host.findUnique({
-      where: { username }
+      where: { username },
     });
     if (existingUsername) {
       return res.status(409).json({ error: "Username already exists" });
     }
 
     const existingEmail = await prisma.host.findUnique({
-      where: { email }
+      where: { email },
     });
     if (existingEmail) {
       return res.status(409).json({ error: "Email already exists" });
@@ -75,8 +75,8 @@ export const createHostController = async (req, res, next) => {
         email,
         phoneNumber,
         pictureUrl,
-        aboutMe
-      }
+        aboutMe,
+      },
     });
 
     return res.status(201).json(host);
@@ -85,19 +85,14 @@ export const createHostController = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// UPDATE HOST
-// ---------------------------------------------------------
+/* ============================================================
+   UPDATE HOST (protected)
+============================================================ */
 export const updateHost = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    if (!id) {
-      return res.status(400).json({ error: "Host ID is required" });
-    }
-
     const host = await prisma.host.findUnique({ where: { id } });
-
     if (!host) {
       return res.status(404).json({ error: "Host not found" });
     }
@@ -121,10 +116,11 @@ export const updateHost = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// DELETE HOST
-// ---------------------------------------------------------
-export async function deleteHost(req, res, next) {
+/* ============================================================
+   DELETE HOST (protected)
+   - verwijdert host + alle gekoppelde properties/bookings/reviews
+============================================================ */
+export const deleteHost = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -133,54 +129,59 @@ export async function deleteHost(req, res, next) {
       return res.status(404).json({ error: "Host not found" });
     }
 
+    const hostEmail = host.email;
+
+    // Reviews verwijderen
     await prisma.review.deleteMany({
       where: {
-        property: {
-          hostId: id
-        }
-      }
+        property: { hostEmail },
+      },
     });
 
+    // Bookings verwijderen
     await prisma.booking.deleteMany({
       where: {
-        property: {
-          hostId: id
-        }
-      }
+        property: { hostEmail },
+      },
     });
 
+    // Properties verwijderen
     await prisma.property.deleteMany({
-      where: { hostId: id }
+      where: { hostEmail },
     });
 
-    await prisma.host.delete({
-      where: { id }
-    });
+    // Host verwijderen
+    await prisma.host.delete({ where: { id } });
 
     return res.status(200).json({ message: "Host deleted" });
   } catch (err) {
     next(err);
   }
-}
+};
 
-// ---------------------------------------------------------
-// GET HOST EARNINGS (VERDIEND + VERWACHT)
-// ---------------------------------------------------------
+/* ============================================================
+   GET HOST EARNINGS (protected)
+============================================================ */
 export const getHostEarnings = async (req, res) => {
   try {
     const hostId = req.params.id;
 
     const host = await prisma.host.findUnique({ where: { id: hostId } });
-    if (!host) return res.status(404).json({ error: "Host not found" });
+    if (!host) {
+      return res.status(404).json({ error: "Host not found" });
+    }
 
+    const hostEmail = host.email;
+
+    // Alle properties van deze host
     const properties = await prisma.property.findMany({
-      where: { hostId },
+      where: { hostEmail },
       select: { id: true, title: true },
     });
 
     if (properties.length === 0) {
       return res.json({
-        hostId,
+        hostEmail,
         totalEarningsToDate: 0,
         expectedEarnings: 0,
         totalBookings: 0,
@@ -227,20 +228,22 @@ export const getHostEarnings = async (req, res) => {
     const earningsPerProperty = properties.map((p) => {
       const completed = completedBookings.filter((b) => b.propertyId === p.id);
       const upcoming = upcomingBookings.filter((b) => b.propertyId === p.id);
+
       return {
         propertyId: p.id,
         title: p.title,
         bookingsCompleted: completed.length,
         bookingsUpcoming: upcoming.length,
         earningsToDate: completed.reduce((sum, b) => sum + b.totalPrice, 0),
-        expectedEarnings: completed
-          .concat(upcoming)
-          .reduce((sum, b) => sum + b.totalPrice, 0),
+        expectedEarnings: [...completed, ...upcoming].reduce(
+          (sum, b) => sum + b.totalPrice,
+          0
+        ),
       };
     });
 
     return res.json({
-      hostId,
+      hostEmail,
       totalEarningsToDate,
       expectedEarnings,
       totalBookings: allBookings.length,

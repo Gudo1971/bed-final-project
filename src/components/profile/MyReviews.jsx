@@ -1,3 +1,8 @@
+// ==============================================
+// = MY REVIEWS PAGE                             =
+// = Overzicht van reviews geschreven door user  =
+// ==============================================
+
 import { useEffect, useState } from "react";
 import {
   Box,
@@ -10,13 +15,20 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
+
 import { Link } from "react-router-dom";
 
-import { getUserReviews, deleteReview, updateReview } from "../../api/reviews";
+import {
+  getUserReviews,
+  deleteReview,
+  updateReview,
+} from "../../api/reviews";
+
 import EditReviewModal from "../reviews/EditReviewModal";
 
-
-// Haal userId uit jouw backend-JWT
+// ==============================================
+// = USER ID UIT JWT                            =
+// ==============================================
 function getUserIdFromToken() {
   const token = localStorage.getItem("token");
   if (!token) return null;
@@ -25,7 +37,13 @@ function getUserIdFromToken() {
   return payload.id;
 }
 
+// ==============================================
+// = COMPONENT                                   =
+// ==============================================
 export default function MyReviews() {
+  // ==============================================
+  // = STATE                                      =
+  // ==============================================
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +55,9 @@ export default function MyReviews() {
 
   const userId = getUserIdFromToken();
 
+  // ==============================================
+  // = REVIEWS OPHALEN                            =
+  // ==============================================
   async function loadReviews() {
     try {
       const token = localStorage.getItem("token");
@@ -53,6 +74,9 @@ export default function MyReviews() {
     loadReviews();
   }, []);
 
+  // ==============================================
+  // = REVIEW VERWIJDEREN                         =
+  // ==============================================
   async function handleDelete(id) {
     if (!confirm("Weet je zeker dat je deze review wilt verwijderen?")) return;
 
@@ -64,7 +88,6 @@ export default function MyReviews() {
         title: "Review verwijderd",
         status: "success",
         duration: 3000,
-        isClosable: true,
       });
 
       loadReviews();
@@ -73,11 +96,13 @@ export default function MyReviews() {
         title: "Verwijderen mislukt",
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     }
   }
 
+  // ==============================================
+  // = REVIEW OPSLAAN (EDIT)                      =
+  // ==============================================
   async function handleSave(updatedData) {
     try {
       const token = localStorage.getItem("token");
@@ -87,7 +112,6 @@ export default function MyReviews() {
         title: "Review bijgewerkt",
         status: "success",
         duration: 3000,
-        isClosable: true,
       });
 
       onClose();
@@ -97,16 +121,25 @@ export default function MyReviews() {
         title: "Fout bij opslaan",
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     }
   }
 
+  // ==============================================
+  // = LOADING STATE                              =
+  // ==============================================
   if (loading) return <Spinner />;
 
-  if (reviews.length === 0)
+  // ==============================================
+  // = GEEN REVIEWS                               =
+  // ==============================================
+  if (reviews.length === 0) {
     return <Text>Je hebt nog geen reviews geschreven.</Text>;
+  }
 
+  // ==============================================
+  // = SORT LOGICA                                =
+  // ==============================================
   function sortReviews(list, sortBy) {
     const sorted = [...list];
 
@@ -136,9 +169,14 @@ export default function MyReviews() {
     }
   }
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <>
-      {/* Modal */}
+      {/* ============================================== */}
+      {/* = EDIT MODAL                                  = */}
+      {/* ============================================== */}
       {selectedReview && (
         <EditReviewModal
           isOpen={isOpen}
@@ -148,7 +186,9 @@ export default function MyReviews() {
         />
       )}
 
-      {/* Sorteren */}
+      {/* ============================================== */}
+      {/* = SORTERING                                   = */}
+      {/* ============================================== */}
       <HStack mb={4}>
         <Text fontWeight="bold">Sorteren op:</Text>
 
@@ -168,7 +208,9 @@ export default function MyReviews() {
         </select>
       </HStack>
 
-      {/* Review lijst */}
+      {/* ============================================== */}
+      {/* = REVIEW LIJST                                = */}
+      {/* ============================================== */}
       <VStack spacing={4} align="start" w="100%">
         {sortReviews(reviews, sortBy).map((review) => (
           <Box

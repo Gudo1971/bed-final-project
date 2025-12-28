@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, Heading, Spinner, Text } from "@chakra-ui/react";
 import PropertyCard from "../components/PropertyCard";
+import { getAllProperties } from "../api/properties";
 
 export default function PropertyPage() {
   const [properties, setProperties] = useState([]);
@@ -8,11 +9,7 @@ export default function PropertyPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/properties")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch properties");
-        return res.json();
-      })
+    getAllProperties()
       .then((data) => {
         setProperties(data);
         setLoading(false);

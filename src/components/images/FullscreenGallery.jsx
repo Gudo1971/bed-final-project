@@ -1,18 +1,43 @@
+// ==============================================
+// = FULLSCREEN GALLERY                          =
+// = Volledige schermweergave met navigatie      =
+// ==============================================
+
 import { useEffect } from "react";
 import { Box, IconButton } from "@chakra-ui/react";
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@chakra-ui/icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIcon,
+} from "@chakra-ui/icons";
 
-export default function FullscreenGallery({ images, index, onClose, onPrev, onNext }) {
+// ==============================================
+// = COMPONENT                                   =
+// ==============================================
+export default function FullscreenGallery({
+  images,
+  index,
+  onClose,
+  onPrev,
+  onNext,
+}) {
+  // ==============================================
+  // = KEYBOARD CONTROLS                          =
+  // ==============================================
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft") onPrev();
       if (e.key === "ArrowRight") onNext();
     };
+
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose, onPrev, onNext]);
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <Box
       position="fixed"
@@ -26,6 +51,9 @@ export default function FullscreenGallery({ images, index, onClose, onPrev, onNe
       justifyContent="center"
       zIndex={9999}
     >
+      {/* ============================================== */}
+      {/* = CLOSE BUTTON                                = */}
+      {/* ============================================== */}
       <IconButton
         aria-label="Close"
         icon={<CloseIcon />}
@@ -35,6 +63,9 @@ export default function FullscreenGallery({ images, index, onClose, onPrev, onNe
         onClick={onClose}
       />
 
+      {/* ============================================== */}
+      {/* = PREVIOUS                                    = */}
+      {/* ============================================== */}
       <IconButton
         aria-label="Previous"
         icon={<ChevronLeftIcon boxSize={10} />}
@@ -45,16 +76,22 @@ export default function FullscreenGallery({ images, index, onClose, onPrev, onNe
         onClick={onPrev}
       />
 
+      {/* ============================================== */}
+      {/* = IMAGE                                       = */}
+      {/* ============================================== */}
       <img
         src={images[index].url}
         alt=""
         style={{
           maxWidth: "90%",
           maxHeight: "90%",
-          objectFit: "contain"
+          objectFit: "contain",
         }}
       />
 
+      {/* ============================================== */}
+      {/* = NEXT                                        = */}
+      {/* ============================================== */}
       <IconButton
         aria-label="Next"
         icon={<ChevronRightIcon boxSize={10} />}

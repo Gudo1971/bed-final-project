@@ -1,3 +1,8 @@
+// ==============================================
+// = EDIT PROPERTY MODAL                         =
+// = Foto’s beheren + property info bijwerken    =
+// ==============================================
+
 import {
   Modal,
   ModalOverlay,
@@ -27,16 +32,31 @@ import { CloseIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { updateProperty, uploadPropertyImages, deletePropertyImage } from "../../api/host";
+import {
+  updateProperty,
+  uploadPropertyImages,
+  deletePropertyImage,
+} from "../../api/host";
 
-export default function EditPropertyModal({ isOpen, onClose, property, token, onSuccess }) {
+export default function EditPropertyModal({
+  isOpen,
+  onClose,
+  property,
+  token,
+  onSuccess,
+}) {
   const toast = useToast();
 
-  // ⭐ LOCAL STATE
+  // ==============================================
+  // = LOCAL STATE                                =
+  // ==============================================
   const [images, setImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
-  const [isUploading, setIsUploading] = useState(false); // ⭐ FIX
+  const [isUploading, setIsUploading] = useState(false);
 
+  // ==============================================
+  // = REACT HOOK FORM                            =
+  // ==============================================
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       title: "",
@@ -50,9 +70,9 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
     },
   });
 
-  /* -----------------------------------------------------------
-     SYNC FORM + IMAGES WANNEER MODAL OPENT
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = SYNC FORM + IMAGES BIJ OPENEN              =
+  // ==============================================
   useEffect(() => {
     if (property) {
       reset({
@@ -70,9 +90,9 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
     }
   }, [property, reset]);
 
-  /* -----------------------------------------------------------
-     JSON UPDATE (PUT)
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = PROPERTY UPDATEN (PUT)                     =
+  // ==============================================
   const onSubmit = async (data) => {
     try {
       await updateProperty(property.id, data, token);
@@ -94,9 +114,9 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
     }
   };
 
-  /* -----------------------------------------------------------
-     FOTO VERWIJDEREN
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = FOTO VERWIJDEREN                           =
+  // ==============================================
   async function handleDeleteImage(imageId) {
     try {
       await deletePropertyImage(property.id, imageId, token);
@@ -119,16 +139,20 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
     }
   }
 
-  /* -----------------------------------------------------------
-     FOTO'S UPLOADEN (met loader)
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = FOTO’S UPLOADEN (met loader + skeletons)   =
+  // ==============================================
   async function handleUploadImages() {
     if (!newImages.length) return;
 
     try {
-      setIsUploading(true); // ⭐ START LOADER
+      setIsUploading(true);
 
-      const updated = await uploadPropertyImages(property.id, newImages, token);
+      const updated = await uploadPropertyImages(
+        property.id,
+        newImages,
+        token
+      );
 
       toast({
         title: "Foto's geüpload",
@@ -146,10 +170,13 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
         duration: 3000,
       });
     } finally {
-      setIsUploading(false); // ⭐ STOP LOADER
+      setIsUploading(false);
     }
   }
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
@@ -160,7 +187,9 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
         <ModalBody>
           <VStack spacing={6} align="stretch">
 
-            {/* ---------------- FOTO'S ---------------- */}
+            {/* ============================================== */}
+            {/* = BESTAANDE FOTO’S                            = */}
+            {/* ============================================== */}
             <FormControl>
               <FormLabel>Bestaande foto's</FormLabel>
 
@@ -189,7 +218,9 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
               </HStack>
             </FormControl>
 
-            {/* ---------------- NIEUWE FOTO'S ---------------- */}
+            {/* ============================================== */}
+            {/* = NIEUWE FOTO’S UPLOADEN                      = */}
+            {/* ============================================== */}
             <FormControl>
               <FormLabel>Nieuwe foto's toevoegen</FormLabel>
 
@@ -200,21 +231,28 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
                 onChange={(e) => setNewImages([...e.target.files])}
               />
 
-              {newImages.length > 0 && !isUploading && (
-                <Button mt={2} size="sm" colorScheme="teal" onClick={handleUploadImages}>
+              {!isUploading && newImages.length > 0 && (
+                <Button
+                  mt={2}
+                  size="sm"
+                  colorScheme="teal"
+                  onClick={handleUploadImages}
+                >
                   Upload {newImages.length} foto(s)
                 </Button>
               )}
 
-              {/* ⭐ Spinner tijdens upload */}
+              {/* Upload loader */}
               {isUploading && (
                 <HStack mt={3}>
                   <Spinner size="sm" color="teal.500" />
-                  <Box fontSize="sm" color="gray.600">Foto's worden geüpload...</Box>
+                  <Box fontSize="sm" color="gray.600">
+                    Foto's worden geüpload...
+                  </Box>
                 </HStack>
               )}
 
-              {/* ⭐ Skeleton thumbnails tijdens upload */}
+              {/* Skeleton thumbnails */}
               {isUploading && (
                 <HStack wrap="wrap" spacing={3} mt={3}>
                   {[...Array(newImages.length)].map((_, i) => (
@@ -231,7 +269,9 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
               )}
             </FormControl>
 
-            {/* ---------------- FORM FIELDS ---------------- */}
+            {/* ============================================== */}
+            {/* = FORM FIELDS                                 = */}
+            {/* ============================================== */}
             <FormControl>
               <FormLabel>Titel</FormLabel>
               <Input {...register("title")} />
@@ -289,6 +329,9 @@ export default function EditPropertyModal({ isOpen, onClose, property, token, on
           </VStack>
         </ModalBody>
 
+        {/* ============================================== */}
+        {/* = FOOTER KNOPPEN                              = */}
+        {/* ============================================== */}
         <ModalFooter>
           <Button mr={3} onClick={onClose}>
             Annuleren

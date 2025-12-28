@@ -1,5 +1,15 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+// ==============================================
+// = PROPERTY CONTROLLER                         =
+// ==============================================
+
+import prisma from "../lib/prisma.js";
+
+/* ============================================================
+   HELPER: haal hostEmail dynamisch op via JWT
+============================================================ */
+function getHostEmail(req) {
+  return req.user?.email || null;
+}
 
 /* ============================================================
    GET ALL PROPERTIES (PUBLIC)
@@ -97,8 +107,13 @@ export async function createProperty(req, res) {
       return res.status(400).json({ error: "Invalid input" });
     }
 
+    const hostEmail = getHostEmail(req);
+    if (!hostEmail) {
+      return res.status(403).json({ error: "Je bent geen host" });
+    }
+
     const host = await prisma.host.findUnique({
-      where: { email: req.user.email },
+      where: { email: hostEmail },
     });
 
     if (!host) {
@@ -117,7 +132,11 @@ export async function createProperty(req, res) {
         bathRoomCount: Number(bathRoomCount),
         maxGuestCount: Number(maxGuestCount),
         rating: 0,
-        hostId: host.id,
+
+        // ⭐ BELANGRIJK: connect via email
+        host: {
+          connect: { email: hostEmail },
+        },
 
         images: {
           create: uploadedImages.map((url) => ({ url })),
@@ -139,20 +158,11 @@ export async function createProperty(req, res) {
 export async function updateProperty(req, res) {
   try {
     const { id } = req.params;
+    const hostEmail = getHostEmail(req);
 
-    const host = await prisma.host.findUnique({
-      where: { email: req.user.email },
-    });
+    const property = await prisma.property.findUnique({ where: { id } });
 
-    if (!host) {
-      return res.status(403).json({ error: "Je bent geen host" });
-    }
-
-    const property = await prisma.property.findUnique({
-      where: { id },
-    });
-
-    if (!property || property.hostId !== host.id) {
+    if (!property || property.hostEmail !== hostEmail) {
       return res.status(403).json({ error: "Geen toegang tot deze property" });
     }
 
@@ -183,25 +193,16 @@ export async function updateProperty(req, res) {
 }
 
 /* ============================================================
-   UPDATE PROPERTY (PUT — JSON ONLY, FOR EDIT MODAL)
+   UPDATE PROPERTY (PUT — JSON ONLY)
 ============================================================ */
 export const updatePropertyJson = async (req, res) => {
   try {
     const id = req.params.id;
+    const hostEmail = getHostEmail(req);
 
-    const host = await prisma.host.findUnique({
-      where: { email: req.user.email },
-    });
+    const existing = await prisma.property.findUnique({ where: { id } });
 
-    if (!host) {
-      return res.status(403).json({ error: "Je bent geen host" });
-    }
-
-    const existing = await prisma.property.findUnique({
-      where: { id },
-    });
-
-    if (!existing || existing.hostId !== host.id) {
+    if (!existing || existing.hostEmail !== hostEmail) {
       return res.status(403).json({ error: "Geen toegang tot deze property" });
     }
 
@@ -238,61 +239,64 @@ export const updatePropertyJson = async (req, res) => {
 };
 
 /* ============================================================
-   DELETE PROPERTY (HOST ONLY) — veilig & Airbnb-style
+   DELETE PROPERTY (HOST ONLY)
 ============================================================ */
 export async function deleteProperty(req, res) {
+  console.log("🔍 JWT user:", req.user);
+
   try {
     const { id } = req.params;
+    const hostEmail = getHostEmail(req);
+    console.log("🔍 hostEmail uit JWT:", hostEmail);
 
-    // 1. Host ophalen
-    const host = await prisma.host.findUnique({
-      where: { email: req.user.email },
-    });
-
-    if (!host) {
-      return res.status(403).json({ message: "Je bent geen host" });
-    }
-
-    // 2. Property ophalen
     const property = await prisma.property.findUnique({
       where: { id },
     });
 
-    if (!property || property.hostId !== host.id) {
-      return res.status(403).json({ message: "Geen toegang tot deze property" });
+    console.log("🔍 Gevonden property:", {
+      id: property?.id,
+      hostEmail: property?.hostEmail,
+    });
+
+    if (!property) {
+      return res.status(404).json({ error: "Property niet gevonden" });
     }
 
-    // 3. Check of er reserveringen bestaan
+    if (property.hostEmail !== hostEmail) {
+      console.log("❌ MISMATCH:", {
+        propertyHostEmail: property.hostEmail,
+        jwtEmail: hostEmail,
+      });
+
+      return res
+        .status(403)
+        .json({ error: "Geen toegang tot deze property" });
+    }
+
     const bookings = await prisma.booking.findMany({
       where: { propertyId: id },
     });
 
+    console.log("🔍 Aantal bookings:", bookings.length);
+
     if (bookings.length > 0) {
       return res.status(400).json({
         message:
-          "Deze accommodatie heeft nog reserveringen. Zet de accommodatie eerst inactief. Reserveringen kunnen niet worden verwijderd.",
+          "Deze accommodatie heeft nog reserveringen. Zet de accommodatie eerst inactief. Geaccepteerde boekingen kunnen niet worden verwijderd; pas nadat alle geplande reserveringen zijn afgelopen kun je de accommodatie verwijderen.",
       });
     }
 
-    // 4. Eerst alle foto's verwijderen
-    await prisma.propertyImage.deleteMany({
-      where: { propertyId: id },
-    });
+    await prisma.propertyImage.deleteMany({ where: { propertyId: id } });
+    await prisma.property.delete({ where: { id } });
 
-    // 5. Property verwijderen
-    await prisma.property.delete({
-      where: { id },
-    });
+    console.log("✅ Property verwijderd:", id);
 
     return res.status(200).json({ message: "Property succesvol verwijderd" });
-
   } catch (error) {
     console.error("❌ Error deleting property:", error);
     return res.status(500).json({ message: "Failed to delete property" });
   }
 }
-
-
 
 
 /* ============================================================
@@ -301,20 +305,11 @@ export async function deleteProperty(req, res) {
 export async function getPropertyBookings(req, res) {
   try {
     const { id } = req.params;
+    const hostEmail = getHostEmail(req);
 
-    const host = await prisma.host.findUnique({
-      where: { email: req.user.email },
-    });
+    const property = await prisma.property.findUnique({ where: { id } });
 
-    if (!host) {
-      return res.status(403).json({ error: "Je bent geen host" });
-    }
-
-    const property = await prisma.property.findUnique({
-      where: { id },
-    });
-
-    if (!property || property.hostId !== host.id) {
+    if (!property || property.hostEmail !== hostEmail) {
       return res.status(403).json({ error: "Geen toegang tot deze property" });
     }
 
@@ -345,20 +340,13 @@ export async function getPropertyBookings(req, res) {
 export async function deletePropertyImage(req, res) {
   try {
     const { propertyId, imageId } = req.params;
-
-    const host = await prisma.host.findUnique({
-      where: { email: req.user.email },
-    });
-
-    if (!host) {
-      return res.status(403).json({ error: "Je bent geen host" });
-    }
+    const hostEmail = getHostEmail(req);
 
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
     });
 
-    if (!property || property.hostId !== host.id) {
+    if (!property || property.hostEmail !== hostEmail) {
       return res.status(403).json({ error: "Geen toegang tot deze property" });
     }
 
@@ -370,9 +358,7 @@ export async function deletePropertyImage(req, res) {
       return res.status(404).json({ error: "Afbeelding niet gevonden" });
     }
 
-    await prisma.propertyImage.delete({
-      where: { id: imageId },
-    });
+    await prisma.propertyImage.delete({ where: { id: imageId } });
 
     return res.status(200).json({ message: "Foto verwijderd" });
   } catch (error) {

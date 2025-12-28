@@ -1,3 +1,7 @@
+// ==============================================
+// = BOOKING FORM                               =
+// ==============================================
+
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -10,7 +14,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { createBooking } from "../../api/bookings"; 
+import { createBooking } from "../../api/bookings";
 
 export default function BookingForm({
   propertyId,
@@ -20,36 +24,41 @@ export default function BookingForm({
   onBookingCreated,
   onCancel,
   disabledDates,
-  isActive, // ⭐ nieuwe prop
+  isActive, 
 }) {
   const toast = useToast();
 
+  // ==============================================
+  // = STATE BLOKKEN                              =
+  // ==============================================
   const [checkinDate, setCheckinDate] = useState(checkIn || "");
   const [checkoutDate, setCheckoutDate] = useState(checkOut || "");
   const [numberOfGuests, setNumberOfGuests] = useState(1);
   const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  /* -----------------------------------------------------------
-     Datum blokkade (verleden + disabledDates)
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = DATUM BLOKKADE (verleden + disabledDates)  =
+  // ==============================================
   const isDateDisabled = (dateStr) => {
-    if (!dateStr) return false;
+  if (!dateStr) return false;
 
-    const date = new Date(dateStr);
+  // Als disabledDates nog niet geladen is → nooit blokkeren
+  if (!Array.isArray(disabledDates)) return false;
 
-    // Verleden blokkeren
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (date < today) return true;
+  const date = new Date(dateStr);
 
-    // Geblokkeerde datums
-    return disabledDates.includes(dateStr);
+  // Verleden blokkeren
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (date < today) return true;
+
+  return disabledDates.includes(dateStr);
   };
 
-  /* -----------------------------------------------------------
-     Automatische prijsberekening
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = AUTOMATISCHE PRIJSBEREKENING               =
+  // ==============================================
   useEffect(() => {
     if (!checkinDate || !checkoutDate) return;
 
@@ -60,16 +69,18 @@ export default function BookingForm({
     setTotalPrice(nights > 0 ? nights * pricePerNight : 0);
   }, [checkinDate, checkoutDate, pricePerNight]);
 
-  /* -----------------------------------------------------------
-     Submit handler
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = SUBMIT HANDLER                             =
+  // ==============================================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Property staat op inactief → blokkeren
     if (!isActive) {
       toast({
         title: "Niet beschikbaar",
-        description: "Deze accommodatie staat op inactief en kan niet geboekt worden.",
+        description:
+          "Deze accommodatie staat op inactief en kan niet geboekt worden.",
         status: "error",
         duration: 3000,
       });
@@ -92,8 +103,6 @@ export default function BookingForm({
         token
       );
 
-     
-
       if (onBookingCreated) onBookingCreated();
     } catch (err) {
       toast({
@@ -107,11 +116,16 @@ export default function BookingForm({
     }
   };
 
+  // ==============================================
+  // = RENDER FORM                                =
+  // ==============================================
   return (
     <Box as="form" onSubmit={handleSubmit}>
       <VStack spacing={3} align="stretch">
 
-        {/* ⭐ Banner voor inactieve property */}
+        {/* ============================================== */}
+        {/* = INACTIEVE PROPERTY BANNER                   = */}
+        {/* ============================================== */}
         {!isActive && (
           <Box
             bg="red.50"
@@ -126,7 +140,9 @@ export default function BookingForm({
           </Box>
         )}
 
-        {/* Check-in veld */}
+        {/* ============================================== */}
+        {/* = CHECK-IN VELD                               = */}
+        {/* ============================================== */}
         <Box>
           <FormLabel>Check-in</FormLabel>
           <Input
@@ -151,7 +167,9 @@ export default function BookingForm({
           />
         </Box>
 
-        {/* Check-out veld */}
+        {/* ============================================== */}
+        {/* = CHECK-OUT VELD                              = */}
+        {/* ============================================== */}
         <Box>
           <FormLabel>Check-out</FormLabel>
           <Input
@@ -176,7 +194,9 @@ export default function BookingForm({
           />
         </Box>
 
-        {/* Aantal gasten */}
+        {/* ============================================== */}
+        {/* = AANTAL GASTEN                               = */}
+        {/* ============================================== */}
         <Box>
           <FormLabel>Gasten</FormLabel>
           <Input
@@ -188,10 +208,14 @@ export default function BookingForm({
           />
         </Box>
 
-        {/* Totale prijs */}
+        {/* ============================================== */}
+        {/* = TOTALE PRIJS                                = */}
+        {/* ============================================== */}
         <Text fontWeight="bold">Totale prijs: €{totalPrice.toFixed(2)}</Text>
 
-        {/* Knoppen */}
+        {/* ============================================== */}
+        {/* = KNOPPEN                                     = */}
+        {/* ============================================== */}
         <Flex justify="space-between" mt={6}>
           <Button variant="outline" onClick={onCancel}>
             Annuleren

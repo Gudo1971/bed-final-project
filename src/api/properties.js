@@ -1,29 +1,30 @@
+// ==============================================
+// = PROPERTIES API                              =
+// = CRUD acties voor properties                 =
+// ==============================================
 
+import api from "./axios";
 
-const BASE_URL = "http://localhost:3000/properties";
-
-// GET /properties
+// ==============================================
+// = GET ALL PROPERTIES                          =
+// ==============================================
 export async function getAllProperties() {
-  const res = await fetch(BASE_URL);
-  if (!res.ok) throw new Error("Failed to fetch properties");
-  return res.json();
+  const res = await api.get("/properties");
+  return res.data;
 }
 
-// GET /properties/:id
+// ==============================================
+// = GET PROPERTY BY ID                          =
+// ==============================================
 export async function getPropertyById(id) {
-  const res = await fetch(`${BASE_URL}/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch property");
-  return res.json();
+  const res = await api.get(`/properties/${id}`);
+  return res.data;
 }
 
-// POST /properties
+// ==============================================
+// = CREATE PROPERTY                             =
+// ==============================================
 export async function createProperty(data) {
-  const res = await fetch(BASE_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) throw new Error("Failed to create property");
-  return res.json();
+  const res = await api.post("/properties", data);
+  return res.data;
 }

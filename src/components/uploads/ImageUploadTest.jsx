@@ -1,9 +1,20 @@
+// ==============================================
+// = IMAGE UPLOAD TEST                           =
+// = Upload naar Cloudinary + opslaan in backend =
+// ==============================================
+
 import { useState } from "react";
 import { Input, Image, VStack } from "@chakra-ui/react";
 
 export default function ImageUploadTest() {
+  // ==============================================
+  // = STATE                                      =
+  // ==============================================
   const [preview, setPreview] = useState(null);
 
+  // ==============================================
+  // = HANDLE UPLOAD                              =
+  // ==============================================
   const handleUpload = async (e) => {
     const file = e.target.files[0];
 
@@ -14,6 +25,9 @@ export default function ImageUploadTest() {
 
     console.log("📦 Bestand:", file);
 
+    // ----------------------------------------------
+    // CLOUDINARY UPLOAD
+    // ----------------------------------------------
     const formData = new FormData();
     formData.append("file", file);
     formData.append(
@@ -34,7 +48,7 @@ export default function ImageUploadTest() {
 
     const data = await res.json();
 
-    // 🔥 Belangrijk: toon Cloudinary foutmelding als die bestaat
+    // Cloudinary foutmelding tonen
     if (data.error) {
       console.error("❌ Cloudinary error:", data.error.message);
       return;
@@ -45,32 +59,46 @@ export default function ImageUploadTest() {
 
     setPreview(data.secure_url);
 
-    // ⭐ Stuur naar backend om op te slaan in PropertyImage
-const propertyId = "25d53e9a-5d7f-49bd-8857-99c26cf1c8ef"; // <-- jouw property ID
+    // ----------------------------------------------
+    // BACKEND OPSLAAN IN PROPERTYIMAGE
+    // ----------------------------------------------
+    const propertyId = "25d53e9a-5d7f-49bd-8857-99c26cf1c8ef"; // <-- jouw test property ID
 
-try {
-  const res = await fetch(`http://localhost:3000/properties/${propertyId}/images`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      url: data.secure_url,
-      publicId: data.public_id,
-      order: 0
-    })
-  });
+    try {
+      const res = await fetch(
+        `http://localhost:3000/properties/${propertyId}/images`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: data.secure_url,
+            publicId: data.public_id,
+            order: 0,
+          }),
+        }
+      );
 
-  const saved = await res.json();
-  console.log("💾 Saved in DB:", saved);
-} catch (err) {
-  console.error("❌ Error saving image:", err);
-}
-
+      const saved = await res.json();
+      console.log("💾 Saved in DB:", saved);
+    } catch (err) {
+      console.error("❌ Error saving image:", err);
+    }
   };
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <VStack spacing={4}>
       <Input type="file" accept="image/*" onChange={handleUpload} />
-      {preview && <Image src={preview} boxSize="300px" borderRadius="md" />}
+
+      {preview && (
+        <Image
+          src={preview}
+          boxSize="300px"
+          borderRadius="md"
+        />
+      )}
     </VStack>
   );
 }

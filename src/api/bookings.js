@@ -1,6 +1,6 @@
 import { apiClient } from "./apiClient";
 
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:3000/api";
 
 /* ============================================================
    CREATE BOOKING
@@ -9,10 +9,9 @@ export async function createBooking(data, token) {
   return apiClient(`${BASE_URL}/bookings`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(data),
+    body: data,
   });
 }
 
@@ -68,9 +67,15 @@ export async function updateBooking(id, data, token) {
   return apiClient(`${BASE_URL}/bookings/${id}`, {
     method: "PUT",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(data),
+    body: data,
   });
+}
+
+/*============================================================
+  GET DISABLED DATES
+============================================================== */
+export async function getDisabledDates(propertyId) {
+  return apiClient(`${BASE_URL}/bookings/disabled-dates/${propertyId}`);
 }

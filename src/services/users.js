@@ -1,43 +1,74 @@
+// ==============================================
+// = USERS API                                   =
+// = CRUD acties voor gebruikers                 =
+// ==============================================
+
 import axios from "axios";
 
+// ==============================================
+// = BASE URL                                    =
+// ==============================================
 const API_URL = "http://localhost:3000";
 
-export const getUsers = async () => {
+// ==============================================
+// = TOKEN HELPER                                =
+// ==============================================
+function authHeader() {
   const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+// ==============================================
+// = GET ALL USERS                               =
+// = GET /user                                   =
+// ==============================================
+export async function getUsers() {
   const res = await axios.get(`${API_URL}/user`, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: authHeader(),
   });
   return res.data;
-};
+}
 
-export const getUserById = async (id) => {
-  const token = localStorage.getItem("token");
+// ==============================================
+// = GET USER BY ID                              =
+// = GET /user/:id                               =
+// ==============================================
+export async function getUserById(id) {
   const res = await axios.get(`${API_URL}/user/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: authHeader(),
   });
   return res.data;
-};
+}
 
-export const createUser = async (payload) => {
-  const token = localStorage.getItem("token");
+// ==============================================
+// = CREATE USER                                 =
+// = POST /user                                  =
+// ==============================================
+export async function createUser(payload) {
   const res = await axios.post(`${API_URL}/user`, payload, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: authHeader(),
   });
   return res.data;
-};
+}
 
-export const updateUser = async (id, payload) => {
-  const token = localStorage.getItem("token");
+// ==============================================
+// = UPDATE USER                                 =
+// = PATCH /user/:id                             =
+// ==============================================
+export async function updateUser(id, payload) {
   const res = await axios.patch(`${API_URL}/user/${id}`, payload, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: authHeader(),
   });
   return res.data;
-};
+}
 
-export const deleteUser = async (id) => {
-  const token = localStorage.getItem("token");
+// ==============================================
+// = DELETE USER                                 =
+// = DELETE /user/:id                            =
+// ==============================================
+export async function deleteUser(id) {
   const res = await axios.delete(`${API_URL}/user/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: authHeader(),
   });
   return res.data;
-};
+}

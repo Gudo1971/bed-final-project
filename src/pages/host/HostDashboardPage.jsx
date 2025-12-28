@@ -1,3 +1,8 @@
+// ==============================================
+// = HOST DASHBOARD PAGE                         =
+// = Centrale hub voor host acties               =
+// ==============================================
+
 import {
   Box,
   Heading,
@@ -6,39 +11,63 @@ import {
   VStack,
   HStack,
   Divider,
-  useDisclosure
+  useDisclosure,
 } from "@chakra-ui/react";
+
 import { useAuth } from "../../components/context/AuthContext.jsx";
 import PropertyForm from "../../components/properties/PropertyForm.jsx";
 
 export default function HostDashboardPage() {
+  // ==============================================
+  // = AUTH                                        =
+  // ==============================================
   const { user } = useAuth();
+
+  // ==============================================
+  // = MODAL VOOR NIEUWE PROPERTY                  =
+  // ==============================================
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // Niet-hosts blokkeren
+  // ==============================================
+  // = REDIRECT ALS USER GEEN HOST IS              =
+  // ==============================================
   if (user && !user.isHost) {
     window.location.href = "/profile";
     return null;
   }
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <Box maxW="900px" mx="auto" mt={10} px={4}>
+      {/* ============================================== */}
+      {/* = TITEL + INTRO                               = */}
+      {/* ============================================== */}
       <Heading size="lg" mb={4}>
         Host Dashboard
       </Heading>
 
       <Text fontSize="lg" mb={6}>
-        Welkom terug, <strong>{user?.name}</strong> je bent nu officieel host.
+        Welkom terug, <strong>{user?.name}</strong>.  
+        Je bent nu officieel host.
       </Text>
 
       <Divider mb={8} />
 
+      {/* ============================================== */}
+      {/* = SECTIES                                     = */}
+      {/* ============================================== */}
       <VStack align="stretch" spacing={6}>
-        {/* Properties Section */}
+
+        {/* ============================================== */}
+        {/* = ACCOMMODATIES                              = */}
+        {/* ============================================== */}
         <Box p={5} borderWidth="1px" borderRadius="lg">
           <Heading size="md" mb={2}>
             Jouw accommodaties
           </Heading>
+
           <Text mb={4}>
             Bekijk, bewerk of voeg nieuwe accommodaties toe.
           </Text>
@@ -59,11 +88,14 @@ export default function HostDashboardPage() {
           </HStack>
         </Box>
 
-        {/* Bookings Section */}
+        {/* ============================================== */}
+        {/* = BOEKINGEN                                   = */}
+        {/* ============================================== */}
         <Box p={5} borderWidth="1px" borderRadius="lg">
           <Heading size="md" mb={2}>
             Boekingen
           </Heading>
+
           <Text mb={4}>
             Bekijk alle boekingen voor jouw accommodaties.
           </Text>
@@ -73,11 +105,14 @@ export default function HostDashboardPage() {
           </Button>
         </Box>
 
-        {/* Earnings Section */}
+        {/* ============================================== */}
+        {/* = VERDIENSTEN                                 = */}
+        {/* ============================================== */}
         <Box p={5} borderWidth="1px" borderRadius="lg">
           <Heading size="md" mb={2}>
             Verdiensten
           </Heading>
+
           <Text mb={4}>
             Bekijk je inkomsten en prestaties als host.
           </Text>
@@ -88,7 +123,9 @@ export default function HostDashboardPage() {
         </Box>
       </VStack>
 
-      {/* MODAL STAAT ALTIJD IN DE DOM */}
+      {/* ============================================== */}
+      {/* = MODAL: NIEUWE PROPERTY                      = */}
+      {/* ============================================== */}
       <PropertyForm
         isOpen={isOpen}
         onClose={onClose}
