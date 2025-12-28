@@ -1,7 +1,7 @@
 import express from "express";
 import { loginController, register } from "../controllers/auth.controller.js";
 import authenticateToken from "../middleware/auth.middleware.js";
-import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -29,13 +29,13 @@ router.get("/me", authenticateToken, async (req, res) => {
       email: user.email,
       name: user.name,
       username: user.username,
-      isHost: !!host,
+      isHost: Boolean(host),
       hostId: host?.id || null,
     });
 
   } catch (error) {
-    console.error("❌ /me error:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ /auth/me error:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -45,65 +45,43 @@ router.get("/me", authenticateToken, async (req, res) => {
 router.post("/register", register);
 
 /* ============================================================
-   BECOME HOST — maak Host record aan
+   UPDATE PASSWORD
 ============================================================ */
-router.post("/become-host", authenticateToken, async (req, res) => {
+router.patch("/password", authenticateToken, async (req, res) => {
   try {
+    const { oldPassword, newPassword } = req.body;
     const { email } = req.user;
 
-    // 1. User ophalen
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // 2. Bestaat host al?
-    let host = await prisma.host.findUnique({ where: { email } });
-
-    // 3. Zo niet → maak host aan
-    if (!host) {
-      host = await prisma.host.create({
-        data: {
-          email: user.email,
-          username: user.username,
-          password: user.password,
-          name: user.name,
-          phoneNumber: user.phoneNumber,
-          pictureUrl: user.pictureUrl,
-          aboutMe: user.aboutMe,
-        },
+    if (!user.password) {
+      return res.status(400).json({
+        error: "Dit account heeft geen lokaal wachtwoord. Gebruik Auth0 login."
       });
     }
 
-    // 4. Nieuwe JWT genereren
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        username: user.username,
-        isHost: true,
-        hostId: host.id,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Het wachtwoord is onjuist." });
+    }
 
-    // 5. User + token terugsturen
-    return res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        username: user.username,
-        isHost: true,
-        hostId: host.id,
-      },
-      token,
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { email },
+      data: { password: hashed },
     });
 
+    return res.json({ message: "Wachtwoord succesvol gewijzigd." });
+
   } catch (error) {
-    console.error("❌ /become-host error:", error);
-    return res.status(500).json({ error: "Host worden mislukt" });
+    console.error("❌ /auth/password error:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
+/* ============================================================
+   EXPORT
+============================================================ */
 export default router;

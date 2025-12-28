@@ -5,8 +5,9 @@ import {
   createHostController,
   updateHost,
   deleteHost,
-  getHostEarnings,   // ⭐ FIXED
+  getHostEarnings,
 } from "../controllers/host.controller.js";
+
 import authenticateToken from "../middleware/auth.middleware.js";
 import { PrismaClient } from "@prisma/client";
 
@@ -23,22 +24,44 @@ router.get("/", getAllHostsController);
 ============================================================ */
 router.get("/properties", authenticateToken, async (req, res) => {
   try {
-    const hostId = req.user.hostId;
+    const email = req.user.email;
 
+    // ==============================================
+    // = HOST OPHALEN VIA EMAIL                     =
+    // ==============================================
+    const host = await prisma.host.findUnique({
+      where: { email },
+    });
+
+    if (!host) {
+      return res.status(403).json({
+        error: "Alleen hosts kunnen hun properties bekijken",
+      });
+    }
+
+    // ==============================================
+    // = PROPERTIES OPHALEN VIA RELATION            =
+    // ==============================================
     const properties = await prisma.property.findMany({
-      where: { hostId },
+      where: {
+        host: {
+          email: host.email, // ⭐ JUISTE RELATION FILTER
+        },
+      },
       include: { images: true },
     });
 
-    return res.json(properties);
+    return res.status(200).json(properties);
   } catch (error) {
-    console.error("Error fetching host properties:", error);
+    console.error("❌ Error fetching host properties:", error);
     return res.status(500).json({ error: "Failed to fetch properties" });
   }
 });
 
+
+
 /* ============================================================
-   HOST EARNINGS
+   HOST EARNINGS (protected)
 ============================================================ */
 router.get("/:id/earnings", authenticateToken, getHostEarnings);
 

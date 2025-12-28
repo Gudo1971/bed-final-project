@@ -1,152 +1,87 @@
-const BASE_URL = "http://localhost:3000";
+import api from "./axios";
 
 /* ============================================================
    GET HOST PROPERTIES
+   GET /hosts/properties
 ============================================================ */
-export async function getHostProperties(token) {
-  const res = await fetch(`${BASE_URL}/hosts/properties`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) throw new Error("Failed to fetch host properties");
-  return res.json();
+export async function getHostProperties() {
+  const res = await api.get("/hosts/properties");
+  return res.data;
 }
 
 /* ============================================================
    GET HOST BOOKINGS
+   GET /bookings/host/me
 ============================================================ */
-export async function getHostBookings(token) {
-  const res = await fetch(`${BASE_URL}/bookings/host/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) throw new Error("Failed to fetch host bookings");
-  return res.json();
+export async function getHostBookings() {
+  const res = await api.get("/bookings/host/me");
+  return res.data;
 }
 
 /* ============================================================
    GET HOST REVIEWS
+   GET /reviews/host/me
 ============================================================ */
-export async function getHostReviews(token) {
-  const res = await fetch(`${BASE_URL}/reviews/host/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) throw new Error("Failed to fetch host reviews");
-  return res.json();
+export async function getHostReviews() {
+  const res = await api.get("/reviews/host/me");
+  return res.data;
 }
 
 /* ============================================================
    TOGGLE PROPERTY ACTIVE/INACTIVE
+   PUT /properties/:id/toggle
 ============================================================ */
-export async function toggleProperty(id, isActive, token) {
-  const res = await fetch(`${BASE_URL}/properties/${id}/toggle`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ isActive }),
-  });
-
-  if (!res.ok) throw new Error("Toggle failed");
-  return res.json();
+export async function toggleProperty(id, isActive) {
+  const res = await api.put(`/properties/${id}/toggle`, { isActive });
+  return res.data;
 }
 
 /* ============================================================
    UPDATE PROPERTY (JSON — Edit Modal)
+   PUT /properties/:propertyId
 ============================================================ */
-export async function updateProperty(propertyId, data, token) {
-  const res = await fetch(`${BASE_URL}/properties/${propertyId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to update property");
-  }
-
-  return res.json();
+export async function updateProperty(propertyId, data) {
+  const res = await api.put(`/properties/${propertyId}`, data);
+  return res.data;
 }
 
 /* ============================================================
    DELETE PROPERTY IMAGE
+   DELETE /properties/:propertyId/images/:imageId
 ============================================================ */
-export async function deletePropertyImage(propertyId, imageId, token) {
-  const res = await fetch(`${BASE_URL}/properties/${propertyId}/images/${imageId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to delete image");
-  }
-
-  return res.json();
+export async function deletePropertyImage(propertyId, imageId) {
+  const res = await api.delete(
+    `/properties/${propertyId}/images/${imageId}`
+  );
+  return res.data;
 }
 
 /* ============================================================
    UPLOAD NEW PROPERTY IMAGES (PATCH — multipart/form-data)
+   PATCH /properties/:propertyId
 ============================================================ */
-export async function uploadPropertyImages(propertyId, files, token) {
+export async function uploadPropertyImages(propertyId, files) {
   const formData = new FormData();
   files.forEach((file) => formData.append("images", file));
 
-  const res = await fetch(`${BASE_URL}/properties/${propertyId}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to upload images");
-  }
-
-  return res.json();
+  const res = await api.patch(`/properties/${propertyId}`, formData);
+  return res.data;
 }
 
 /* ============================================================
    HOST: CONFIRM BOOKING
+   PATCH /bookings/:id/confirm
 ============================================================ */
-export async function confirmBooking(id, token) {
-  const res = await fetch(`${BASE_URL}/bookings/${id}/confirm`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) throw new Error("Failed to confirm booking");
-  return res.json();
+export async function confirmBooking(id) {
+  const res = await api.patch(`/bookings/${id}/confirm`);
+  return res.data;
 }
 
 /* ============================================================
    HOST: REJECT BOOKING
+   PATCH /bookings/:id/reject
 ============================================================ */
-export async function rejectBooking(id, token) {
-  const res = await fetch(`${BASE_URL}/bookings/${id}/reject`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) throw new Error("Failed to reject booking");
-  return res.json();
+export async function rejectBooking(id) {
+  const res = await api.patch(`/bookings/${id}/reject`);
+  return res.data;
 }

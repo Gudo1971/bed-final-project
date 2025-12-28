@@ -1,3 +1,8 @@
+// ==============================================
+// = HOST PROPERTIES                             =
+// = Overzicht + beheer van properties van host  =
+// ==============================================
+
 import { useEffect, useState } from "react";
 import {
   Box,
@@ -16,31 +21,44 @@ import {
 
 import { useAuth } from "../../components/context/AuthContext.jsx";
 import PropertyForm from "../../components/properties/PropertyForm.jsx";
-import { getHostProperties, toggleProperty } from "../../api/host.js";
 import EditPropertyModal from "../../components/properties/EditPropertyModal.jsx";
+
+import { getHostProperties, toggleProperty } from "../../api/host.js";
 
 export default function HostProperties() {
   const toast = useToast();
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  // ==============================================
+  // = MODALS                                     =
+  // ==============================================
+  const {
+    isOpen: isCreateOpen,
+    onOpen: onCreateOpen,
+    onClose: onCreateClose,
+  } = useDisclosure();
+
   const {
     isOpen: isEditOpen,
     onOpen: onEditOpen,
     onClose: onEditClose,
   } = useDisclosure();
 
+  // ==============================================
+  // = AUTH                                       =
+  // ==============================================
   const { user, token } = useAuth();
 
+  // ==============================================
+  // = STATE BLOKKEN                              =
+  // ==============================================
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState(null);
-
-  // ⭐ Loading state voor verwijderen
   const [deleteLoadingId, setDeleteLoadingId] = useState(null);
 
-  /* -----------------------------------------------------------
-     Toggle active/inactive
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = TOGGLE ACTIVE/INACTIVE                     =
+  // ==============================================
   async function handleToggle(propertyId, newState) {
     try {
       await toggleProperty(propertyId, newState, token);
@@ -51,67 +69,63 @@ export default function HostProperties() {
         description: "Kon de status niet aanpassen.",
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     }
   }
 
-  /* -----------------------------------------------------------
-     Property verwijderen
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = PROPERTY VERWIJDEREN                       =
+  // ==============================================
   async function handleDelete(id) {
-  const confirmDelete = window.confirm(
-    "Weet je zeker dat je deze property wilt verwijderen?"
-  );
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm(
+      "Weet je zeker dat je deze property wilt verwijderen?"
+    );
+    if (!confirmDelete) return;
 
-  try {
-    setDeleteLoadingId(id);
+    try {
+      setDeleteLoadingId(id);
 
-    const res = await fetch(`http://localhost:3000/properties/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      const res = await fetch(`http://localhost:3000/api/properties/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    if (!res.ok) {
-      const { message } = await res.json();
-      throw new Error(message);
+      if (!res.ok) {
+        const { message } = await res.json();
+        throw new Error(message);
+      }
+
+      toast({
+        title: "Property verwijderd",
+        status: "success",
+        duration: 3000,
+      });
+
+      setProperties((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      toast({
+        title: "Fout bij verwijderen",
+        description: err.message,
+        status: "error",
+        duration: 3000,
+      });
+    } finally {
+      setDeleteLoadingId(null);
     }
-
-    toast({
-      title: "Property verwijderd",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-
-    setProperties((prev) => prev.filter((p) => p.id !== id));
-  } catch (err) {
-    toast({
-      title: "Fout bij verwijderen",
-      description: err.message,
-      status: "error",
-      duration: 3000,
-      isClosable: true,
-    });
-  } finally {
-    setDeleteLoadingId(null);
   }
-}
-  
 
-  /* -----------------------------------------------------------
-     Redirect voor niet-hosts
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = REDIRECT ALS USER GEEN HOST IS             =
+  // ==============================================
   useEffect(() => {
     if (user && user.isHost === false) {
       window.location.href = "/profile";
     }
   }, [user]);
 
-  /* -----------------------------------------------------------
-     Ophalen van properties van de ingelogde host
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = PROPERTIES OPHALEN                         =
+  // ==============================================
   async function fetchProperties() {
     try {
       const data = await getHostProperties(token);
@@ -122,24 +136,23 @@ export default function HostProperties() {
         description: "Kon jouw properties niet laden.",
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     } finally {
       setLoading(false);
     }
   }
 
-  /* -----------------------------------------------------------
-     Fetch uitvoeren zodra token beschikbaar is
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = FETCH STARTEN ZODRA TOKEN BESTAAT          =
+  // ==============================================
   useEffect(() => {
     if (!token) return;
     fetchProperties();
   }, [token]);
 
-  /* -----------------------------------------------------------
-     Loading state
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = LOADING STATE                              =
+  // ==============================================
   if (loading) {
     return (
       <HStack>
@@ -149,23 +162,32 @@ export default function HostProperties() {
     );
   }
 
-  /* -----------------------------------------------------------
-     Render
-  ----------------------------------------------------------- */
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <Box>
+      {/* ============================================== */}
+      {/* = HEADER + NIEUWE PROPERTY KNOP               = */}
+      {/* ============================================== */}
       <HStack justify="space-between" mb={4}>
         <Heading size="md">Mijn Properties</Heading>
 
-        <Button colorScheme="teal" size="sm" onClick={onOpen}>
+        <Button colorScheme="teal" size="sm" onClick={onCreateOpen}>
           Nieuwe Property
         </Button>
       </HStack>
 
+      {/* ============================================== */}
+      {/* = GEEN PROPERTIES                             = */}
+      {/* ============================================== */}
       {properties.length === 0 && (
         <Text>Je hebt nog geen properties toegevoegd.</Text>
       )}
 
+      {/* ============================================== */}
+      {/* = PROPERTY LIJST                              = */}
+      {/* ============================================== */}
       <VStack align="stretch" spacing={4}>
         {properties.map((property) => (
           <Box
@@ -173,9 +195,12 @@ export default function HostProperties() {
             border="1px solid #ddd"
             borderRadius="md"
             p={4}
-            _hover={{ boxShadow: "md" }}
+            _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+            transition="all 0.2s"
           >
-            {/* Titel + Toggle + Acties */}
+            {/* ============================================== */}
+            {/* = TITEL + STATUS + ACTIES                    = */}
+            {/* ============================================== */}
             <HStack justify="space-between" mb={2}>
               <Heading size="sm">{property.title}</Heading>
 
@@ -204,7 +229,6 @@ export default function HostProperties() {
                   Bewerken
                 </Button>
 
-                {/* ⭐ Delete knop */}
                 <Button
                   size="xs"
                   colorScheme="red"
@@ -219,7 +243,9 @@ export default function HostProperties() {
 
             <Divider my={3} />
 
-            {/* Details */}
+            {/* ============================================== */}
+            {/* = DETAILS                                     = */}
+            {/* ============================================== */}
             <VStack align="start" spacing={1}>
               <Text>
                 <strong>Locatie:</strong> {property.location}
@@ -237,14 +263,18 @@ export default function HostProperties() {
         ))}
       </VStack>
 
-      {/* Modal voor nieuwe property */}
+      {/* ============================================== */}
+      {/* = MODAL: NIEUWE PROPERTY                      = */}
+      {/* ============================================== */}
       <PropertyForm
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={isCreateOpen}
+        onClose={onCreateClose}
         onSuccess={fetchProperties}
       />
 
-      {/* Modal voor bewerken */}
+      {/* ============================================== */}
+      {/* = MODAL: PROPERTY BEWERKEN                    = */}
+      {/* ============================================== */}
       <EditPropertyModal
         isOpen={isEditOpen}
         onClose={onEditClose}

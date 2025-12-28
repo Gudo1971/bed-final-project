@@ -3,17 +3,13 @@ const prisma = new PrismaClient();
 
 export async function getPropertyById(id) {
   return prisma.property.findUnique({
-    where: { id},
+    where: { id },
     include: {
-      host: {
-        include: {
-          user: true,
-        },
-      },
+      host: true, // host heeft GEEN user relation meer
       amenities: true,
       reviews: {
         include: {
-          user: true,
+          user: true, // dit blijft correct
         },
       },
     },

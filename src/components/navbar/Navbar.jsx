@@ -19,6 +19,11 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    logout();          // token + user verwijderen
+    navigate("/login"); // direct terug naar login
+  };
+
   return (
     <Box
       position="sticky"
@@ -58,10 +63,11 @@ export default function Navbar() {
             <HStack spacing={3}>
               <Avatar size="sm" name={user.name || user.email} />
               <Text>{user.name || user.email}</Text>
+
               <Button
                 variant="outline"
                 colorScheme="red"
-                onClick={logout}
+                onClick={handleLogout}
               >
                 Logout
               </Button>

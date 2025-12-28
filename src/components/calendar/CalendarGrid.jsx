@@ -1,8 +1,13 @@
-// CalendarGrid.jsx
-// Clean calendar grid without hover icons or hover overlays
+// ==============================================
+// = CALENDAR GRID                               =
+// = Dagen, disabled dates, selectie & range     =
+// ==============================================
 
 import { Grid, Box, Text } from "@chakra-ui/react";
 
+// ==============================================
+// = COMPONENT                                   =
+// ==============================================
 export default function CalendarGrid({
   days,
   disabledDates = [],
@@ -11,6 +16,9 @@ export default function CalendarGrid({
   onDateClick,
   isInteractive = true,
 }) {
+  // ==============================================
+  // = HELPERS                                    =
+  // ==============================================
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -42,9 +50,14 @@ export default function CalendarGrid({
     return t > new Date(checkIn).getTime() && t < new Date(checkOut).getTime();
   };
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <>
-      {/* Weekday labels */}
+      {/* ============================================== */}
+      {/* = WEEKDAYS                                    = */}
+      {/* ============================================== */}
       <Grid templateColumns="repeat(7, 1fr)" mb={2}>
         {["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"].map((day) => (
           <Box
@@ -59,10 +72,13 @@ export default function CalendarGrid({
         ))}
       </Grid>
 
-      {/* Days grid */}
+      {/* ============================================== */}
+      {/* = DAYS GRID                                   = */}
+      {/* ============================================== */}
       <Grid templateColumns="repeat(7, 1fr)" gap={0.5}>
         {days.map((date) => {
           const dateStr = formatDate(date);
+
           const past = isPastDate(date);
           const disabled = isDisabled(date) || past;
 
@@ -72,7 +88,9 @@ export default function CalendarGrid({
           const selectionType = getSelectionType(date);
           const inRange = isInRange(date);
 
-          // Clean border radius (no broken ternary)
+          // ==============================================
+          // = BORDER RADIUS                              =
+          // ==============================================
           const borderRadius =
             selectionType === "checkin"
               ? "md 0 0 md"
@@ -80,7 +98,9 @@ export default function CalendarGrid({
               ? "0 md md 0"
               : "0";
 
-          // Background color logic
+          // ==============================================
+          // = BACKGROUND COLOR                           =
+          // ==============================================
           const bgColor =
             fullyDisabled
               ? "red.300"
@@ -94,6 +114,9 @@ export default function CalendarGrid({
               ? "blue.100"
               : "white";
 
+          // ==============================================
+          // = TEXT COLOR                                 =
+          // ==============================================
           const textColor =
             fullyDisabled || disabled
               ? "red.700"
@@ -101,6 +124,9 @@ export default function CalendarGrid({
               ? "white"
               : "black";
 
+          // ==============================================
+          // = RENDER DAY                                 =
+          // ==============================================
           return (
             <Box
               key={dateStr}

@@ -1,11 +1,17 @@
+// ==============================================
+// = AUTH CONTEXT                               =
+// = Token sync + user sync + host flow         =
+// ==============================================
+
 import { createContext, useContext, useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // ---------------------------------------------------------
-  // USER STATE (komt altijd uit /auth/me)
-  // ---------------------------------------------------------
+  // ==============================================
+  // = STATE: user + token                        =
+  // ==============================================
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("user")) || null;
@@ -14,147 +20,147 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  // ---------------------------------------------------------
-  // TOKEN KOMT ALTIJD UIT LOCALSTORAGE — GEEN STATE MEER
-  // ---------------------------------------------------------
-  const getToken = () => localStorage.getItem("token");
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
- // ---------------------------------------------------------
-// LOGIN
-// ---------------------------------------------------------
-const login = async (email, password) => {
-  const res = await fetch("http://localhost:3000/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  // ==============================================
+  // = TOKEN HELPERS                              =
+  // ==============================================
+  const saveToken = (newToken) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+  };
 
-  const data = await res.json();
+  const clearToken = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+  };
 
-  if (!res.ok) {
-    throw new Error(data.error || "Login mislukt");
-  }
-
-  // Token opslaan
-  localStorage.setItem("token", data.token);
-
-  // ⭐ BELANGRIJK: user ophalen
-  await fetchUser();
-};
-
-
-  // ---------------------------------------------------------
-  // FETCH USER VIA /auth/me
-  // ---------------------------------------------------------
+  // ==============================================
+  // = FETCH USER (/auth/me)                      =
+  // ==============================================
   const fetchUser = async () => {
-    const token = getToken();
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:3000/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) {
-        logout();
-        return;
-      }
-
-      const data = await res.json();
-      setUser(data);
-      localStorage.setItem("user", JSON.stringify(data));
+      const res = await api.get("/auth/me");
+      setUser(res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
     } catch (err) {
       console.error("❌ Fout bij ophalen /auth/me:", err);
+      logout();
     }
   };
 
-  // ---------------------------------------------------------
-  // AUTO FETCH USER BIJ START
-  // ---------------------------------------------------------
   useEffect(() => {
     fetchUser();
-  }, []);
+  }, [token]);
 
-  // ---------------------------------------------------------
-  // LOGOUT
-  // ---------------------------------------------------------
+  // ==============================================
+  // = LOGIN                                      =
+  // ==============================================
+  const login = async (email, password) => {
+    try {
+      const res = await api.post("/auth/login", { email, password });
+
+      saveToken(res.data.token);
+      await fetchUser();
+    } catch (err) {
+      const backendError =
+        err.response?.data?.error || "Login mislukt. Probeer opnieuw.";
+      throw new Error(backendError);
+    }
+  };
+
+  // ==============================================
+  // = LOGOUT                                     =
+  // ==============================================
   const logout = () => {
-    localStorage.removeItem("token");
+    clearToken();
     localStorage.removeItem("user");
     setUser(null);
   };
 
-  // ---------------------------------------------------------
-  // REGISTER
-  // ---------------------------------------------------------
-  const registerUser = async (username, email, password, name, phoneNumber) => {
-    const res = await fetch("http://localhost:3000/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  // ==============================================
+  // = REGISTER                                   =
+  // ==============================================
+  const registerUser = async (
+    username,
+    email,
+    password,
+    name,
+    phoneNumber
+  ) => {
+    try {
+      await api.post("/auth/register", {
         username,
         email,
         password,
         name,
         phoneNumber,
-      }),
-    });
+      });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Registratie mislukt");
+      return true;
+    } catch (err) {
+      const backendError =
+        err.response?.data?.error || "Registratie mislukt.";
+      throw new Error(backendError);
     }
-
-    return true;
   };
 
-  // ---------------------------------------------------------
-  // BECOME HOST
-  // ---------------------------------------------------------
+  // ==============================================
+  // = BECOME HOST                                =
+  // ==============================================
   const becomeHost = async () => {
-    const token = getToken();
+    try {
+      const res = await api.post("/account/become-host");
 
-    const res = await fetch("http://localhost:3000/auth/become-host", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Kon geen host worden");
+      saveToken(res.data.token);
+      await fetchUser();
+    } catch (err) {
+      const backendError =
+        err.response?.data?.error || "Kon geen host worden.";
+      throw new Error(backendError);
     }
-
-    // Nieuwe token opslaan
-    localStorage.setItem("token", data.token);
-
-    // DIRECT refreshen zodat nieuwe token wordt gebruikt
-   
   };
 
-  // ---------------------------------------------------------
-  // UPDATE USER
-  // ---------------------------------------------------------
+  // ==============================================
+  // = STOP HOST                                  =
+  // ==============================================
+  const stopHost = async () => {
+    try {
+      const res = await api.delete("/account/stop-host");
+
+      saveToken(res.data.token);
+      await fetchUser();
+    } catch (err) {
+      const backendError =
+        err.response?.data?.error || "Kon host account niet stoppen.";
+      throw new Error(backendError);
+    }
+  };
+
+  // ==============================================
+  // = UPDATE USER (client-side)                  =
+  // ==============================================
   const updateUser = (updated) => {
     setUser(updated);
     localStorage.setItem("user", JSON.stringify(updated));
   };
 
+  // ==============================================
+  // = PROVIDER                                   =
+  // ==============================================
   return (
     <AuthContext.Provider
       value={{
         user,
-        token: getToken(), // altijd de actuele token
+        token,
         login,
         logout,
         registerUser,
         updateUser,
         becomeHost,
+        stopHost,
       }}
     >
       {children}

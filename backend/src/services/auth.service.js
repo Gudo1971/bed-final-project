@@ -1,7 +1,26 @@
 import prisma from "../lib/prisma.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+/* ============================================================
+   HELPER: generate JWT
+============================================================ */
+function generateToken(user, isHost) {
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      isHost,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+}
+
+/* ============================================================
+   LOGIN USER
+============================================================ */
 export async function loginUser(email, password) {
   const user = await prisma.user.findUnique({ where: { email } });
 
@@ -10,28 +29,29 @@ export async function loginUser(email, password) {
   }
 
   const valid = await bcrypt.compare(password, user.password);
-
   if (!valid) {
     throw { status: 401, message: "Invalid credentials" };
   }
 
-  const token = jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      username: user.username
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
+  // Check host status
+  const host = await prisma.host.findUnique({
+    where: { email: user.email },
+  });
 
-  return { token, user };
+  const token = generateToken(user, !!host);
+
+  return {
+    token,
+    user,
+    isHost: !!host,
+  };
 }
 
+/* ============================================================
+   REGISTER USER
+============================================================ */
 export async function registerUser(email, password, username) {
-  const existing = await prisma.user.findUnique({
-    where: { email }
-  });
+  const existing = await prisma.user.findUnique({ where: { email } });
 
   if (existing) {
     throw { status: 409, message: "User already exists" };
@@ -43,19 +63,16 @@ export async function registerUser(email, password, username) {
     data: {
       email,
       password: hashedPassword,
-      username
-    }
+      username,
+    },
   });
 
-  const token = jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      username: user.username
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
+  // New users are never hosts
+  const token = generateToken(user, false);
 
-  return { token, user };
+  return {
+    token,
+    user,
+    isHost: false,
+  };
 }

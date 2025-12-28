@@ -1,4 +1,6 @@
 import express from "express";
+import authenticateToken from "../middleware/auth.middleware.js";
+
 import {
   getReviews,
   getReview,
@@ -11,15 +13,26 @@ import {
 
 const router = express.Router();
 
+/* ============================================================
+   PUBLIC ROUTES
+============================================================ */
 router.get("/", getAllReviews);
 router.get("/property/:propertyId", getReviews);
 router.get("/user/:userId", getReviewsByUserIdController);
 router.get("/:id", getReview);
 
-router.post("/", createReview);
-router.patch("/:id", updateReview);
-router.put("/:id", updateReview);
+/* ============================================================
+   AUTHENTICATED USER ROUTES (NO HOSTS)
+============================================================ */
 
-router.delete("/:id", deleteReview);
+// Create review
+router.post("/", authenticateToken, createReview);
+
+// Update review (only owner)
+router.patch("/:id", authenticateToken, updateReview);
+router.put("/:id", authenticateToken, updateReview);
+
+// Delete review (only owner)
+router.delete("/:id", authenticateToken, deleteReview);
 
 export default router;

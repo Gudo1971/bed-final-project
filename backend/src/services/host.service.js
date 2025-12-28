@@ -1,49 +1,43 @@
 import prisma from "../lib/prisma.js";
 
+/* ============================================================
+   GET ALL HOSTS
+============================================================ */
 export async function getAllHosts() {
-  return prisma.host.findMany({
-    include: {
-      user: true,
-    },
-  });
+  return prisma.host.findMany();
 }
 
-export async function getHostById(id) {
+/* ============================================================
+   GET HOST BY EMAIL
+============================================================ */
+export async function getHostByEmail(email) {
   return prisma.host.findUnique({
-    where: { id: Number(id) },
-    include: {
-      user: true,
-    },
+    where: { email },
   });
 }
 
-export async function createHost(data) {
+/* ============================================================
+   CREATE HOST (used by /api/account/become-host)
+============================================================ */
+export async function createHostFromUser(user) {
   return prisma.host.create({
     data: {
-      name: data.name,
-      userId: Number(data.userId),
-    },
-    include: {
-      user: true,
-    },
-  });
-}
-
-export async function updateHost(id, data) {
-  return prisma.host.update({
-    where: { id: Number(id) },
-    data: {
-      name: data.name,
-      userId: data.userId ? Number(data.userId) : undefined,
-    },
-    include: {
-      user: true,
+      username: user.username,
+      password: user.password,
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      pictureUrl: user.pictureUrl,
+      aboutMe: user.aboutMe,
     },
   });
 }
 
-export async function deleteHost(id) {
+/* ============================================================
+   DELETE HOST (used by /api/account/stop-host)
+============================================================ */
+export async function deleteHostByEmail(email) {
   return prisma.host.delete({
-    where: { id: Number(id) },
+    where: { email },
   });
 }

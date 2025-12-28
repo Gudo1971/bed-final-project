@@ -1,3 +1,8 @@
+// ==============================================
+// = HOST BOOKINGS PAGE                          =
+// = Overzicht + beheer van boekingen voor host  =
+// ==============================================
+
 import { useEffect, useState } from "react";
 import {
   Box,
@@ -20,27 +25,36 @@ import {
 } from "../../api/host.js";
 
 export default function HostBookings() {
+  // ==============================================
+  // = AUTH + TOAST                               =
+  // ==============================================
   const { user, token } = useAuth();
   const toast = useToast();
 
+  // ==============================================
+  // = STATE BLOKKEN                              =
+  // ==============================================
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ⭐ Sort & Filter state
   const [sortBy, setSortBy] = useState("date");
   const [filter, setFilter] = useState("all");
 
-  // Niet-hosts blokkeren
+  // ==============================================
+  // = REDIRECT ALS USER GEEN HOST IS              =
+  // ==============================================
   if (user && !user.isHost) {
     window.location.href = "/profile";
     return null;
   }
 
+  // ==============================================
+  // = BOEKINGEN OPHALEN                           =
+  // ==============================================
   async function fetchBookings() {
     try {
       const data = await getHostBookings(token);
-      const list = Array.isArray(data) ? data : [];
-      setBookings(list);
+      setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
 
@@ -49,7 +63,6 @@ export default function HostBookings() {
         description: "Kon jouw boekingen niet laden.",
         status: "error",
         duration: 3000,
-        isClosable: true,
       });
     } finally {
       setLoading(false);
@@ -60,7 +73,9 @@ export default function HostBookings() {
     fetchBookings();
   }, []);
 
-  // ⭐ FILTER LOGICA
+  // ==============================================
+  // = FILTER LOGICA                               =
+  // ==============================================
   const now = new Date();
 
   const filteredBookings = bookings.filter((booking) => {
@@ -70,34 +85,37 @@ export default function HostBookings() {
     if (filter === "past") return end < now;
     if (filter === "hidePast") return end >= now;
 
-    return true; // "all"
+    return true;
   });
 
-  // ⭐ SORTEER LOGICA
+  // ==============================================
+  // = SORTEER LOGICA                              =
+  // ==============================================
   const sortedBookings = [...filteredBookings].sort((a, b) => {
-  // 1. PENDING altijd bovenaan
-  if (a.bookingStatus === "PENDING" && b.bookingStatus !== "PENDING") return -1;
-  if (b.bookingStatus === "PENDING" && a.bookingStatus !== "PENDING") return 1;
+    // 1. Pending bovenaan
+    if (a.bookingStatus === "PENDING" && b.bookingStatus !== "PENDING") return -1;
+    if (b.bookingStatus === "PENDING" && a.bookingStatus !== "PENDING") return 1;
 
-  // 2. CONFIRMED sorteren op check-in datum
-  if (a.bookingStatus === "CONFIRMED" && b.bookingStatus === "CONFIRMED") {
-    return new Date(a.startDate) - new Date(b.startDate);
-  }
+    // 2. Confirmed sorteren op startDate
+    if (a.bookingStatus === "CONFIRMED" && b.bookingStatus === "CONFIRMED") {
+      return new Date(a.startDate) - new Date(b.startDate);
+    }
 
-  // 3. CANCELLED onderaan
-  if (a.bookingStatus === "CANCELLED" && b.bookingStatus !== "CANCELLED") return 1;
-  if (b.bookingStatus === "CANCELLED" && a.bookingStatus !== "CANCELLED") return -1;
+    // 3. Cancelled onderaan
+    if (a.bookingStatus === "CANCELLED" && b.bookingStatus !== "CANCELLED") return 1;
+    if (b.bookingStatus === "CANCELLED" && a.bookingStatus !== "CANCELLED") return -1;
 
-  return 0;
-});
+    return 0;
+  });
 
-
-
-  // ⭐ HANDLERS: Confirm / Reject
+  // ==============================================
+  // = HANDLERS: CONFIRM / REJECT                  =
+  // ==============================================
   async function handleConfirm(id) {
     try {
       await confirmBooking(id, token);
       fetchBookings();
+
       toast({
         title: "Boeking bevestigd",
         status: "success",
@@ -105,6 +123,7 @@ export default function HostBookings() {
       });
     } catch (err) {
       console.error(err);
+
       toast({
         title: "Fout bij bevestigen",
         status: "error",
@@ -117,6 +136,7 @@ export default function HostBookings() {
     try {
       await rejectBooking(id, token);
       fetchBookings();
+
       toast({
         title: "Boeking afgewezen",
         status: "info",
@@ -124,6 +144,7 @@ export default function HostBookings() {
       });
     } catch (err) {
       console.error(err);
+
       toast({
         title: "Fout bij afwijzen",
         status: "error",
@@ -132,6 +153,9 @@ export default function HostBookings() {
     }
   }
 
+  // ==============================================
+  // = LOADING STATE                               =
+  // ==============================================
   if (loading) {
     return (
       <VStack align="stretch" spacing={4}>
@@ -142,13 +166,21 @@ export default function HostBookings() {
     );
   }
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <Box>
+      {/* ============================================== */}
+      {/* = TITEL                                       = */}
+      {/* ============================================== */}
       <Heading size="lg" mb={6}>
         Mijn Boekingen
       </Heading>
 
-      {/* ⭐ FILTER KNOPPEN */}
+      {/* ============================================== */}
+      {/* = FILTER KNOPPEN                              = */}
+      {/* ============================================== */}
       <HStack mb={4} spacing={4}>
         <Button
           variant={filter === "all" ? "solid" : "outline"}
@@ -183,7 +215,9 @@ export default function HostBookings() {
         </Button>
       </HStack>
 
-      {/* ⭐ SORTEER KNOPPEN */}
+      {/* ============================================== */}
+      {/* = SORTEER KNOPPEN                             = */}
+      {/* ============================================== */}
       <HStack mb={6} spacing={4}>
         <Button
           variant={sortBy === "date" ? "solid" : "outline"}
@@ -202,7 +236,9 @@ export default function HostBookings() {
         </Button>
       </HStack>
 
-      {/* ⭐ GEEN BOEKINGEN */}
+      {/* ============================================== */}
+      {/* = GEEN BOEKINGEN                              = */}
+      {/* ============================================== */}
       {sortedBookings.length === 0 && (
         <Box
           p={6}
@@ -215,7 +251,9 @@ export default function HostBookings() {
         </Box>
       )}
 
-      {/* ⭐ BOEKINGEN LIJST */}
+      {/* ============================================== */}
+      {/* = BOEKINGEN LIJST                             = */}
+      {/* ============================================== */}
       <VStack align="stretch" spacing={4}>
         {sortedBookings.map((booking) => {
           const start = new Date(booking.startDate).toLocaleDateString();
@@ -227,8 +265,12 @@ export default function HostBookings() {
               border="1px solid #ddd"
               borderRadius="md"
               p={4}
-              _hover={{ boxShadow: "md" }}
+              _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+              transition="all 0.2s"
             >
+              {/* ============================================== */}
+              {/* = HEADER (property + status)                  = */}
+              {/* ============================================== */}
               <HStack justify="space-between">
                 <Heading size="sm">
                   {booking.property?.title || "Onbekende property"}
@@ -249,6 +291,9 @@ export default function HostBookings() {
 
               <Divider my={2} />
 
+              {/* ============================================== */}
+              {/* = DETAILS                                     = */}
+              {/* ============================================== */}
               <Text>
                 <strong>Gast:</strong> {booking.user?.name || "Anonieme gast"}
               </Text>
@@ -265,7 +310,9 @@ export default function HostBookings() {
                 Totaal: € {booking.totalPrice}
               </Text>
 
-              {/* ⭐ ACTIE KNOPPEN VOOR PENDING */}
+              {/* ============================================== */}
+              {/* = ACTIES VOOR PENDING                         = */}
+              {/* ============================================== */}
               {booking.bookingStatus === "PENDING" && (
                 <HStack mt={3}>
                   <Button

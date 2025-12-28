@@ -1,5 +1,5 @@
 import fs from "fs";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -58,20 +58,35 @@ async function main() {
   }
 
   // 3. Seed Hosts — ensure every host has a matching user
-for (const host of hosts) {
-  // 3A — check if user exists
-  let user = await prisma.user.findUnique({
-    where: { email: host.email },
-  });
+  for (const host of hosts) {
+    // 3A — check if user exists
+    let user = await prisma.user.findUnique({
+      where: { email: host.email },
+    });
 
-  // 3B — if no user exists → create one
-  if (!user) {
-    user = await prisma.user.create({
+    // 3B — if no user exists → create one
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: host.email,
+          username: host.username,
+          name: host.name,
+          password: await bcrypt.hash(host.password, 10),
+          phoneNumber: host.phoneNumber,
+          pictureUrl: host.pictureUrl,
+          aboutMe: host.aboutMe,
+        },
+      });
+    }
+
+    // 3C — create host record
+    await prisma.host.create({
       data: {
-        email: host.email,
+        id: host.id,
         username: host.username,
-        name: host.name,
         password: await bcrypt.hash(host.password, 10),
+        name: host.name,
+        email: host.email,
         phoneNumber: host.phoneNumber,
         pictureUrl: host.pictureUrl,
         aboutMe: host.aboutMe,
@@ -79,47 +94,37 @@ for (const host of hosts) {
     });
   }
 
-  // 3C — create host record
-  await prisma.host.create({
-    data: {
-      id: host.id,
-      username: host.username,
-      password: await bcrypt.hash(host.password, 10),
-      name: host.name,
-      email: host.email,
-      phoneNumber: host.phoneNumber,
-      pictureUrl: host.pictureUrl,
-      aboutMe: host.aboutMe,
-    },
-  });
-}
-
-
-
-
   // 4. Seed Properties + PropertyImages
-for (const property of properties) {
-  await prisma.property.create({
-    data: {
-      id: property.id,
-      title: property.title,
-      description: property.description,
-      location: property.location,
-      pricePerNight: property.pricePerNight,
-      bedroomCount: property.bedroomCount,
-      bathRoomCount: property.bathRoomCount,
-      maxGuestCount: property.maxGuestCount,
-      rating: property.rating,
-      hostId: property.hostId,
-      isActive: true,
-      images: {
-        create: Array.isArray(property.images)
-          ? property.images.map((url) => ({ url }))
-          : [], 
+  for (const property of properties) {
+    // Find host by old hostId
+    const host = hosts.find((h) => h.id === property.hostId);
+
+    if (!host) {
+      console.warn(`⚠️ Property ${property.id} has no matching hostId`);
+      continue;
+    }
+
+    await prisma.property.create({
+      data: {
+        id: property.id,
+        title: property.title,
+        description: property.description,
+        location: property.location,
+        pricePerNight: property.pricePerNight,
+        bedroomCount: property.bedroomCount,
+        bathRoomCount: property.bathRoomCount,
+        maxGuestCount: property.maxGuestCount,
+        rating: property.rating,
+        hostEmail: host.email, // ⭐ NEW RELATION
+        isActive: true,
+        images: {
+          create: Array.isArray(property.images)
+            ? property.images.map((url) => ({ url }))
+            : [],
+        },
       },
-    },
-  });
-}
+    });
+  }
 
   // 5. Seed Bookings
   for (const booking of bookings) {

@@ -1,15 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-// Alle properties
+/* ============================================================
+   GET ALL PROPERTIES
+============================================================ */
 export async function getAllProperties() {
   return prisma.property.findMany({
     include: {
-      host: {
-        include: {
-          user: true,
-        },
-      },
+      host: true, // host heeft GEEN user relation meer
       reviews: {
         include: {
           user: true,
@@ -20,16 +18,14 @@ export async function getAllProperties() {
   });
 }
 
-// Eén property op ID
+/* ============================================================
+   GET PROPERTY BY ID
+============================================================ */
 export async function getPropertyById(id) {
   return prisma.property.findUnique({
-    where: { id: Number(id) },
+    where: { id }, 
     include: {
-      host: {
-        include: {
-          user: true,
-        },
-      },
+      host: true,
       reviews: {
         include: {
           user: true,
@@ -40,16 +36,15 @@ export async function getPropertyById(id) {
   });
 }
 
-// Alle properties van een host
-export async function getPropertiesByHostId(hostId) {
+
+/* ============================================================
+   GET PROPERTIES BY HOST EMAIL
+============================================================ */
+export async function getPropertiesByHostEmail(email) {
   return prisma.property.findMany({
-    where: { hostId: Number(hostId) },
+    where: { hostEmail: email },
     include: {
-      host: {
-        include: {
-          user: true,
-        },
-      },
+      host: true,
       reviews: {
         include: {
           user: true,
@@ -60,19 +55,17 @@ export async function getPropertiesByHostId(hostId) {
   });
 }
 
-// Property aanmaken voor host
-export async function createPropertyForHost(hostId, data) {
+/* ============================================================
+   CREATE PROPERTY FOR HOST
+============================================================ */
+export async function createPropertyForHost(hostEmail, data) {
   return prisma.property.create({
     data: {
       ...data,
-      hostId: Number(hostId),
+      hostEmail, // nieuwe relation
     },
     include: {
-      host: {
-        include: {
-          user: true,
-        },
-      },
+      host: true,
       reviews: {
         include: {
           user: true,

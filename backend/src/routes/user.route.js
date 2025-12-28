@@ -5,28 +5,28 @@ import {
   createUserController,
   updateUserController,
   deleteUserController,
-  becomeHost,
 } from "../controllers/user.controller.js";
+
 import authenticateToken from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// GET all users (public)
+/* ============================================================
+   PUBLIC ROUTES
+============================================================ */
 router.get("/", getAllUsersController);
-
-// GET user by ID (public)
 router.get("/:id", getUserByIdController);
-
-// CREATE user (public)
 router.post("/", createUserController);
 
-// UPDATE user (protected)
+/* ============================================================
+   PROTECTED ROUTES
+============================================================ */
 router.put("/:id", authenticateToken, updateUserController);
-
-// BECOME HOST (protected)
-router.patch("/become-host", authenticateToken, becomeHost);
-
-// DELETE user (protected)
 router.delete("/:id", authenticateToken, deleteUserController);
+
+/* ============================================================
+   REMOVED: become-host (moved to /api/account)
+============================================================ */
+// router.patch("/become-host", authenticateToken, becomeHost);
 
 export default router;

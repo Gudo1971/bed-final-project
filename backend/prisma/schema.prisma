@@ -48,18 +48,21 @@ model Property {
   isActive      Boolean  @default(true)
   images        PropertyImage[]
 
-  hostId        String
-  host          Host      @relation(fields: [hostId], references: [id])
+  hostEmail     String
+  host          Host      @relation(fields: [hostEmail], references: [email])
 
   bookings      Booking[]
   reviews       Review[]
+
+  @@unique([hostEmail, title])
 }
+
 
 model PropertyImage {
   id         String   @id @default(uuid())
   url        String
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
 model Booking {

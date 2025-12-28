@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import api from "../../api/axios";
 
 const UserContext = createContext();
 
@@ -9,7 +10,6 @@ export function UserProvider({ children }) {
 
   useEffect(() => {
     async function loadUser() {
-      // ⛔ Wacht tot Auth0 klaar is
       if (isLoading) return;
 
       if (!isAuthenticated) {
@@ -18,25 +18,23 @@ export function UserProvider({ children }) {
       }
 
       try {
-       const token = await getAccessTokenSilently({
-  authorizationParams: {
-    audience: "https://staybnb.gudo.dev/api",
-    scope: "openid profile email offline_access",
-    prompt: "consent",
-  
-  }
-});
-
-
-        const res = await fetch("http://localhost:3000/api/users/me", {
-
-          headers: { Authorization: `Bearer ${token}` },
+        // Auth0 token ophalen
+        const token = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: "https://staybnb.gudo.dev/api",
+            scope: "openid profile email offline_access",
+            prompt: "consent",
+          },
         });
 
-        if (!res.ok) throw new Error("Failed to load user");
+        // Axios request naar backend
+        const res = await api.get("/users/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        const data = await res.json();
-        setUserData(data);
+        setUserData(res.data);
       } catch (err) {
         console.error("Failed to load user:", err);
       }

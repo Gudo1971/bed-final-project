@@ -1,6 +1,14 @@
+// ==============================================
+// = REVIEW LIST                                 =
+// = Gemiddelde rating + individuele reviews     =
+// ==============================================
+
 import { Box, Text, VStack } from "@chakra-ui/react";
 import { useColorModeValue } from "@chakra-ui/react";
 
+// ==============================================
+// = STERREN RENDEREN                            =
+// ==============================================
 function renderStars(rating) {
   const stars = [];
   const fullStars = Math.floor(rating);
@@ -36,51 +44,64 @@ function renderStars(rating) {
   return stars;
 }
 
-
-
+// ==============================================
+// = REVIEW LIST COMPONENT                       =
+// ==============================================
 export default function ReviewList({ reviews }) {
+  // ==============================================
+  // = GEEN REVIEWS                               =
+  // ==============================================
   if (!reviews || reviews.length === 0) {
     return <Text>Er zijn nog geen reviews voor deze property.</Text>;
   }
 
+  // ==============================================
+  // = GEMIDDELDE RATING                          =
+  // ==============================================
   const averageRating = (
     reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
   ).toFixed(1);
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
-  <VStack align="start" spacing={4} w="100%">
-    {/* Gemiddelde rating als getal */}
-    <Text fontWeight="bold" fontSize="lg">
-      Gemiddelde rating: {averageRating}
-    </Text>
+    <VStack align="start" spacing={4} w="100%">
+      {/* ============================================== */}
+      {/* = GEMIDDELDE RATING                           = */}
+      {/* ============================================== */}
+      <Text fontWeight="bold" fontSize="lg">
+        Gemiddelde rating: {averageRating}
+      </Text>
 
-    {/* Gemiddelde rating als 5 sterren */}
-    <Box>{renderStars(averageRating)}</Box>
+      <Box>{renderStars(averageRating)}</Box>
 
-    {/* Individuele reviews */}
-    {reviews.map((review) => (
-      <Box
-        key={review.id}
-        bg={useColorModeValue("gray.100", "gray.700")}
-        color={useColorModeValue("gray.900", "whiteAlpha.900")}
-        borderRadius="md"
-        p={4}
-        mb={3}
-        boxShadow="md"
-        w="100%"
-      >
-        {/* Sterrenweergave voor deze review */}
-        <Box>{renderStars(review.rating)}</Box>
+      {/* ============================================== */}
+      {/* = INDIVIDUELE REVIEWS                         = */}
+      {/* ============================================== */}
+      {reviews.map((review) => (
+        <Box
+          key={review.id}
+          bg={useColorModeValue("gray.100", "gray.700")}
+          color={useColorModeValue("gray.900", "whiteAlpha.900")}
+          borderRadius="md"
+          p={4}
+          mb={3}
+          boxShadow="md"
+          w="100%"
+        >
+          {/* Sterrenweergave */}
+          <Box>{renderStars(review.rating)}</Box>
 
-        {/* Reviewtekst */}
-        <Text mt={1}>{review.comment}</Text>
+          {/* Reviewtekst */}
+          <Text mt={1}>{review.comment}</Text>
 
-        {/* Naam van reviewer (fallback indien leeg) */}
-        <Text mt={2} fontSize="sm" fontStyle="italic">
-          {review.user?.name || "Anonieme gebruiker"}
-        </Text>
-      </Box>
-    ))}
-  </VStack>
-);
+          {/* Reviewer naam */}
+          <Text mt={2} fontSize="sm" fontStyle="italic">
+            {review.user?.name || "Anonieme gebruiker"}
+          </Text>
+        </Box>
+      ))}
+    </VStack>
+  );
 }

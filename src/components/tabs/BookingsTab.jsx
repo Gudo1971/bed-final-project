@@ -1,3 +1,7 @@
+// ==============================================
+// = BOOKINGS TAB                                =
+// ==============================================
+
 import { useEffect, useState, useRef } from "react";
 import {
   Box,
@@ -15,10 +19,13 @@ import {
   AlertDialogOverlay,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
+
 import { getUserBookings } from "../../api/bookings";
 import BookingEditModal from "../tabs/BookingEditModal";
 
-// Helper: userId uit JWT halen
+// ==============================================
+// = HELPER: USER ID UIT JWT                    =
+// ==============================================
 function getUserIdFromToken() {
   const token = localStorage.getItem("token");
   if (!token) return null;
@@ -35,6 +42,9 @@ function getUserIdFromToken() {
 export default function BookingsTab() {
   const toast = useToast();
 
+  // ==============================================
+  // = STATE BLOKKEN                              =
+  // ==============================================
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -44,13 +54,16 @@ export default function BookingsTab() {
 
   const [disabledDates, setDisabledDates] = useState([]);
 
-  // Confirm modal state
+  // Confirm modal
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [bookingToDelete, setBookingToDelete] = useState(null);
   const cancelRef = useRef();
 
   const userId = getUserIdFromToken();
 
+  // ==============================================
+  // = BOOKINGS OPHALEN                           =
+  // ==============================================
   async function fetchBookings() {
     try {
       const token = localStorage.getItem("token");
@@ -69,18 +82,25 @@ export default function BookingsTab() {
     }
   }
 
+  // ==============================================
+  // = DISABLED DATES OPHALEN (correcte /api route)=
+  // ==============================================
   async function loadDisabledDates(propertyId) {
     try {
       const res = await fetch(
-        `http://localhost:3000/bookings/disabled-dates/${propertyId}`
+        `http://localhost:3000/api/bookings/disabled-dates/${propertyId}`
       );
+
       const data = await res.json();
-      setDisabledDates(data); // array van "YYYY-MM-DD"
+      setDisabledDates(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error loading disabled dates:", err);
     }
   }
 
+  // ==============================================
+  // = MODAL OPENEN                               =
+  // ==============================================
   async function openModal(booking) {
     setSelectedBooking(booking);
 
@@ -96,13 +116,14 @@ export default function BookingsTab() {
     setSelectedBooking(null);
   }
 
-  // Open confirm modal
+  // ==============================================
+  // = DELETE FLOW                                =
+  // ==============================================
   function askDelete(id) {
     setBookingToDelete(id);
     setIsConfirmOpen(true);
   }
 
-  // Actual delete
   async function handleDelete() {
     try {
       setDeletingId(bookingToDelete);
@@ -110,7 +131,7 @@ export default function BookingsTab() {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `http://localhost:3000/bookings/${bookingToDelete}`,
+        `http://localhost:3000/api/bookings/${bookingToDelete}`,
         {
           method: "DELETE",
           headers: {
@@ -126,7 +147,6 @@ export default function BookingsTab() {
         description: "Je boeking is succesvol verwijderd.",
         status: "success",
         duration: 3000,
-        isClosable: true,
         position: "top",
       });
 
@@ -139,7 +159,6 @@ export default function BookingsTab() {
         description: "Er ging iets mis tijdens het annuleren.",
         status: "error",
         duration: 3000,
-        isClosable: true,
         position: "top",
       });
     } finally {
@@ -148,14 +167,21 @@ export default function BookingsTab() {
     }
   }
 
+  // ==============================================
+  // = INIT LOAD                                  =
+  // ==============================================
   useEffect(() => {
     fetchBookings();
   }, []);
 
-  if (loading) {
-    return <Spinner size="xl" />;
-  }
+  // ==============================================
+  // = LOADING STATE                              =
+  // ==============================================
+  if (loading) return <Spinner size="xl" />;
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <Box>
       <Heading size="lg" mb={4}>
@@ -167,110 +193,116 @@ export default function BookingsTab() {
       )}
 
       <Stack spacing={4}>
-        {Array.isArray(bookings) &&
-          bookings.map((booking) => {
-            const isPastBooking =
-              new Date(booking.checkoutDate) < new Date();
+        {bookings.map((booking) => {
+          const isPastBooking =
+            new Date(booking.checkoutDate) < new Date();
 
-            return (
-              <Box
-                key={booking.id}
-                p={4}
-                borderWidth="1px"
-                borderRadius="lg"
-                boxShadow="sm"
-                _hover={{ boxShadow: "lg", transform: "translateY(-2px)" }}
-                transition="all 0.2s"
-              >
-                <Stack direction="row" spacing={4}>
-                  {/* FOTO */}
-                  <Box
-                    w="150px"
-                    h="120px"
-                    borderRadius="md"
-                    overflow="hidden"
-                    bg="gray.100"
-                    flexShrink={0}
-                  >
-                    <img
-                      src={booking.property?.images || "/placeholder.jpg"}
-                      alt={booking.property?.title || "Accommodatie"}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </Box>
+          return (
+            <Box
+              key={booking.id}
+              p={4}
+              borderWidth="1px"
+              borderRadius="lg"
+              boxShadow="sm"
+              _hover={{ boxShadow: "lg", transform: "translateY(-2px)" }}
+              transition="all 0.2s"
+            >
+              <Stack direction="row" spacing={4}>
+                {/* ============================================== */}
+                {/* = FOTO                                        = */}
+                {/* ============================================== */}
+                <Box
+                  w="150px"
+                  h="120px"
+                  borderRadius="md"
+                  overflow="hidden"
+                  bg="gray.100"
+                  flexShrink={0}
+                >
+                  <img
+                    src={booking.property?.images || "/placeholder.jpg"}
+                    alt={booking.property?.title || "Accommodatie"}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </Box>
 
-                  {/* INFO */}
-                  <Stack spacing={1} flex="1">
-                    <Text fontSize="lg" fontWeight="bold">
-                      {booking.property?.title || "Accommodatie"}
-                    </Text>
+                {/* ============================================== */}
+                {/* = INFO                                        = */}
+                {/* ============================================== */}
+                <Stack spacing={1} flex="1">
+                  <Text fontSize="lg" fontWeight="bold">
+                    {booking.property?.title || "Accommodatie"}
+                  </Text>
 
-                    <Text color="gray.600" fontSize="sm">
-                      {booking.property?.location}
-                    </Text>
+                  <Text color="gray.600" fontSize="sm">
+                    {booking.property?.location}
+                  </Text>
 
-                    <Text fontSize="sm">
-                      <strong>Check‑in:</strong> {booking.checkinDate}
-                    </Text>
-                    <Text fontSize="sm">
-                      <strong>Check‑out:</strong> {booking.checkoutDate}
-                    </Text>
+                  <Text fontSize="sm">
+                    <strong>Check‑in:</strong> {booking.checkinDate}
+                  </Text>
+                  <Text fontSize="sm">
+                    <strong>Check‑out:</strong> {booking.checkoutDate}
+                  </Text>
 
-                    <Text fontWeight="semibold" mt={1}>
-                      €{booking.totalPrice}
-                    </Text>
+                  <Text fontWeight="semibold" mt={1}>
+                    €{booking.totalPrice}
+                  </Text>
 
-                    {/* ⭐ KNOPPEN — alleen tonen als boeking NIET in het verleden ligt */}
-                    <Stack direction="row" mt={3}>
-                      {!isPastBooking && (
-                        <>
-                          <Button
-                            colorScheme="blue"
-                            size="sm"
-                            onClick={() => openModal(booking)}
-                          >
-                            Bewerken
-                          </Button>
+                  {/* ============================================== */}
+                  {/* = ACTIE KNOPPEN                              = */}
+                  {/* ============================================== */}
+                  <Stack direction="row" mt={3}>
+                    {!isPastBooking && (
+                      <>
+                        <Button
+                          colorScheme="blue"
+                          size="sm"
+                          onClick={() => openModal(booking)}
+                        >
+                          Bewerken
+                        </Button>
 
-                          <Button
-                            colorScheme="red"
-                            size="sm"
-                            isLoading={deletingId === booking.id}
-                            onClick={() => askDelete(booking.id)}
-                          >
-                            Annuleren
-                          </Button>
-                        </>
-                      )}
-
-                      <Button
-                        as={Link}
-                        to={`/properties/${booking.property?.id}`}
-                        size="sm"
-                        variant="outline"
-                      >
-                        Bekijk accommodatie
-                      </Button>
-                    </Stack>
-
-                    {/* Optioneel: badge voor verlopen boeking */}
-                    {isPastBooking && (
-                      <Text fontSize="xs" color="gray.500" mt={1}>
-                        Deze boeking is verlopen en kan niet meer worden bewerkt.
-                      </Text>
+                        <Button
+                          colorScheme="red"
+                          size="sm"
+                          isLoading={deletingId === booking.id}
+                          onClick={() => askDelete(booking.id)}
+                        >
+                          Annuleren
+                        </Button>
+                      </>
                     )}
+
+                    <Button
+                      as={Link}
+                      to={`/properties/${booking.property?.id}`}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Bekijk accommodatie
+                    </Button>
                   </Stack>
+
+                  {isPastBooking && (
+                    <Text fontSize="xs" color="gray.500" mt={1}>
+                      Deze boeking is verlopen en kan niet meer worden bewerkt.
+                    </Text>
+                  )}
                 </Stack>
-              </Box>
-            );
-          })}
+              </Stack>
+            </Box>
+          );
+        })}
       </Stack>
 
-      {/* Confirm Modal */}
+      {/* ============================================== */}
+      {/* = CONFIRM DELETE MODAL                        = */}
+      {/* ============================================== */}
       <AlertDialog
         isOpen={isConfirmOpen}
         leastDestructiveRef={cancelRef}
@@ -304,6 +336,9 @@ export default function BookingsTab() {
         </AlertDialogOverlay>
       </AlertDialog>
 
+      {/* ============================================== */}
+      {/* = EDIT MODAL                                  = */}
+      {/* ============================================== */}
       {selectedBooking && (
         <BookingEditModal
           isOpen={isModalOpen}

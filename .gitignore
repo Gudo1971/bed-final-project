@@ -1,4 +1,6 @@
-# Logs
+# ==============================================
+# = LOGS                                       =
+# ==============================================
 logs
 *.log
 npm-debug.log*
@@ -7,29 +9,39 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node modules
+# ==============================================
+# = NODE MODULES                               =
+# ==============================================
 node_modules
 **/node_modules
 
-# Build output
+# ==============================================
+# = BUILD OUTPUT                               =
+# ==============================================
 dist
 dist-ssr
 build
 frontend/dist
 backend/dist
 
-# Local environment files
+# ==============================================
+# = ENVIRONMENT FILES                          =
+# ==============================================
 .env
 .env.local
 .env.development
 .env.production
 .env.test
 
-# Prisma database
+# ==============================================
+# = PRISMA DATABASE FILES                      =
+# ==============================================
 backend/prisma/dev.db
 backend/prisma/*.db
 
-# Editor directories and files
+# ==============================================
+# = EDITOR / IDE FILES                         =
+# ==============================================
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -40,7 +52,9 @@ backend/prisma/*.db
 *.sln
 *.sw?
 
-# Cache
+# ==============================================
+# = CACHE / OUTPUT                             =
+# ==============================================
 .cache
 .next
 out

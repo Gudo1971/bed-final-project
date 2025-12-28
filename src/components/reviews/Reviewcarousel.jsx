@@ -1,20 +1,41 @@
-import { useState, useEffect } from "react";
-import { Text, Button, HStack, VStack, useDisclosure } from "@chakra-ui/react";
-import AddReviewModal from "./AddreviewModal";
+// ==============================================
+// = REVIEW CAROUSEL                             =
+// = Automatisch roterende reviews + modal       =
+// ==============================================
 
-// Gebruik jouw eigen AuthContext (NIET Auth0)
+import { useState, useEffect } from "react";
+import {
+  Text,
+  Button,
+  HStack,
+  VStack,
+  useDisclosure,
+} from "@chakra-ui/react";
+
+import AddReviewModal from "./AddreviewModal";
 import { useAuth } from "../context/AuthContext";
 
+// ==============================================
+// = COMPONENT                                   =
+// ==============================================
 export default function ReviewCarousel({ reviews, onRefresh }) {
+  // ==============================================
+  // = STATE                                      =
+  // ==============================================
   const [index, setIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // AuthContext
+  // ==============================================
+  // = AUTH                                       =
+  // ==============================================
   const { user, token } = useAuth();
   const isAuthenticated = !!user && !!token;
 
-  // Auto‑carousel
+  // ==============================================
+  // = AUTO CAROUSEL                              =
+  // ==============================================
   useEffect(() => {
     if (isPaused || !reviews || reviews.length === 0) return;
 
@@ -25,7 +46,9 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
     return () => clearInterval(interval);
   }, [isPaused, reviews]);
 
-  // Geen reviews
+  // ==============================================
+  // = GEEN REVIEWS                               =
+  // ==============================================
   if (!reviews || reviews.length === 0) {
     return (
       <>
@@ -51,10 +74,19 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
     );
   }
 
+  // ==============================================
+  // = ACTIEVE REVIEW                             =
+  // ==============================================
   const review = reviews[index];
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <>
+      {/* ============================================== */}
+      {/* = HEADER                                      = */}
+      {/* ============================================== */}
       <HStack justify="space-between" w="100%" mb={2}>
         <Text fontSize="xl" fontWeight="bold">Reviews</Text>
 
@@ -65,7 +97,15 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
         )}
       </HStack>
 
-      <VStack spacing={4} p={6} border="1px solid #ddd" borderRadius="md">
+      {/* ============================================== */}
+      {/* = REVIEW CARD                                = */}
+      {/* ============================================== */}
+      <VStack
+        spacing={4}
+        p={6}
+        border="1px solid #ddd"
+        borderRadius="md"
+      >
         <Text fontSize="lg" fontWeight="bold">
           ⭐ {review.rating} / 5
         </Text>
@@ -78,8 +118,15 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
           — {review.user?.name || "Anonieme gast"}
         </Text>
 
+        {/* ============================================== */}
+        {/* = CAROUSEL CONTROLS                           = */}
+        {/* ============================================== */}
         <HStack spacing={4} pt={4}>
-          <Button onClick={() => setIndex((i) => (i - 1 + reviews.length) % reviews.length)}>
+          <Button
+            onClick={() =>
+              setIndex((i) => (i - 1 + reviews.length) % reviews.length)
+            }
+          >
             Vorige
           </Button>
 
@@ -87,12 +134,19 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
             {isPaused ? "▶️ Play" : "⏸️ Pause"}
           </Button>
 
-          <Button onClick={() => setIndex((i) => (i + 1) % reviews.length)}>
+          <Button
+            onClick={() =>
+              setIndex((i) => (i + 1) % reviews.length)
+            }
+          >
             Volgende
           </Button>
         </HStack>
       </VStack>
 
+      {/* ============================================== */}
+      {/* = ADD REVIEW MODAL                            = */}
+      {/* ============================================== */}
       <AddReviewModal
         isOpen={isOpen}
         onClose={onClose}

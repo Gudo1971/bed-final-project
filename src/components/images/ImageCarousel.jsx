@@ -1,27 +1,35 @@
+// ==============================================
+// = IMAGE CAROUSEL                              =
+// = Hoofdafbeelding + thumbnails + fullscreen   =
+// ==============================================
+
 import { Box, IconButton, Flex, Text, Image } from "@chakra-ui/react";
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import FullscreenGallery from "./FullscreenGallery";
 
+// ==============================================
+// = COMPONENT                                   =
+// ==============================================
 export default function ImageCarousel({ images }) {
+  // ==============================================
+  // = SAFE IMAGES                                =
+  // ==============================================
   const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
+
   const [index, setIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
 
-
-
-  // skelleton loader 
-
+  // ==============================================
+  // = LOADING / FADE / AUTOPLAY                  =
+  // ==============================================
   const [loading, setLoading] = useState(true);
-
-
-  // ⭐ Fade state
   const [fade, setFade] = useState(false);
-
-  // ⭐ Autoplay pause state
   const [paused, setPaused] = useState(false);
 
-  // ⭐ Thumbnail scroll refs
+  // ==============================================
+  // = THUMBNAIL SCROLL REFS                      =
+  // ==============================================
   const containerRef = useRef(null);
   const thumbRefs = useRef([]);
   thumbRefs.current = [];
@@ -32,6 +40,9 @@ export default function ImageCarousel({ images }) {
     }
   };
 
+  // ==============================================
+  // = GEEN AFBEELDINGEN                           =
+  // ==============================================
   if (!safeImages.length) {
     return (
       <Box
@@ -51,7 +62,9 @@ export default function ImageCarousel({ images }) {
     );
   }
 
-  // ⭐ Fade + next
+  // ==============================================
+  // = NEXT / PREV MET FADE                       =
+  // ==============================================
   const next = () => {
     setFade(true);
     setTimeout(() => {
@@ -60,7 +73,6 @@ export default function ImageCarousel({ images }) {
     }, 150);
   };
 
-  // ⭐ Fade + prev
   const prev = () => {
     setFade(true);
     setTimeout(() => {
@@ -69,7 +81,9 @@ export default function ImageCarousel({ images }) {
     }, 150);
   };
 
-  // ⭐ Autoplay (respecteert pause)
+  // ==============================================
+  // = AUTOPLAY (respecteert pause)               =
+  // ==============================================
   useEffect(() => {
     if (paused) return;
 
@@ -80,7 +94,9 @@ export default function ImageCarousel({ images }) {
     return () => clearInterval(interval);
   }, [paused, safeImages.length]);
 
-  // ⭐ Auto-snap + centreren van actieve thumbnail
+  // ==============================================
+  // = THUMBNAIL AUTO-SNAP                        =
+  // ==============================================
   useEffect(() => {
     if (!containerRef.current || !thumbRefs.current[index]) return;
 
@@ -99,9 +115,14 @@ export default function ImageCarousel({ images }) {
     });
   }, [index]);
 
+  // ==============================================
+  // = RENDER                                      =
+  // ==============================================
   return (
     <Box width="100%" position="relative">
-      {/* ⭐ Hoofdafbeelding */}
+      {/* ============================================== */}
+      {/* = HOOFDAFBEELDING                             = */}
+      {/* ============================================== */}
       <Box
         position="relative"
         width="100%"
@@ -125,7 +146,9 @@ export default function ImageCarousel({ images }) {
           }}
         />
 
-        {/* Arrows */}
+        {/* ============================================== */}
+        {/* = ARROWS                                      = */}
+        {/* ============================================== */}
         <IconButton
           aria-label="Previous"
           icon={<ChevronLeftIcon boxSize={8} />}
@@ -155,7 +178,9 @@ export default function ImageCarousel({ images }) {
         />
       </Box>
 
-      {/* ⭐ Scrollbare thumbnails met auto-snap + centering */}
+      {/* ============================================== */}
+      {/* = THUMBNAILS (scroll + auto-snap)             = */}
+      {/* ============================================== */}
       <Flex
         ref={containerRef}
         mt={3}
@@ -199,7 +224,9 @@ export default function ImageCarousel({ images }) {
         ))}
       </Flex>
 
-      {/* ⭐ Fullscreen */}
+      {/* ============================================== */}
+      {/* = FULLSCREEN GALLERY                          = */}
+      {/* ============================================== */}
       {fullscreen && (
         <FullscreenGallery
           images={safeImages}

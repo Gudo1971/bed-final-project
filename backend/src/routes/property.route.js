@@ -1,3 +1,7 @@
+// ==============================================
+// = PROPERTY ROUTES                            =
+// ==============================================
+
 import express from "express";
 import {
   getProperties,
@@ -10,7 +14,7 @@ import {
   getPropertyBookings
 } from "../controllers/property.controller.js";
 
-import authenticateToken, { requireHost } from "../middleware/auth.middleware.js";
+import authenticateToken from "../middleware/auth.middleware.js";
 import upload from "../../config/cloudinaryStorage.js";
 import { PrismaClient } from "@prisma/client";
 
@@ -18,26 +22,28 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 /* ============================================================
-   HOST‑ONLY ROUTES (moeten BOVEN public routes!)
+   HELPER: haal hostEmail uit JWT
+============================================================ */
+function getHostEmail(req) {
+  return req.user?.email || null;
+}
+
+/* ============================================================
+   HOST‑ONLY ROUTES
 ============================================================ */
 
 /* ------------------------------------------------------------
-   ⭐ Alleen properties van de ingelogde host
+   ⭐ Properties van ingelogde host
 ------------------------------------------------------------ */
 router.get(
   "/mine",
   authenticateToken,
-  requireHost,
   async (req, res) => {
     try {
-      const { hostId } = req.user; // ⭐ JWT bevat hostId
-
-      if (!hostId) {
-        return res.status(403).json({ error: "Geen host account gevonden" });
-      }
+      const hostEmail = getHostEmail(req);
 
       const properties = await prisma.property.findMany({
-        where: { hostId },
+        where: { hostEmail },
         include: {
           images: true,
           bookings: true,
@@ -55,7 +61,6 @@ router.get(
 /* ============================================================
    PUBLIC ROUTES
 ============================================================ */
-
 router.get("/", getProperties);
 router.get("/:id", getProperty);
 
@@ -69,12 +74,7 @@ router.get("/:id", getProperty);
 router.post(
   "/",
   authenticateToken,
-  requireHost,
   upload.array("images", 10),
-  async (req, res, next) => {
-    req.body.hostId = req.user.hostId; // ⭐ forceer juiste hostId
-    next();
-  },
   createProperty
 );
 
@@ -84,19 +84,7 @@ router.post(
 router.patch(
   "/:id",
   authenticateToken,
-  requireHost,
   upload.array("images", 10),
-  async (req, res, next) => {
-    const property = await prisma.property.findUnique({
-      where: { id: req.params.id },
-    });
-
-    if (!property || property.hostId !== req.user.hostId) {
-      return res.status(403).json({ error: "Geen toegang tot deze property" });
-    }
-
-    next();
-  },
   updateProperty
 );
 
@@ -106,18 +94,6 @@ router.patch(
 router.put(
   "/:id",
   authenticateToken,
-  requireHost,
-  async (req, res, next) => {
-    const property = await prisma.property.findUnique({
-      where: { id: req.params.id },
-    });
-
-    if (!property || property.hostId !== req.user.hostId) {
-      return res.status(403).json({ error: "Geen toegang tot deze property" });
-    }
-
-    next();
-  },
   updatePropertyJson
 );
 
@@ -127,14 +103,15 @@ router.put(
 router.put(
   "/:id/toggle",
   authenticateToken,
-  requireHost,
   async (req, res) => {
     try {
+      const hostEmail = getHostEmail(req);
+
       const property = await prisma.property.findUnique({
         where: { id: req.params.id },
       });
 
-      if (!property || property.hostId !== req.user.hostId) {
+      if (!property || property.hostEmail !== hostEmail) {
         return res.status(403).json({ error: "Geen toegang tot deze property" });
       }
 
@@ -157,18 +134,6 @@ router.put(
 router.delete(
   "/:id",
   authenticateToken,
-  requireHost,
-  async (req, res, next) => {
-    const property = await prisma.property.findUnique({
-      where: { id: req.params.id },
-    });
-
-    if (!property || property.hostId !== req.user.hostId) {
-      return res.status(403).json({ error: "Geen toegang tot deze property" });
-    }
-
-    next();
-  },
   deleteProperty
 );
 
@@ -178,18 +143,6 @@ router.delete(
 router.delete(
   "/:propertyId/images/:imageId",
   authenticateToken,
-  requireHost,
-  async (req, res, next) => {
-    const property = await prisma.property.findUnique({
-      where: { id: req.params.propertyId },
-    });
-
-    if (!property || property.hostId !== req.user.hostId) {
-      return res.status(403).json({ error: "Geen toegang tot deze property" });
-    }
-
-    next();
-  },
   deletePropertyImage
 );
 
@@ -199,18 +152,6 @@ router.delete(
 router.get(
   "/:id/bookings",
   authenticateToken,
-  requireHost,
-  async (req, res, next) => {
-    const property = await prisma.property.findUnique({
-      where: { id: req.params.id },
-    });
-
-    if (!property || property.hostId !== req.user.hostId) {
-      return res.status(403).json({ error: "Geen toegang tot deze property" });
-    }
-
-    next();
-  },
   getPropertyBookings
 );
 

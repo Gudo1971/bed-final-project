@@ -12,10 +12,9 @@ import prisma from "../lib/prisma.js";
 import { Prisma } from "@prisma/client";
 import { mapBooking } from "../utils/bookingMapper.js";
 
-
-// ---------------------------------------------------------
-// CREATE BOOKING
-// ---------------------------------------------------------
+/* ============================================================
+   CREATE BOOKING
+============================================================ */
 export const createBookingController = async (req, res) => {
   try {
     const {
@@ -26,7 +25,7 @@ export const createBookingController = async (req, res) => {
       propertyId,
     } = req.body;
 
-    let userId = req.user?.id;
+    const userId = req.user?.id;
 
     if (
       !checkinDate ||
@@ -39,38 +38,7 @@ export const createBookingController = async (req, res) => {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-    // ---------------------------------------------------------
-    // USER FIX: user koppelen of aanmaken
-    // ---------------------------------------------------------
-    let existingUser = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!existingUser) {
-      existingUser = await prisma.user.findUnique({
-        where: { email: req.user.email },
-      });
-    }
-
-    if (existingUser) {
-      userId = existingUser.id;
-    } else {
-      const newUser = await prisma.user.create({
-        data: {
-          id: userId,
-          email: req.user.email,
-          username: req.user.username,
-          name: req.user.name,
-          password: "host-placeholder",
-        },
-      });
-
-      userId = newUser.id;
-    }
-
-    // ---------------------------------------------------------
-    // CHECK OF PROPERTY ACTIEF IS
-    // ---------------------------------------------------------
+    // Property check
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
       select: { isActive: true },
@@ -86,9 +54,7 @@ export const createBookingController = async (req, res) => {
       });
     }
 
-    // ---------------------------------------------------------
-    // BOOKING AANMAKEN (altijd PENDING)
-    // ---------------------------------------------------------
+    // Booking aanmaken
     const booking = await prisma.booking.create({
       data: {
         startDate: new Date(checkinDate),
@@ -113,10 +79,9 @@ export const createBookingController = async (req, res) => {
   }
 };
 
-
-// ---------------------------------------------------------
-// GET ALL BOOKINGS
-// ---------------------------------------------------------
+/* ============================================================
+   GET ALL BOOKINGS
+============================================================ */
 export const getAllBookingsController = async (req, res) => {
   try {
     const bookings = await getAllBookings();
@@ -127,10 +92,9 @@ export const getAllBookingsController = async (req, res) => {
   }
 };
 
-
-// ---------------------------------------------------------
-// GET BOOKING BY ID
-// ---------------------------------------------------------
+/* ============================================================
+   GET BOOKING BY ID
+============================================================ */
 export const getBookingByIdController = async (req, res) => {
   try {
     const id = req.params.id;
@@ -147,10 +111,9 @@ export const getBookingByIdController = async (req, res) => {
   }
 };
 
-
-// ---------------------------------------------------------
-// GET BOOKINGS BY USER
-// ---------------------------------------------------------
+/* ============================================================
+   GET BOOKINGS BY USER
+============================================================ */
 export const getBookingsByUserIdController = async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -163,10 +126,9 @@ export const getBookingsByUserIdController = async (req, res) => {
   }
 };
 
-
-// ---------------------------------------------------------
-// GET BOOKINGS BY PROPERTY
-// ---------------------------------------------------------
+/* ============================================================
+   GET BOOKINGS BY PROPERTY
+============================================================ */
 export const getBookingsByPropertyIdController = async (req, res) => {
   try {
     const propertyId = req.params.propertyId;
@@ -179,10 +141,9 @@ export const getBookingsByPropertyIdController = async (req, res) => {
   }
 };
 
-
-// ---------------------------------------------------------
-// UPDATE BOOKING
-// ---------------------------------------------------------
+/* ============================================================
+   UPDATE BOOKING
+============================================================ */
 export const updateBookingController = async (req, res) => {
   try {
     const { id } = req.params;
@@ -200,9 +161,6 @@ export const updateBookingController = async (req, res) => {
       propertyId,
     } = req.body;
 
-    // ---------------------------------------------------------
-    // ❗ VALIDATIE: checkout mag nooit vóór checkin liggen
-    // ---------------------------------------------------------
     const newStart = checkinDate ? new Date(checkinDate) : existing.startDate;
     const newEnd = checkoutDate ? new Date(checkoutDate) : existing.endDate;
 
@@ -212,9 +170,6 @@ export const updateBookingController = async (req, res) => {
       });
     }
 
-    // ---------------------------------------------------------
-    // UPDATE BOOKING + status terug naar PENDING
-    // ---------------------------------------------------------
     const updated = await prisma.booking.update({
       where: { id },
       data: {
@@ -223,8 +178,6 @@ export const updateBookingController = async (req, res) => {
         numberOfGuests: numberOfGuests ?? existing.numberOfGuests,
         totalPrice: totalPrice ?? existing.totalPrice,
         propertyId: propertyId ?? existing.propertyId,
-
-        // ⭐ Elke wijziging → terug naar PENDING
         bookingStatus: "PENDING",
       },
     });
@@ -239,11 +192,9 @@ export const updateBookingController = async (req, res) => {
   }
 };
 
-
-
-// ---------------------------------------------------------
-// DELETE BOOKING
-// ---------------------------------------------------------
+/* ============================================================
+   DELETE BOOKING
+============================================================ */
 export const deleteBookingController = async (req, res) => {
   try {
     const id = req.params.id;
@@ -273,10 +224,9 @@ export const deleteBookingController = async (req, res) => {
   }
 };
 
-
-// ---------------------------------------------------------
-// GET DISABLED DATES FOR PROPERTY
-// ---------------------------------------------------------
+/* ============================================================
+   GET DISABLED DATES FOR PROPERTY
+============================================================ */
 export const getDisabledDatesByPropertyIdController = async (req, res) => {
   try {
     const propertyId = req.params.propertyId;

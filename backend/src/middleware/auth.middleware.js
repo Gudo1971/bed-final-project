@@ -4,12 +4,16 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
-// ============================================================
-// AUTHENTICATIE: controleer of token geldig is
-// ============================================================
+/* ============================================================
+   AUTHENTICATIE: controleer of token geldig is
+   - verwacht "Bearer <token>"
+   - decodeert JWT
+   - plaatst payload in req.user
+============================================================ */
 export default function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
 
+  // Geen Bearer token → direct weigeren
   if (!authHeader?.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Geen geldige token meegegeven" });
   }
@@ -19,7 +23,9 @@ export default function authenticateToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
+    // Payload beschikbaar maken voor routes/controllers
     req.user = decoded;
+
     next();
   } catch (error) {
     console.error("❌ TOKEN VERIFICATIE FOUT:", error);
@@ -27,9 +33,10 @@ export default function authenticateToken(req, res, next) {
   }
 }
 
-// ============================================================
-// AUTORISATIE: alleen hosts mogen host-routes gebruiken
-// ============================================================
+/* ============================================================
+   AUTORISATIE: alleen hosts mogen host-routes gebruiken
+   - checkt of er een Host record bestaat voor req.user.email
+============================================================ */
 export async function requireHost(req, res, next) {
   try {
     const host = await prisma.host.findUnique({
@@ -37,7 +44,9 @@ export async function requireHost(req, res, next) {
     });
 
     if (!host) {
-      return res.status(403).json({ error: "Alleen hosts mogen deze actie uitvoeren" });
+      return res.status(403).json({
+        error: "Alleen hosts mogen deze actie uitvoeren",
+      });
     }
 
     next();
