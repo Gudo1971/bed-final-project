@@ -177,3 +177,42 @@ export const deleteUserController = async (req, res, next) => {
     next(error);
   }
 };
+// ---------------------------------------------------------
+// UPDATE USER PASSWORD
+// ---------------------------------------------------------
+export const updateUserPasswordController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    // 1. Check required fields
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // 2. Check if user exists
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // 3. Compare current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Ongeldige combinatie" });
+    }
+
+    // 4. Hash new password
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    // 5. Update password
+    await prisma.user.update({
+      where: { id },
+      data: { password: hashed },
+    });
+
+    return res.status(200).json({ message: "Wachtwoord succesvol gewijzigd" });
+  } catch (error) {
+    next(error);
+  }
+};
