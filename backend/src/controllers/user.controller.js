@@ -27,12 +27,14 @@ export const getAllUsersController = async (req, res, next) => {
 export const getUserByIdController = async (req, res, next) => {
   try {
     const { id } = req.params;
+    console.log("🔍 ID uit URL:", id);
 
     if (!id) {
       return res.status(404).json({ error: "User not found" });
     }
 
     const user = await getUserById(id);
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }

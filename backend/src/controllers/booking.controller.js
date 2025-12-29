@@ -38,7 +38,6 @@ export const createBookingController = async (req, res) => {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-    // Property check
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
       select: { isActive: true },
@@ -54,7 +53,6 @@ export const createBookingController = async (req, res) => {
       });
     }
 
-    // Booking aanmaken
     const booking = await prisma.booking.create({
       data: {
         startDate: new Date(checkinDate),
@@ -143,6 +141,8 @@ export const getBookingsByPropertyIdController = async (req, res) => {
 
 /* ============================================================
    UPDATE BOOKING
+   - Alleen niet-verlopen, niet-gecancelde bookings mogen worden bewerkt
+   - Annuleren werkt via bookingStatus: "CANCELED"
 ============================================================ */
 export const updateBookingController = async (req, res) => {
   try {
@@ -153,12 +153,29 @@ export const updateBookingController = async (req, res) => {
       return res.status(404).json({ error: "Booking not found" });
     }
 
+    const now = new Date();
+    const isCanceled = existing.bookingStatus.toLowerCase() === "canceled";
+    const isPast = new Date(existing.endDate) < now;
+
+    if (isCanceled) {
+      return res.status(400).json({
+        error: "Canceled bookings cannot be edited",
+      });
+    }
+
+    if (isPast) {
+      return res.status(400).json({
+        error: "Past bookings cannot be edited",
+      });
+    }
+
     const {
       checkinDate,
       checkoutDate,
       numberOfGuests,
       totalPrice,
       propertyId,
+      bookingStatus,
     } = req.body;
 
     const newStart = checkinDate ? new Date(checkinDate) : existing.startDate;
@@ -178,12 +195,14 @@ export const updateBookingController = async (req, res) => {
         numberOfGuests: numberOfGuests ?? existing.numberOfGuests,
         totalPrice: totalPrice ?? existing.totalPrice,
         propertyId: propertyId ?? existing.propertyId,
-        bookingStatus: "PENDING",
+
+        // ⭐ FIX: status alleen aanpassen als frontend dat vraagt
+        bookingStatus: bookingStatus ?? existing.bookingStatus,
       },
     });
 
     return res.status(200).json({
-      message: "Booking updated — awaiting host confirmation",
+      message: "Booking updated",
       booking: mapBooking(updated),
     });
   } catch (error) {
@@ -194,6 +213,7 @@ export const updateBookingController = async (req, res) => {
 
 /* ============================================================
    DELETE BOOKING
+   - Alleen canceled bookings mogen verwijderd worden
 ============================================================ */
 export const deleteBookingController = async (req, res) => {
   try {
@@ -202,6 +222,16 @@ export const deleteBookingController = async (req, res) => {
     const existing = await getBookingById(id);
     if (!existing) {
       return res.status(404).json({ error: "Booking not found" });
+    }
+
+    const isCanceled =
+      existing.bookingStatus &&
+      existing.bookingStatus.toLowerCase() === "canceled";
+
+    if (!isCanceled) {
+      return res.status(400).json({
+        error: "Only canceled bookings can be deleted",
+      });
     }
 
     const deleted = await deleteBooking(id);

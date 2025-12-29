@@ -16,6 +16,8 @@ export const getUserById = async (id) => {
   return prisma.user.findUnique({
     where: { id },
   });
+  console.log("🔍 Prisma zoekt op ID:", id);
+
 };
 
 /* ============================================================

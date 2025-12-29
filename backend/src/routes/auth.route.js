@@ -1,5 +1,11 @@
 import express from "express";
-import { loginController, register } from "../controllers/auth.controller.js";
+import {
+  loginController,
+  register,
+  updateProfile,
+  checkEmailExists
+} from "../controllers/auth.controller.js";
+
 import authenticateToken from "../middleware/auth.middleware.js";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
@@ -11,6 +17,12 @@ const router = express.Router();
    LOGIN
 ============================================================ */
 router.post("/login", loginController);
+
+/* ============================================================
+   DIRECTE EMAIL CHECK
+   - gebruikt door LoginPage
+============================================================ */
+router.get("/check-email", checkEmailExists);
 
 /* ============================================================
    /auth/me — user + host info
@@ -29,6 +41,7 @@ router.get("/me", authenticateToken, async (req, res) => {
       email: user.email,
       name: user.name,
       username: user.username,
+      phoneNumber: user.phoneNumber,
       isHost: Boolean(host),
       hostId: host?.id || null,
     });
@@ -43,6 +56,11 @@ router.get("/me", authenticateToken, async (req, res) => {
    REGISTER
 ============================================================ */
 router.post("/register", register);
+
+/* ============================================================
+   UPDATE PROFILE
+============================================================ */
+router.patch("/update-profile", authenticateToken, updateProfile);
 
 /* ============================================================
    UPDATE PASSWORD

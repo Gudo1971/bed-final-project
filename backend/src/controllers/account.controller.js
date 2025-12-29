@@ -21,16 +21,11 @@ function generateToken(user, isHost) {
 
 /* ===========================================================
    Become Host
-   - haalt user op
-   - checkt of host al bestaat
-   - maakt host aan
-   - genereert nieuwe token (isHost: true)
 =========================================================== */
 export async function becomeHost(req, res) {
   try {
     const userId = req.user.id;
 
-    // User ophalen
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -39,7 +34,6 @@ export async function becomeHost(req, res) {
       return res.status(404).json({ error: "Gebruiker niet gevonden." });
     }
 
-    // Bestaat host al?
     const existingHost = await prisma.host.findUnique({
       where: { email: user.email },
     });
@@ -48,7 +42,6 @@ export async function becomeHost(req, res) {
       return res.status(400).json({ error: "Je hebt al een host account." });
     }
 
-    // Host aanmaken
     const newHost = await prisma.host.create({
       data: {
         username: user.username,
@@ -61,7 +54,6 @@ export async function becomeHost(req, res) {
       },
     });
 
-    // Nieuwe token met isHost = true
     const newToken = generateToken(user, true);
 
     return res.status(201).json({
@@ -79,16 +71,11 @@ export async function becomeHost(req, res) {
 
 /* ===========================================================
    Stop Host
-   - checkt of host nog properties heeft
-   - blokkeert netjes met duidelijke foutmelding
-   - verwijdert host als er geen properties meer zijn
-   - genereert nieuwe token (isHost: false)
 =========================================================== */
 export async function stopHost(req, res) {
   try {
     const user = req.user;
 
-    // 1. Check of deze host nog properties heeft
     const activeProperties = await prisma.property.findMany({
       where: { hostEmail: user.email },
       select: { id: true },
@@ -101,17 +88,14 @@ export async function stopHost(req, res) {
       });
     }
 
-    // 2. Host verwijderen
     await prisma.host.delete({
       where: { email: user.email },
     });
 
-    // 3. User opnieuw ophalen
     const updatedUser = await prisma.user.findUnique({
       where: { id: user.id },
     });
 
-    // 4. Nieuwe token met isHost = false
     const newToken = generateToken(updatedUser, false);
 
     return res.status(200).json({
@@ -123,6 +107,37 @@ export async function stopHost(req, res) {
     console.error("❌ Error in stopHost:", err);
     return res.status(500).json({
       error: "Er ging iets mis bij het deactiveren van het host account.",
+    });
+  }
+}
+
+/* ===========================================================
+   CHECK EMAIL BESTAAT?
+=========================================================== */
+export async function checkEmailExists(req, res) {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is verplicht." });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        error: "We hebben geen account gevonden met dit email adres",
+      });
+    }
+
+    return res.status(200).json({ exists: true });
+  } catch (err) {
+    console.error("❌ Error in checkEmailExists:", err);
+    return res.status(500).json({
+      error: "Er ging iets mis bij het controleren van het email adres.",
     });
   }
 }
