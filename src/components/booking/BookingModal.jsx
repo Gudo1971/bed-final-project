@@ -1,5 +1,6 @@
 // ==============================================
-// = BOOKING MODAL                              =
+// = BOOKING MODAL                               =
+// = Boeking afronden + BookingForm wrapper      =
 // ==============================================
 
 import {
@@ -9,6 +10,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import BookingForm from "./BookingForm";
@@ -20,10 +22,15 @@ export default function BookingModal({
   pricePerNight,
   checkIn,
   checkOut,
-  isActive,              // ⭐ FIX 1 — property status doorgeven
+  isActive,              // Property status doorgeven
   onBookingCreated,
   onBookingCancelled,
 }) {
+  // ==============================================
+  // = DARK MODE COLORS                           =
+  // ==============================================
+  const headerColor = useColorModeValue("gray.800", "gray.100");
+
   // ==============================================
   // = RENDER MODAL                               =
   // ==============================================
@@ -31,11 +38,11 @@ export default function BookingModal({
     <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
       <ModalOverlay />
 
-      <ModalContent>
+      <ModalContent borderRadius="lg">
         {/* ============================================== */}
         {/* = HEADER                                      = */}
         {/* ============================================== */}
-        <ModalHeader>Boeking afronden</ModalHeader>
+        <ModalHeader color={headerColor}>Boeking afronden</ModalHeader>
         <ModalCloseButton />
 
         {/* ============================================== */}
@@ -47,17 +54,17 @@ export default function BookingModal({
             pricePerNight={pricePerNight}
             checkIn={checkIn}
             checkOut={checkOut}
-            isActive={isActive}   // ⭐ FIX 2 — doorgeven aan BookingForm
+            isActive={isActive}
 
             // ==============================================
             // = CALLBACKS                                  =
             // ==============================================
             onBookingCreated={(booking) => {
-              if (onBookingCreated) onBookingCreated(booking);
+              onBookingCreated?.(booking);
               onClose();
             }}
             onCancel={() => {
-              if (onBookingCancelled) onBookingCancelled();
+              onBookingCancelled?.();
               onClose();
             }}
           />

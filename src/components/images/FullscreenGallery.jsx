@@ -4,7 +4,12 @@
 // ==============================================
 
 import { useEffect } from "react";
-import { Box, IconButton } from "@chakra-ui/react";
+import {
+  Box,
+  IconButton,
+  Image,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -21,6 +26,17 @@ export default function FullscreenGallery({
   onPrev,
   onNext,
 }) {
+  // ==============================================
+  // = DARK MODE COLORS                           =
+  // ==============================================
+  const overlayBg = useColorModeValue(
+    "rgba(0,0,0,0.85)",
+    "rgba(0,0,0,0.92)"
+  );
+
+  const buttonBg = useColorModeValue("whiteAlpha.800", "whiteAlpha.300");
+  const buttonHover = useColorModeValue("whiteAlpha.900", "whiteAlpha.400");
+
   // ==============================================
   // = KEYBOARD CONTROLS                          =
   // ==============================================
@@ -41,15 +57,15 @@ export default function FullscreenGallery({
   return (
     <Box
       position="fixed"
-      top={0}
-      left={0}
+      inset={0}
       width="100vw"
       height="100vh"
-      background="rgba(0,0,0,0.9)"
+      bg={overlayBg}
       display="flex"
       alignItems="center"
       justifyContent="center"
       zIndex={9999}
+      backdropFilter="blur(4px)"
     >
       {/* ============================================== */}
       {/* = CLOSE BUTTON                                = */}
@@ -60,6 +76,8 @@ export default function FullscreenGallery({
         position="absolute"
         top="20px"
         right="20px"
+        bg={buttonBg}
+        _hover={{ bg: buttonHover }}
         onClick={onClose}
       />
 
@@ -73,20 +91,22 @@ export default function FullscreenGallery({
         left="20px"
         top="50%"
         transform="translateY(-50%)"
+        bg={buttonBg}
+        _hover={{ bg: buttonHover }}
         onClick={onPrev}
       />
 
       {/* ============================================== */}
       {/* = IMAGE                                       = */}
       {/* ============================================== */}
-      <img
+      <Image
         src={images[index].url}
         alt=""
-        style={{
-          maxWidth: "90%",
-          maxHeight: "90%",
-          objectFit: "contain",
-        }}
+        maxW="90%"
+        maxH="90%"
+        objectFit="contain"
+        borderRadius="md"
+        boxShadow="2xl"
       />
 
       {/* ============================================== */}
@@ -99,6 +119,8 @@ export default function FullscreenGallery({
         right="20px"
         top="50%"
         transform="translateY(-50%)"
+        bg={buttonBg}
+        _hover={{ bg: buttonHover }}
         onClick={onNext}
       />
     </Box>

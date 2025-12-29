@@ -3,7 +3,7 @@
 // = Persoonsgegevens van ingelogde gebruiker    =
 // ==============================================
 
-import { Box, Heading, Text, Stack, Avatar } from "@chakra-ui/react";
+import { Box, Heading, Text, Stack, Avatar, useColorModeValue } from "@chakra-ui/react";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function ProfileTab() {
@@ -12,41 +12,63 @@ export default function ProfileTab() {
   // ==============================================
   const { user } = useAuth();
 
+  const labelColor = useColorModeValue("gray.600", "gray.300");
+  const valueColor = useColorModeValue("gray.800", "gray.100");
+
   // ==============================================
   // = RENDER                                      =
   // ==============================================
   return (
     <Box>
+
       {/* ============================================== */}
       {/* = TITEL                                       = */}
       {/* ============================================== */}
-      <Heading size="md" mb={4}>
+      <Heading size="md" mb={6}>
         Persoonsgegevens
       </Heading>
 
       {/* ============================================== */}
       {/* = LAYOUT: AVATAR + INFO                       = */}
       {/* ============================================== */}
-      <Stack direction="row" spacing={6} align="center">
-        
+      <Stack
+        direction={{ base: "column", sm: "row" }}
+        spacing={8}
+        align={{ base: "center", sm: "flex-start" }}
+      >
         {/* ============================================== */}
         {/* = AVATAR                                      = */}
         {/* ============================================== */}
         <Avatar
           size="xl"
           name={user?.name}
-          src={user?.pictureUrl}   // ⭐ jouw backend gebruikt pictureUrl
+          src={user?.pictureUrl}
         />
 
         {/* ============================================== */}
         {/* = USER INFO                                   = */}
         {/* ============================================== */}
-        <Box>
-          <Text fontWeight="bold">Naam:</Text>
-          <Text mb={3}>{user?.name}</Text>
+        <Box textAlign={{ base: "center", sm: "left" }}>
+          <Text fontWeight="bold" color={labelColor}>
+            Naam:
+          </Text>
+          <Text mb={4} color={valueColor}>
+            {user?.name}
+          </Text>
 
-          <Text fontWeight="bold">E‑mail:</Text>
-          <Text>{user?.email}</Text>
+          <Text fontWeight="bold" color={labelColor}>
+            E‑mail:
+          </Text>
+          <Text mb={4} color={valueColor}>
+            {user?.email}
+          </Text>
+
+          <Text fontWeight="bold" color={labelColor}>
+            Telefoon nummer:
+          </Text>
+          <Text color={valueColor}>
+            {user?.phoneNumber}
+          </Text>
         </Box>
       </Stack>
     </Box>

@@ -14,6 +14,7 @@ import {
   Box,
   Text,
   useToast,
+  HStack,
 } from "@chakra-ui/react";
 
 import { createReview } from "../../services/reviewService";
@@ -26,30 +27,29 @@ function StarRating({ rating, setRating }) {
   const [hover, setHover] = useState(0);
 
   return (
-    <Box>
+    <HStack spacing={1}>
       {[1, 2, 3, 4, 5].map((value) => {
-        const isActive = value <= (hover > 0 ? hover : rating);
+        const isActive = value <= (hover || rating);
 
         return (
           <Text
             as="span"
             key={value}
-            display="inline-block"
-            fontSize="2xl"
+            fontSize={{ base: "2xl", md: "3xl" }}
             cursor="pointer"
             color={isActive ? "yellow.400" : "gray.400"}
-            transition="color 0.2s ease, transform 0.15s ease"
+            transition="all 0.2s ease"
             onMouseEnter={() => setHover(value)}
             onMouseLeave={() => setHover(0)}
             onClick={() => setRating(value)}
-            _hover={{ transform: "scale(1.2)" }}
-            mr={1}
+            _hover={{ transform: "scale(1.15)" }}
+            userSelect="none"
           >
             ★
           </Text>
         );
       })}
-    </Box>
+    </HStack>
   );
 }
 
@@ -80,11 +80,7 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
 
     try {
       const newReview = await createReview(
-        {
-          rating,
-          comment,
-          propertyId,
-        },
+        { rating, comment, propertyId },
         token
       );
 
@@ -93,6 +89,7 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
         description: "Bedankt voor je bijdrage!",
         status: "success",
         duration: 3000,
+        position: "top",
       });
 
       onReviewAdded?.(newReview);
@@ -101,8 +98,6 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
       setRating(0);
       setComment("");
     } catch (err) {
-      console.error("Review plaatsen mislukt:", err);
-
       const message = err.response?.data?.error;
 
       // ==============================================
@@ -115,6 +110,7 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
             "Als geregistreerde host kun je geen reviews plaatsen. Dit zorgt voor eerlijke en betrouwbare beoordelingen.",
           status: "warning",
           duration: 4000,
+          position: "top",
         });
         return;
       }
@@ -129,6 +125,7 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
             "Je kunt geen tweede review plaatsen. Je kunt je bestaande review wel bewerken via 'Mijn reviews'.",
           status: "info",
           duration: 4000,
+          position: "top",
         });
         return;
       }
@@ -141,6 +138,7 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
         description: message || "Er ging iets mis.",
         status: "error",
         duration: 4000,
+        position: "top",
       });
     } finally {
       setIsLoading(false);
@@ -151,12 +149,12 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
   // = RENDER                                      =
   // ==============================================
   return (
-    <VStack spacing={4} align="start" w="100%">
+    <VStack spacing={5} align="start" w="100%">
       {/* ============================================== */}
       {/* = RATING                                      = */}
       {/* ============================================== */}
       <FormControl isInvalid={isRatingInvalid}>
-        <FormLabel>Jouw rating</FormLabel>
+        <FormLabel fontWeight="bold">Jouw rating</FormLabel>
         <StarRating rating={rating} setRating={setRating} />
         {isRatingInvalid && (
           <FormErrorMessage>
@@ -169,11 +167,13 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
       {/* = COMMENT                                     = */}
       {/* ============================================== */}
       <FormControl isInvalid={isCommentInvalid}>
-        <FormLabel>Review</FormLabel>
+        <FormLabel fontWeight="bold">Review</FormLabel>
         <Textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="Schrijf je review..."
+          resize="vertical"
+          minH="120px"
         />
         {isCommentInvalid && (
           <FormErrorMessage>
@@ -191,6 +191,7 @@ export default function ReviewForm({ propertyId, onReviewAdded }) {
         isDisabled={isRatingInvalid || isCommentInvalid}
         isLoading={isLoading}
         loadingText="Bezig..."
+        w={{ base: "100%", sm: "auto" }}
       >
         Review plaatsen
       </Button>

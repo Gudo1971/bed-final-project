@@ -8,6 +8,10 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import FullscreenGallery from "./FullscreenGallery";
 
+// Helper: haal altijd een bruikbare URL uit item
+const getImageUrl = (img) =>
+  typeof img === "string" ? img : img?.url || "";
+
 // ==============================================
 // = COMPONENT                                   =
 // ==============================================
@@ -23,7 +27,6 @@ export default function ImageCarousel({ images }) {
   // ==============================================
   // = LOADING / FADE / AUTOPLAY                  =
   // ==============================================
-  const [loading, setLoading] = useState(true);
   const [fade, setFade] = useState(false);
   const [paused, setPaused] = useState(false);
 
@@ -85,13 +88,14 @@ export default function ImageCarousel({ images }) {
   // = AUTOPLAY (respecteert pause)               =
   // ==============================================
   useEffect(() => {
-    if (paused) return;
+    if (paused || safeImages.length <= 1) return;
 
     const interval = setInterval(() => {
       next();
     }, 4000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paused, safeImages.length]);
 
   // ==============================================
@@ -115,6 +119,8 @@ export default function ImageCarousel({ images }) {
     });
   }, [index]);
 
+  const currentUrl = getImageUrl(safeImages[index]);
+
   // ==============================================
   // = RENDER                                      =
   // ==============================================
@@ -133,7 +139,7 @@ export default function ImageCarousel({ images }) {
         onMouseLeave={() => setPaused(false)}
       >
         <Image
-          src={safeImages[index].url}
+          src={currentUrl}
           alt=""
           objectFit="cover"
           width="100%"
@@ -149,87 +155,98 @@ export default function ImageCarousel({ images }) {
         {/* ============================================== */}
         {/* = ARROWS                                      = */}
         {/* ============================================== */}
-        <IconButton
-          aria-label="Previous"
-          icon={<ChevronLeftIcon boxSize={8} />}
-          position="absolute"
-          top="50%"
-          left="10px"
-          transform="translateY(-50%)"
-          onClick={prev}
-          background="rgba(0,0,0,0.4)"
-          color="white"
-          _hover={{ background: "rgba(0,0,0,0.6)" }}
-          zIndex={4}
-        />
+        {safeImages.length > 1 && (
+          <>
+            <IconButton
+              aria-label="Previous"
+              icon={<ChevronLeftIcon boxSize={8} />}
+              position="absolute"
+              top="50%"
+              left="10px"
+              transform="translateY(-50%)"
+              onClick={prev}
+              background="rgba(0,0,0,0.4)"
+              color="white"
+              _hover={{ background: "rgba(0,0,0,0.6)" }}
+              zIndex={4}
+            />
 
-        <IconButton
-          aria-label="Next"
-          icon={<ChevronRightIcon boxSize={8} />}
-          position="absolute"
-          top="50%"
-          right="10px"
-          transform="translateY(-50%)"
-          onClick={next}
-          background="rgba(0,0,0,0.4)"
-          color="white"
-          _hover={{ background: "rgba(0,0,0,0.6)" }}
-          zIndex={4}
-        />
+            <IconButton
+              aria-label="Next"
+              icon={<ChevronRightIcon boxSize={8} />}
+              position="absolute"
+              top="50%"
+              right="10px"
+              transform="translateY(-50%)"
+              onClick={next}
+              background="rgba(0,0,0,0.4)"
+              color="white"
+              _hover={{ background: "rgba(0,0,0,0.6)" }}
+              zIndex={4}
+            />
+          </>
+        )}
       </Box>
 
       {/* ============================================== */}
       {/* = THUMBNAILS (scroll + auto-snap)             = */}
       {/* ============================================== */}
-      <Flex
-        ref={containerRef}
-        mt={3}
-        gap={2}
-        overflowX="auto"
-        overflowY="hidden"
-        whiteSpace="nowrap"
-        scrollBehavior="smooth"
-        css={{
-          "&::-webkit-scrollbar": {
-            height: "6px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "#ccc",
-            borderRadius: "10px",
-          },
-        }}
-      >
-        {safeImages.map((img, i) => (
-          <Box
-            key={i}
-            ref={addToRefs}
-            display="inline-block"
-            width="70px"
-            height="70px"
-            borderRadius="6px"
-            overflow="hidden"
-            border={i === index ? "3px solid teal" : "2px solid transparent"}
-            cursor="pointer"
-            onClick={() => setIndex(i)}
-            flexShrink={0}
-          >
-            <Image
-              src={img.url}
-              alt=""
-              objectFit="cover"
-              width="100%"
-              height="100%"
-            />
-          </Box>
-        ))}
-      </Flex>
+      {safeImages.length > 1 && (
+        <Flex
+          ref={containerRef}
+          mt={3}
+          gap={2}
+          overflowX="auto"
+          overflowY="hidden"
+          whiteSpace="nowrap"
+          scrollBehavior="smooth"
+          css={{
+            "&::-webkit-scrollbar": {
+              height: "6px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#ccc",
+              borderRadius: "10px",
+            },
+          }}
+        >
+          {safeImages.map((img, i) => {
+            const thumbUrl = getImageUrl(img);
+            return (
+              <Box
+                key={i}
+                ref={addToRefs}
+                display="inline-block"
+                width="70px"
+                height="70px"
+                borderRadius="6px"
+                overflow="hidden"
+                border={i === index ? "3px solid teal" : "2px solid transparent"}
+                cursor="pointer"
+                onClick={() => setIndex(i)}
+                flexShrink={0}
+              >
+                <Image
+                  src={thumbUrl}
+                  alt=""
+                  objectFit="cover"
+                  width="100%"
+                  height="100%"
+                />
+              </Box>
+            );
+          })}
+        </Flex>
+      )}
 
       {/* ============================================== */}
       {/* = FULLSCREEN GALLERY                          = */}
       {/* ============================================== */}
       {fullscreen && (
         <FullscreenGallery
-          images={safeImages}
+          images={safeImages.map((img) =>
+            typeof img === "string" ? { url: img } : img
+          )}
           index={index}
           onClose={() => setFullscreen(false)}
           onPrev={prev}

@@ -1,6 +1,6 @@
-// ==============================================
-// = BOOKING EDIT MODAL                          =
-// ==============================================
+// ============================================================
+// = BOOKING EDIT MODAL                                        =
+// ============================================================
 
 import {
   Modal,
@@ -19,6 +19,7 @@ import {
   IconButton,
   Box,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
@@ -26,6 +27,7 @@ import { useEffect, useState } from "react";
 
 import CalendarGrid from "../calendar/CalendarGrid";
 import { updateBooking } from "../../services/bookings";
+import { getBookingStatus } from "../../utils/getBookingStatus";
 
 export default function BookingEditModal({
   isOpen,
@@ -36,9 +38,15 @@ export default function BookingEditModal({
 }) {
   const toast = useToast();
 
-  // ==============================================
-  // = STATE BLOKKEN                              =
-  // ==============================================
+  // ============================================================
+  // = DARK MODE COLORS                                          =
+  // ============================================================
+  const labelColor = useColorModeValue("gray.700", "gray.200");
+  const textColor = useColorModeValue("gray.800", "gray.100");
+
+  // ============================================================
+  // = STATE BLOKKEN                                             =
+  // ============================================================
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [days, setDays] = useState([]);
 
@@ -46,9 +54,9 @@ export default function BookingEditModal({
   const [checkOut, setCheckOut] = useState(null);
   const [guests, setGuests] = useState(1);
 
-  // ==============================================
-  // = NORMALIZE (timezone‑safe)                  =
-  // ==============================================
+  // ============================================================
+  // = NORMALIZE (timezone‑safe)                                 =
+  // ============================================================
   function normalize(date) {
     if (!date) return null;
 
@@ -60,19 +68,32 @@ export default function BookingEditModal({
     return `${y}-${m}-${day}`;
   }
 
-  // ==============================================
-  // = DISABLED DATES FILTEREN                    =
-  // = (eigen boeking niet blokkeren)             =
-  // ==============================================
+  // ============================================================
+  // = STATUS ENGINE (CENTRAAL, CLEAN, FUTURE-PROOF)             =
+  // ============================================================
+  const status = getBookingStatus(
+    booking?.checkinDate,
+    booking?.checkoutDate
+  );
+
+  const isPastBooking = status === "verlopen";
+  const isCanceled = booking?.bookingStatus?.toLowerCase() === "canceled";
+
+  // Gebruiker mag NIET bewerken als booking canceled of verleden is
+  const canEdit = !isPastBooking && !isCanceled;
+
+  // ============================================================
+  // = DISABLED DATES FILTEREN                                   =
+  // ============================================================
   const filteredDisabledDates = disabledDates.filter(
     (d) =>
       d < normalize(booking?.checkinDate) ||
       d > normalize(booking?.checkoutDate)
   );
 
-  // ==============================================
-  // = DAGEN GENEREREN (timezone‑safe)            =
-  // ==============================================
+  // ============================================================
+  // = DAGEN GENEREREN                                           =
+  // ============================================================
   function generateDays(monthDate) {
     const year = monthDate.getFullYear();
     const month = monthDate.getMonth();
@@ -93,39 +114,41 @@ export default function BookingEditModal({
     setDays(generateDays(currentMonth));
   }, [currentMonth]);
 
-  // ==============================================
-  // = RESET BIJ OPENEN                           =
-  // ==============================================
+  // ============================================================
+  // = RESET BIJ OPENEN                                          =
+  // ============================================================
   useEffect(() => {
     if (booking) {
-      const start = new Date(booking.checkinDate);
+      const start = booking.checkinDate
+        ? new Date(booking.checkinDate)
+        : new Date();
 
       setCurrentMonth(new Date(start.getFullYear(), start.getMonth(), 1));
 
-      setCheckIn(normalize(booking.checkinDate));
-      setCheckOut(normalize(booking.checkoutDate));
+      setCheckIn(normalize(booking.checkinDate) || null);
+      setCheckOut(normalize(booking.checkoutDate) || null);
       setGuests(booking.numberOfGuests || 1);
     }
   }, [booking]);
 
   if (!booking) return null;
 
-  // ==============================================
-  // = DATUM SELECTIE                             =
-  // ==============================================
+  // ============================================================
+  // = DATUM SELECTIE                                            =
+  // ============================================================
   function handleDateClick(dateObj) {
+    if (!canEdit) return;
+
     const normalized = normalize(dateObj);
 
     if (filteredDisabledDates.includes(normalized)) return;
 
-    // 1. Nog geen check‑in
     if (!checkIn) {
       setCheckIn(normalized);
       setCheckOut(null);
       return;
     }
 
-    // 2. Check‑in gekozen, check‑out nog niet
     if (checkIn && !checkOut) {
       if (new Date(normalized) <= new Date(checkIn)) {
         toast({
@@ -139,15 +162,16 @@ export default function BookingEditModal({
       return;
     }
 
-    // 3. Beide gekozen → opnieuw beginnen
     setCheckIn(normalized);
     setCheckOut(null);
   }
 
-  // ==============================================
-  // = OPSLAAN                                    =
-  // ==============================================
+  // ============================================================
+  // = OPSLAAN                                                   =
+  // ============================================================
   async function handleSave() {
+    if (!canEdit) return;
+
     if (!checkIn || !checkOut) {
       toast({
         title: "Datums ontbreken",
@@ -181,59 +205,70 @@ export default function BookingEditModal({
     }
   }
 
-  // ==============================================
-  // = MAAND NAVIGATIE                            =
-  // ==============================================
+  // ============================================================
+  // = MAAND NAVIGATIE                                           =
+  // ============================================================
   function prevMonth() {
+    if (!canEdit) return;
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
     );
   }
 
   function nextMonth() {
+    if (!canEdit) return;
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
     );
   }
 
-  // ==============================================
-  // = RENDER                                      =
-  // ==============================================
+  // ============================================================
+  // = RENDER                                                     =
+  // ============================================================
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Boeking bewerken</ModalHeader>
+
+      <ModalContent borderRadius="lg">
+        <ModalHeader color={textColor}>Boeking bewerken</ModalHeader>
 
         <ModalBody>
-          <Text mb={4} fontWeight="bold">
+          <Text mb={4} fontWeight="bold" color={textColor}>
             {booking.property?.title}
           </Text>
 
-          {/* ============================================== */}
-          {/* = AANTAL PERSONEN                             = */}
-          {/* ============================================== */}
+          {!canEdit && (
+            <Text color="red.400" fontSize="sm" mb={3}>
+              Deze boeking kan niet worden bewerkt.
+            </Text>
+          )}
+
+          {/* ============================================================ */}
+          {/* = AANTAL PERSONEN                                           */}
+          {/* ============================================================ */}
           <FormControl mb={4}>
-            <FormLabel>Aantal personen</FormLabel>
+            <FormLabel color={labelColor}>Aantal personen</FormLabel>
             <NumberInput
               min={1}
               value={guests}
               onChange={(vStr, vNum) => setGuests(vNum || 1)}
+              isDisabled={!canEdit}
             >
-              <NumberInputField />
+              <NumberInputField color={textColor} />
             </NumberInput>
           </FormControl>
 
-          {/* ============================================== */}
-          {/* = MAAND NAVIGATIE                             = */}
-          {/* ============================================== */}
+          {/* ============================================================ */}
+          {/* = MAAND NAVIGATIE                                           */}
+          {/* ============================================================ */}
           <HStack justify="space-between" mb={2}>
             <IconButton
               icon={<ChevronLeftIcon />}
               onClick={prevMonth}
               aria-label="Vorige maand"
+              isDisabled={!canEdit}
             />
-            <Text fontWeight="bold">
+            <Text fontWeight="bold" color={textColor}>
               {currentMonth.toLocaleString("nl-NL", {
                 month: "long",
                 year: "numeric",
@@ -243,32 +278,38 @@ export default function BookingEditModal({
               icon={<ChevronRightIcon />}
               onClick={nextMonth}
               aria-label="Volgende maand"
+              isDisabled={!canEdit}
             />
           </HStack>
 
-          {/* ============================================== */}
-          {/* = KALENDER                                    = */}
-          {/* ============================================== */}
+          {/* ============================================================ */}
+          {/* = KALENDER                                                  */}
+          {/* ============================================================ */}
           <Box>
             <CalendarGrid
+              key={`${checkIn}-${checkOut}`}
               days={days}
               disabledDates={filteredDisabledDates}
               checkIn={checkIn}
               checkOut={checkOut}
               onDateClick={handleDateClick}
-              isInteractive={true}
+              isInteractive={canEdit}
             />
           </Box>
         </ModalBody>
 
-        {/* ============================================== */}
-        {/* = FOOTER KNOPPEN                              = */}
-        {/* ============================================== */}
+        {/* ============================================================ */}
+        {/* = FOOTER KNOPPEN                                            */}
+        {/* ============================================================ */}
         <ModalFooter>
           <Button mr={3} onClick={onClose}>
-            Annuleren
+            Sluiten
           </Button>
-          <Button colorScheme="teal" onClick={handleSave}>
+          <Button
+            colorScheme="teal"
+            onClick={handleSave}
+            isDisabled={!canEdit}
+          >
             Opslaan
           </Button>
         </ModalFooter>

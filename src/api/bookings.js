@@ -1,81 +1,112 @@
+// ==============================================
+// = BOOKINGS API                                =
+// = CRUD + disabled dates                       =
+// ==============================================
+
 import { apiClient } from "./apiClient";
 
 const BASE_URL = "http://localhost:3000/api";
 
+// ==============================================
+// = SAFE REQUEST WRAPPER                        =
+// ==============================================
+async function safeRequest(promise) {
+  try {
+    return await promise;
+  } catch (err) {
+    console.error("❌ Bookings API error:", err);
+    throw err?.error || err;
+  }
+}
+
+// Helper: build headers
+function authHeaders(token) {
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 /* ============================================================
    CREATE BOOKING
+   POST /bookings
 ============================================================ */
-export async function createBooking(data, token) {
-  return apiClient(`${BASE_URL}/bookings`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: data,
-  });
+export function createBooking(data, token) {
+  return safeRequest(
+    apiClient(`${BASE_URL}/bookings`, {
+      method: "POST",
+      headers: authHeaders(token),
+      body: data,
+    })
+  );
 }
 
 /* ============================================================
    GET USER BOOKINGS
+   GET /bookings/user/:userId
 ============================================================ */
-export async function getUserBookings(userId, token) {
-  return apiClient(`${BASE_URL}/bookings/user/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export function getUserBookings(userId, token) {
+  return safeRequest(
+    apiClient(`${BASE_URL}/bookings/user/${userId}`, {
+      headers: authHeaders(token),
+    })
+  );
 }
 
 /* ============================================================
    GET BOOKING BY ID
+   GET /bookings/:id
 ============================================================ */
-export async function getBookingById(id, token) {
-  return apiClient(`${BASE_URL}/bookings/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export function getBookingById(id, token) {
+  return safeRequest(
+    apiClient(`${BASE_URL}/bookings/${id}`, {
+      headers: authHeaders(token),
+    })
+  );
 }
 
 /* ============================================================
    GET BOOKINGS FOR PROPERTY
+   GET /bookings/property/:propertyId
 ============================================================ */
-export async function getBookingsByPropertyId(propertyId, token) {
-  return apiClient(`${BASE_URL}/bookings/property/${propertyId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export function getBookingsByPropertyId(propertyId, token) {
+  return safeRequest(
+    apiClient(`${BASE_URL}/bookings/property/${propertyId}`, {
+      headers: authHeaders(token),
+    })
+  );
 }
 
 /* ============================================================
    DELETE BOOKING
+   DELETE /bookings/:id
 ============================================================ */
-export async function deleteBooking(id, token) {
-  return apiClient(`${BASE_URL}/bookings/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export function deleteBooking(id, token) {
+  return safeRequest(
+    apiClient(`${BASE_URL}/bookings/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(token),
+    })
+  );
 }
 
 /* ============================================================
    UPDATE BOOKING
+   PUT /bookings/:id
 ============================================================ */
-export async function updateBooking(id, data, token) {
-  return apiClient(`${BASE_URL}/bookings/${id}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: data,
-  });
+export function updateBooking(id, data, token) {
+  return safeRequest(
+    apiClient(`${BASE_URL}/bookings/${id}`, {
+      method: "PUT",
+      headers: authHeaders(token),
+      body: data,
+    })
+  );
 }
 
-/*============================================================
-  GET DISABLED DATES
-============================================================== */
-export async function getDisabledDates(propertyId) {
-  return apiClient(`${BASE_URL}/bookings/disabled-dates/${propertyId}`);
+/* ============================================================
+   GET DISABLED DATES
+   GET /bookings/disabled-dates/:propertyId
+============================================================ */
+export function getDisabledDates(propertyId) {
+  return safeRequest(
+    apiClient(`${BASE_URL}/bookings/disabled-dates/${propertyId}`)
+  );
 }

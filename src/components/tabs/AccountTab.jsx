@@ -1,26 +1,52 @@
-import { Box, Heading, Text, Button, Stack, useToast } from "@chakra-ui/react";
+// ==============================================
+// = ACCOUNT TAB                                 =
+// = Instellingen, host-status, acties           =
+// ==============================================
+
+import {
+  Box,
+  Heading,
+  Text,
+  Stack,
+  useToast,
+  IconButton,
+  useColorModeValue,
+} from "@chakra-ui/react";
+
+import { FiSettings } from "react-icons/fi";
+
 import { useAuth } from "../context/AuthContext";
 import PasswordChangeModal from "../account/PasswordChangeModal";
+import EditPersonalInfoModal from "../account/EditPersonalInfoModal";
+import SettingsDrawer from "../account/SettingsDrawer";
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AccountTab() {
   const { user, logout, becomeHost, stopHost } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+
+  const [isPasswordOpen, setPasswordOpen] = useState(false);
+  const [isEditOpen, setEditOpen] = useState(false);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
+
   const navigate = useNavigate();
   const toast = useToast();
 
-  /* ===========================================================
-     Logout
-  ============================================================ */
+  const cardBg = useColorModeValue("gray.50", "gray.700");
+  const labelColor = useColorModeValue("gray.600", "gray.300");
+
+  /* ==============================================
+     LOGOUT
+  ============================================== */
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  /* ===========================================================
-     Become Host
-  ============================================================ */
+  /* ==============================================
+     BECOME HOST
+  ============================================== */
   const handleBecomeHost = async () => {
     try {
       await becomeHost();
@@ -39,9 +65,9 @@ export default function AccountTab() {
     }
   };
 
-  /* ===========================================================
-     Stop Host Account (echt)
-  ============================================================ */
+  /* ==============================================
+     STOP HOST
+  ============================================== */
   const handleCancelHost = async () => {
     const confirmCancel = window.confirm(
       "Weet je zeker dat je wilt stoppen als host?"
@@ -49,8 +75,7 @@ export default function AccountTab() {
     if (!confirmCancel) return;
 
     try {
-      await stopHost(); 
-      
+      await stopHost();
       toast({
         title: "Host account gedeactiveerd",
         status: "success",
@@ -67,49 +92,82 @@ export default function AccountTab() {
   };
 
   return (
-    <Box>
-      <Heading size="md" mb={4}>
+    <Box position="relative">
+
+      {/* ============================================== */}
+      {/* = SETTINGS ICON                               = */}
+      {/* ============================================== */}
+      <IconButton
+        icon={<FiSettings />}
+        aria-label="Instellingen"
+        variant="ghost"
+        size="lg"
+        position="absolute"
+        top={-2}
+        right={2}
+        onClick={() => setDrawerOpen(true)}
+      />
+
+      {/* ============================================== */}
+      {/* = TITEL                                       = */}
+      {/* ============================================== */}
+      <Heading size="md" mb={10}>
         Account
       </Heading>
 
-      <Stack spacing={4}>
-        {/* Email */}
-        <Box>
-          <Text fontWeight="bold">E‑mail:</Text>
-          <Text>{user?.email}</Text>
-        </Box>
+      {/* ============================================== */}
+      {/* = INFO CARD                                   = */}
+      {/* ============================================== */}
+      <Box
+        bg={cardBg}
+        p={5}
+        borderRadius="lg"
+        boxShadow="sm"
+        mb={6}
+      >
+        <Stack spacing={4}>
+          <Box>
+            <Text fontWeight="bold" color={labelColor}>
+              E‑mail
+            </Text>
+            <Text>{user?.email}</Text>
+          </Box>
 
-        {/* Account Type */}
-        <Box>
-          <Text fontWeight="bold">Account type:</Text>
-          <Text>{user?.isHost ? "Host" : "Geregistreerde gebruiker"}</Text>
-        </Box>
+          <Box>
+            <Text fontWeight="bold" color={labelColor}>
+              Accounttype
+            </Text>
+            <Text>{user?.isHost ? "Host" : "Geregistreerde gebruiker"}</Text>
+          </Box>
+        </Stack>
+      </Box>
 
-        {/* Host Actions */}
-        {!user?.isHost && (
-          <Button colorScheme="teal" onClick={handleBecomeHost}>
-            Word Host
-          </Button>
-        )}
+      {/* ============================================== */}
+      {/* = SETTINGS DRAWER                             = */}
+      {/* ============================================== */}
+      <SettingsDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onEditPersonal={() => setEditOpen(true)}
+        onChangePassword={() => setPasswordOpen(true)}
+        onBecomeHost={handleBecomeHost}
+        onStopHost={handleCancelHost}
+        onLogout={handleLogout}
+        isHost={user?.isHost}
+      />
 
-        {user?.isHost && (
-          <Button colorScheme="red" variant="outline" onClick={handleCancelHost}>
-            Stop Host Account
-          </Button>
-        )}
+      {/* ============================================== */}
+      {/* = MODALS                                      = */}
+      {/* ============================================== */}
+      <PasswordChangeModal
+        isOpen={isPasswordOpen}
+        onClose={() => setPasswordOpen(false)}
+      />
 
-        {/* Password Change */}
-        <Button colorScheme="teal" onClick={() => setIsOpen(true)}>
-          Wachtwoord wijzigen
-        </Button>
-
-        {/* Logout */}
-        <Button colorScheme="red" variant="outline" onClick={handleLogout}>
-          Uitloggen
-        </Button>
-      </Stack>
-
-      <PasswordChangeModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <EditPersonalInfoModal
+        isOpen={isEditOpen}
+        onClose={() => setEditOpen(false)}
+      />
     </Box>
   );
 }

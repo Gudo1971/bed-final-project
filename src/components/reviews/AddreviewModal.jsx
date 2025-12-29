@@ -24,14 +24,16 @@ export default function AddReviewModal({
   onReviewAdded,
 }) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "full", md: "lg" }}>
       <ModalOverlay />
 
-      <ModalContent>
+      <ModalContent borderRadius="md" overflow="hidden">
         {/* ============================================== */}
         {/* = HEADER                                      = */}
         {/* ============================================== */}
-        <ModalHeader>Review toevoegen</ModalHeader>
+        <ModalHeader fontSize={{ base: "xl", md: "2xl" }}>
+          Review toevoegen
+        </ModalHeader>
         <ModalCloseButton />
 
         {/* ============================================== */}

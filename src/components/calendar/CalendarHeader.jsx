@@ -3,7 +3,7 @@
 // = Maand + jaar + navigatieknoppen             =
 // ==============================================
 
-import { Flex, IconButton, Text } from "@chakra-ui/react";
+import { Flex, IconButton, Text, useColorModeValue } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 
 // ==============================================
@@ -34,6 +34,13 @@ export default function CalendarHeader({
   ];
 
   // ==============================================
+  // = DARK MODE COLORS                           =
+  // ==============================================
+  const textColor = useColorModeValue("gray.800", "gray.100");
+  const buttonColor = useColorModeValue("gray.600", "gray.300");
+  const buttonHover = useColorModeValue("gray.700", "gray.200");
+
+  // ==============================================
   // = RENDER                                      =
   // ==============================================
   return (
@@ -42,16 +49,23 @@ export default function CalendarHeader({
       {/* = VORIGE MAAND                                = */}
       {/* ============================================== */}
       <IconButton
-        icon={<ChevronLeftIcon />}
-        onClick={onPrevMonth}
         aria-label="Vorige maand"
+        icon={<ChevronLeftIcon />}
         variant="ghost"
+        color={buttonColor}
+        _hover={{ color: buttonHover }}
+        onClick={onPrevMonth}
       />
 
       {/* ============================================== */}
       {/* = MAAND + JAAR                                = */}
       {/* ============================================== */}
-      <Text fontSize="xl" fontWeight="bold">
+      <Text
+        fontSize="xl"
+        fontWeight="bold"
+        color={textColor}
+        userSelect="none"
+      >
         {monthNames[month]} {year}
       </Text>
 
@@ -59,10 +73,12 @@ export default function CalendarHeader({
       {/* = VOLGENDE MAAND                              = */}
       {/* ============================================== */}
       <IconButton
-        icon={<ChevronRightIcon />}
-        onClick={onNextMonth}
         aria-label="Volgende maand"
+        icon={<ChevronRightIcon />}
         variant="ghost"
+        color={buttonColor}
+        _hover={{ color: buttonHover }}
+        onClick={onNextMonth}
       />
     </Flex>
   );

@@ -9,7 +9,9 @@ import {
   Button,
   HStack,
   VStack,
+  Box,
   useDisclosure,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import AddReviewModal from "./AddreviewModal";
@@ -52,8 +54,10 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
   if (!reviews || reviews.length === 0) {
     return (
       <>
-        <HStack justify="space-between" w="100%" mb={2}>
-          <Text fontSize="xl" fontWeight="bold">Reviews</Text>
+        <HStack justify="space-between" w="100%" mb={3}>
+          <Text fontSize="xl" fontWeight="bold">
+            Reviews
+          </Text>
 
           {isAuthenticated && (
             <Button colorScheme="blue" size="sm" onClick={onOpen}>
@@ -62,7 +66,7 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
           )}
         </HStack>
 
-        <Text>Geen reviews beschikbaar.</Text>
+        <Text color="gray.500">Geen reviews beschikbaar.</Text>
 
         <AddReviewModal
           isOpen={isOpen}
@@ -87,8 +91,10 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
       {/* ============================================== */}
       {/* = HEADER                                      = */}
       {/* ============================================== */}
-      <HStack justify="space-between" w="100%" mb={2}>
-        <Text fontSize="xl" fontWeight="bold">Reviews</Text>
+      <HStack justify="space-between" w="100%" mb={3}>
+        <Text fontSize="xl" fontWeight="bold">
+          Reviews
+        </Text>
 
         {isAuthenticated && (
           <Button colorScheme="blue" size="sm" onClick={onOpen}>
@@ -103,15 +109,23 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
       <VStack
         spacing={4}
         p={6}
-        border="1px solid #ddd"
+        w="100%"
         borderRadius="md"
+        bg={useColorModeValue("gray.100", "gray.700")}
+        boxShadow="md"
+        transition="all 0.2s ease"
+        _hover={{ boxShadow: "lg", transform: "translateY(-2px)" }}
       >
-        <Text fontSize="lg" fontWeight="bold">
+        <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold">
           ⭐ {review.rating} / 5
         </Text>
 
-        <Text fontSize="md" textAlign="center">
-          "{review.comment}"
+        <Text
+          fontSize={{ base: "md", md: "lg" }}
+          textAlign="center"
+          fontStyle="italic"
+        >
+          “{review.comment}”
         </Text>
 
         <Text fontSize="sm" color="gray.500">
@@ -123,6 +137,8 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
         {/* ============================================== */}
         <HStack spacing={4} pt={4}>
           <Button
+            size="sm"
+            variant="outline"
             onClick={() =>
               setIndex((i) => (i - 1 + reviews.length) % reviews.length)
             }
@@ -130,14 +146,18 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
             Vorige
           </Button>
 
-          <Button onClick={() => setIsPaused((p) => !p)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsPaused((p) => !p)}
+          >
             {isPaused ? "▶️ Play" : "⏸️ Pause"}
           </Button>
 
           <Button
-            onClick={() =>
-              setIndex((i) => (i + 1) % reviews.length)
-            }
+            size="sm"
+            variant="outline"
+            onClick={() => setIndex((i) => (i + 1) % reviews.length)}
           >
             Volgende
           </Button>

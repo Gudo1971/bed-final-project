@@ -1,7 +1,6 @@
-// ==============================================
-// = BOOKING PAGE                               =
-// = Selecteer datums + boekingsflow            =
-// ==============================================
+// ============================================================
+// = BOOKING PAGE                                             =
+// ============================================================
 
 import { useState, useEffect } from "react";
 import {
@@ -12,19 +11,17 @@ import {
   IconButton,
   Spinner,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import BookingModal from "../components/booking/BookingModal";
 import { useAuth } from "../components/context/AuthContext";
 
 export default function BookingPage() {
-  // ==============================================
-  // = ROUTER + AUTH                              =
-  // ==============================================
   const { propertyId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
@@ -32,9 +29,6 @@ export default function BookingPage() {
   const { user, token } = useAuth();
   const isAuthenticated = !!user && !!token;
 
-  // ==============================================
-  // = STATE BLOKKEN                              =
-  // ==============================================
   const [property, setProperty] = useState(null);
   const [disabledDates, setDisabledDates] = useState([]);
   const [days, setDays] = useState([]);
@@ -50,9 +44,9 @@ export default function BookingPage() {
 
   const pricePerNight = 100;
 
-  // ==============================================
-  // = AUTH GUARD (veilig in useEffect)           =
-  // ==============================================
+  // ============================================================
+  // = AUTH REDIRECT                                            =
+  // ============================================================
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login", {
@@ -61,9 +55,9 @@ export default function BookingPage() {
     }
   }, [isAuthenticated, navigate]);
 
-  // ==============================================
-  // = DATA OPHALEN (property + disabled dates)   =
-  // ==============================================
+  // ============================================================
+  // = DATA LOAD                                                =
+  // ============================================================
   const loadProperty = async () => {
     const res = await fetch(`http://localhost:3000/api/properties/${propertyId}`);
     return res.json();
@@ -106,9 +100,9 @@ export default function BookingPage() {
     loadAll();
   }, [propertyId, isAuthenticated, toast]);
 
-  // ==============================================
-  // = KALENDER GENEREREN                         =
-  // ==============================================
+  // ============================================================
+  // = CALENDAR DAYS GENERATION                                 =
+  // ============================================================
   useEffect(() => {
     const first = new Date(currentYear, currentMonth, 1);
     const last = new Date(currentYear, currentMonth + 1, 0);
@@ -125,18 +119,10 @@ export default function BookingPage() {
     setDays(temp);
   }, [currentYear, currentMonth]);
 
-  // ==============================================
-  // = CONDITIONELE RENDERS                       =
-  // ==============================================
-  if (!isAuthenticated) {
-    return (
-      <Flex justify="center" mt={20}>
-        <Spinner size="xl" />
-      </Flex>
-    );
-  }
-
-  if (loading) {
+  // ============================================================
+  // = LOADING STATE                                            =
+  // ============================================================
+  if (!isAuthenticated || loading) {
     return (
       <Flex align="center" justify="center" mt={20}>
         <Spinner size="xl" color="blue.500" />
@@ -147,9 +133,9 @@ export default function BookingPage() {
     );
   }
 
-  // ==============================================
-  // = DATUMSELECTIE                              =
-  // ==============================================
+  // ============================================================
+  // = DATE SELECTION                                           =
+  // ============================================================
   const formatDate = (date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -176,9 +162,9 @@ export default function BookingPage() {
     }
   };
 
-  // ==============================================
-  // = MAANDNAVIGATIE                             =
-  // ==============================================
+  // ============================================================
+  // = MONTH NAVIGATION                                         =
+  // ============================================================
   const goToPreviousMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -197,9 +183,9 @@ export default function BookingPage() {
     }
   };
 
-  // ==============================================
-  // = PRIJSBEREKENING                            =
-  // ==============================================
+  // ============================================================
+  // = PRICE CALCULATION                                        =
+  // ============================================================
   const nightCount =
     checkIn && checkOut
       ? (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
@@ -207,30 +193,55 @@ export default function BookingPage() {
 
   const totalPrice = nightCount * pricePerNight;
 
-  // ==============================================
-  // = RENDER                                      =
-  // ==============================================
+  // ============================================================
+  // = RENDER                                                   =
+  // ============================================================
+  const titleColor = useColorModeValue("teal.600", "teal.300");
+
   return (
-    <Box p={6}>
-      <Text fontSize="2xl" fontWeight="bold" mb={4}>
+    <Box maxW="800px" mx="auto" p={{ base: 4, md: 6 }} pb={10}>
+
+      {/* ============================================================ */}
+      {/* = TERUGKNOP                                                = */}
+      {/* ============================================================ */}
+      <Button
+        as={Link}
+        to={`/properties/${propertyId}`}
+        variant="ghost"
+        colorScheme="teal"
+        size="sm"
+        mb={4}
+      >
+        ← Terug naar overzicht
+      </Button>
+
+      <Text
+        fontSize={{ base: "xl", md: "2xl" }}
+        fontWeight="bold"
+        mb={4}
+        color={titleColor}
+        textAlign="center"
+      >
         Selecteer je datums
       </Text>
 
-      {/* ============================================== */}
-      {/* = MAANDNAVIGATIE                              = */}
-      {/* ============================================== */}
-      <Flex align="center" justify="space-between" mb={4}>
+      {/* ============================================================ */}
+      {/* = MONTH NAVIGATION                                         = */}
+      {/* ============================================================ */}
+      <Flex align="center" justify="space-between" mb={4} flexWrap="wrap" gap={3}>
         <IconButton
           icon={<ChevronLeftIcon />}
           onClick={goToPreviousMonth}
           aria-label="Vorige maand"
         />
-        <Text fontSize="xl" fontWeight="bold">
+
+        <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold">
           {new Date(currentYear, currentMonth).toLocaleString("nl-NL", {
             month: "long",
             year: "numeric",
           })}
         </Text>
+
         <IconButton
           icon={<ChevronRightIcon />}
           onClick={goToNextMonth}
@@ -238,44 +249,49 @@ export default function BookingPage() {
         />
       </Flex>
 
-      {/* ============================================== */}
-      {/* = KALENDER                                    = */}
-      {/* ============================================== */}
-      <CalendarGrid
-        days={days}
-        disabledDates={disabledDates}
-        checkIn={checkIn}
-        checkOut={checkOut}
-        onDateClick={handleDateSelection}
-        isInteractive={property?.isActive ?? true}
-      />
+      {/* ============================================================ */}
+      {/* = CALENDAR GRID                                            = */}
+      {/* ============================================================ */}
+      <Box overflowX="auto">
+        <CalendarGrid
+          days={days}
+          disabledDates={disabledDates}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          onDateClick={handleDateSelection}
+          isInteractive={property?.isActive ?? true}
+        />
+      </Box>
 
-      {/* ============================================== */}
-      {/* = PRIJSWEERGAVE                               = */}
-      {/* ============================================== */}
+      {/* ============================================================ */}
+      {/* = PRICE DISPLAY                                            = */}
+      {/* ============================================================ */}
       {nightCount > 0 && (
-        <Box mt={6}>
+        <Box mt={6} textAlign="center">
           <Text fontSize="lg" fontWeight="bold">
             {nightCount} nacht(en) × €{pricePerNight} = €{totalPrice}
           </Text>
         </Box>
       )}
 
-      {/* ============================================== */}
-      {/* = BOEK NU KNOP                                = */}
-      {/* ============================================== */}
-      <Button
-        mt={6}
-        colorScheme="blue"
-        isDisabled={!checkIn || !checkOut || !property?.isActive}
-        onClick={() => setIsModalOpen(true)}
-      >
-        Boek nu
-      </Button>
+      {/* ============================================================ */}
+      {/* = BOOK BUTTON                                              = */}
+      {/* ============================================================ */}
+      <Flex justify="center">
+        <Button
+          mt={6}
+          colorScheme="blue"
+          size="lg"
+          isDisabled={!checkIn || !checkOut || !property?.isActive}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Boek nu
+        </Button>
+      </Flex>
 
-      {/* ============================================== */}
-      {/* = MODAL                                       = */}
-      {/* ============================================== */}
+      {/* ============================================================ */}
+      {/* = BOOKING MODAL                                            = */}
+      {/* ============================================================ */}
       <BookingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
