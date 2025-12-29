@@ -1,7 +1,7 @@
-// ==============================================
-// = LOGIN PAGE                                  =
-// = Inloggen bij StayBnB                        =
-// ==============================================
+// ============================================================
+// = LOGIN PAGE                                                =
+// = Inloggen bij StayBnB                                      =
+// ============================================================
 
 import { useState } from "react";
 import {
@@ -22,29 +22,41 @@ import {
 import { useAuth } from "../../components/context/AuthContext.jsx";
 import { useNavigate, Link } from "react-router-dom";
 
+// ============================================================
+// = API CALL: CHECK EMAIL BESTAAT?                           =
+// ============================================================
+async function checkEmailExists(email) {
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/auth/check-email?email=${email}`
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw data;
+  }
+
+  return data;
+}
+
 export default function LoginPage() {
-  // ==============================================
-  // = AUTH + ROUTER + TOAST                      =
-  // ==============================================
   const { login } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  // ==============================================
-  // = FORM STATE                                 =
-  // ==============================================
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ==============================================
-  // = ERROR STATE                                =
-  // ==============================================
   const [errorField, setErrorField] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // ==============================================
-  // = INPUT STYLING                              =
-  // ==============================================
+  // ============================================================
+  // = EMAIL SYNTAX VALIDATIE                                   =
+  // ============================================================
+  function validateEmailFormat(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
   const inputStyle = {
     bg: useColorModeValue("gray.100", "gray.800"),
     border: "1px solid",
@@ -52,14 +64,31 @@ export default function LoginPage() {
     _placeholder: { color: useColorModeValue("gray.500", "gray.400") },
   };
 
-  // ==============================================
-  // = SUBMIT HANDLER                             =
-  // ==============================================
+  // ============================================================
+  // = SUBMIT HANDLER                                           =
+  // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorField("");
     setErrorMessage("");
 
+    // 1. Syntactische check
+    if (!validateEmailFormat(email)) {
+      setErrorField("email");
+      setErrorMessage("Voer een geldig e-mailadres in");
+      return;
+    }
+
+    // 2. Backend check
+    try {
+      await checkEmailExists(email);
+    } catch (err) {
+      setErrorField("email");
+      setErrorMessage(err.error || "We hebben geen account gevonden met dit email adres");
+      return;
+    }
+
+    // 3. Inloggen
     try {
       await login(email, password);
 
@@ -71,45 +100,54 @@ export default function LoginPage() {
 
       navigate("/");
     } catch (err) {
-      const msg = err.message.toLowerCase();
+      // ============================================================
+      // = FIX: correcte foutmelding bij fout wachtwoord            =
+      // ============================================================
+      const backendError = err.error || err.message || "";
+      const msg = backendError.toLowerCase();
 
-      if (msg.includes("email")) setErrorField("email");
-      else if (msg.includes("password")) setErrorField("password");
-      else setErrorField("form");
-
-      setErrorMessage(err.message);
+      if (msg.includes("email")) {
+        setErrorField("email");
+        setErrorMessage(backendError);
+      } 
+      else if (msg.includes("wachtwoord")) {
+        setErrorField("password");
+        setErrorMessage(backendError); // <-- toont "Het wachtwoord is onjuist."
+      } 
+      else {
+        setErrorField("form");
+        setErrorMessage(backendError || "Inloggen mislukt");
+      }
     }
   };
 
-  // ==============================================
-  // = RENDER                                      =
-  // ==============================================
+  // ============================================================
+  // = RENDER                                                   =
+  // ============================================================
   return (
     <Box
       maxW="420px"
       mx="auto"
-      mt="80px"
-      p={8}
+      mt={{ base: "60px", md: "80px" }}
+      p={{ base: 6, md: 8 }}
       borderRadius="md"
       boxShadow="lg"
       bg={useColorModeValue("white", "gray.700")}
     >
-      {/* ============================================== */}
-      {/* = TITEL                                       = */}
-      {/* ============================================== */}
-      <Heading mb={6} textAlign="center" fontSize="2xl">
+      <Heading
+        mb={6}
+        textAlign="center"
+        fontSize={{ base: "xl", md: "2xl" }}
+        fontWeight="extrabold"
+        color={useColorModeValue("teal.600", "teal.300")}
+      >
         Inloggen bij StayBnB
       </Heading>
 
-      {/* ============================================== */}
-      {/* = FORM                                        = */}
-      {/* ============================================== */}
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">
 
-          {/* ============================================== */}
-          {/* = EMAIL                                       = */}
-          {/* ============================================== */}
+          {/* EMAIL */}
           <FormControl isRequired isInvalid={errorField === "email"}>
             <FormLabel>Email</FormLabel>
             <Input
@@ -124,9 +162,7 @@ export default function LoginPage() {
             )}
           </FormControl>
 
-          {/* ============================================== */}
-          {/* = PASSWORD                                   = */}
-          {/* ============================================== */}
+          {/* PASSWORD */}
           <FormControl isRequired isInvalid={errorField === "password"}>
             <FormLabel>Wachtwoord</FormLabel>
             <Input
@@ -134,6 +170,26 @@ export default function LoginPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onFocus={async () => {
+                // 1. Syntactische check
+                if (!validateEmailFormat(email)) {
+                  setErrorField("email");
+                  setErrorMessage("Voer een geldig e-mailadres in");
+                  return;
+                }
+
+                // 2. Backend check
+                try {
+                  await checkEmailExists(email);
+                  if (errorField === "email") {
+                    setErrorField("");
+                    setErrorMessage("");
+                  }
+                } catch (err) {
+                  setErrorField("email");
+                  setErrorMessage(err.error || "We hebben geen account gevonden met dit email adres");
+                }
+              }}
               {...inputStyle}
             />
             {errorField === "password" && (
@@ -141,25 +197,27 @@ export default function LoginPage() {
             )}
           </FormControl>
 
-          {/* ============================================== */}
-          {/* = ALGEMENE FOUT                              = */}
-          {/* ============================================== */}
+          {/* ALGEMENE FOUT */}
           {errorField === "form" && (
             <Text color="red.400" fontSize="sm" textAlign="center">
               {errorMessage}
             </Text>
           )}
 
-          {/* ============================================== */}
-          {/* = SUBMIT KNOP                                = */}
-          {/* ============================================== */}
-          <Button colorScheme="teal" type="submit" width="100%">
+          {/* KNOPPEN */}
+          <Button colorScheme="teal" type="submit" width="100%" size="lg">
             Inloggen
           </Button>
 
-          {/* ============================================== */}
-          {/* = REGISTER LINK                              = */}
-          {/* ============================================== */}
+          <Button
+            variant="outline"
+            width="100%"
+            size="lg"
+            onClick={() => navigate("/")}
+          >
+            Annuleren
+          </Button>
+
           <Text fontSize="sm" textAlign="center">
             Nog geen account?{" "}
             <ChakraLink as={Link} to="/register" color="teal.500">

@@ -11,20 +11,25 @@ import {
   HStack,
   Text,
   Input,
+  IconButton,
+  useColorModeValue,
 } from "@chakra-ui/react";
+
+import { CloseIcon } from "@chakra-ui/icons";
+import { useEffect } from "react";
 
 // ==============================================
 // = COMPONENT                                   =
 // ==============================================
 export default function ImageUpload({ images, setImages }) {
+  const cardBg = useColorModeValue("gray.100", "gray.700");
+  const labelColor = useColorModeValue("gray.700", "gray.200");
 
   // ==============================================
   // = FILE CHANGE HANDLER                        =
   // ==============================================
   function handleFileChange(e) {
     const files = Array.from(e.target.files);
-
-    // Voeg File objects toe aan bestaande lijst
     setImages([...images, ...files]);
   }
 
@@ -38,6 +43,15 @@ export default function ImageUpload({ images, setImages }) {
   }
 
   // ==============================================
+  // = URL CLEANUP (memory leak prevention)       =
+  // ==============================================
+  useEffect(() => {
+    return () => {
+      images.forEach((file) => URL.revokeObjectURL(file.preview));
+    };
+  }, [images]);
+
+  // ==============================================
   // = RENDER                                      =
   // ==============================================
   return (
@@ -45,7 +59,7 @@ export default function ImageUpload({ images, setImages }) {
       {/* ============================================== */}
       {/* = LABEL                                        = */}
       {/* ============================================== */}
-      <Text fontWeight="bold" mb={2}>
+      <Text fontWeight="bold" mb={2} color={labelColor}>
         Foto’s uploaden
       </Text>
 
@@ -57,31 +71,45 @@ export default function ImageUpload({ images, setImages }) {
         accept="image/*"
         multiple
         onChange={handleFileChange}
+        cursor="pointer"
       />
 
       {/* ============================================== */}
       {/* = PREVIEW LIJST                                = */}
       {/* ============================================== */}
-      <VStack mt={3} spacing={3} align="stretch">
-        {images.map((file, index) => (
-          <HStack key={index} spacing={3}>
-            <Image
-              src={URL.createObjectURL(file)}
-              alt="preview"
-              boxSize="80px"
-              objectFit="cover"
-              borderRadius="md"
-            />
+      <VStack mt={4} spacing={3} align="stretch">
+        {images.map((file, index) => {
+          const previewUrl = URL.createObjectURL(file);
 
-            <Button
-              size="sm"
-              colorScheme="red"
-              onClick={() => removeImage(index)}
+          return (
+            <HStack
+              key={index}
+              spacing={3}
+              bg={cardBg}
+              p={2}
+              borderRadius="md"
+              boxShadow="sm"
+              _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+              transition="all 0.2s ease"
             >
-              Verwijderen
-            </Button>
-          </HStack>
-        ))}
+              <Image
+                src={previewUrl}
+                alt="preview"
+                boxSize="80px"
+                objectFit="cover"
+                borderRadius="md"
+              />
+
+              <IconButton
+                aria-label="Verwijderen"
+                icon={<CloseIcon />}
+                size="sm"
+                colorScheme="red"
+                onClick={() => removeImage(index)}
+              />
+            </HStack>
+          );
+        })}
       </VStack>
     </Box>
   );

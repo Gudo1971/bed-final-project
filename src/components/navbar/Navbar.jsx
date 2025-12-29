@@ -1,3 +1,7 @@
+// ============================================================
+// = NAVBAR (FINAL — CLEAN, RESPONSIVE, DARK MODE READY)       =
+// ============================================================
+
 import {
   Box,
   Flex,
@@ -5,13 +9,16 @@ import {
   Button,
   Avatar,
   Text,
+  IconButton,
+  useColorMode,
   useColorModeValue,
 } from "@chakra-ui/react";
 
+import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { Link, useNavigate } from "react-router-dom";
-import NavLinks from "./NavLinks";
-import MobileMenu from "./MobileMenu";
-import ThemeToggle from "./ThemeToggle";
+
+import NavLinks from "./NavLinks.jsx";
+import MobileMenu from "./MobileMenu.jsx";
 
 import { useAuth } from "../../components/context/AuthContext.jsx";
 
@@ -19,64 +26,108 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const { colorMode, toggleColorMode } = useColorMode();
+
   const handleLogout = () => {
-    logout();          // token + user verwijderen
-    navigate("/login"); // direct terug naar login
+    logout();
+    navigate("/login");
   };
+
+  // DARK MODE COLORS
+  const bgColor = useColorModeValue("white", "gray.800");
+  const logoColor = useColorModeValue("gray.900", "white");
+  const textColor = useColorModeValue("gray.800", "gray.100");
 
   return (
     <Box
       position="sticky"
       top="0"
       zIndex="1000"
-      bg={useColorModeValue("white", "gray.800")}
+      bg={bgColor}
       boxShadow="sm"
-      px={6}
-      py={4}
+      px={{ base: 3, sm: 4, md: 6 }}
+      py={{ base: 3, sm: 4 }}
+      overflowX="hidden"
     >
-      <Flex justify="space-between" align="center">
+      <Flex justify="space-between" align="center" w="100%">
         
-        {/* Logo */}
+        {/* ============================================== */}
+        {/* = LOGO (LINKS)                                = */}
+        {/* ============================================== */}
         <Link to="/">
-          <Text fontSize="xl" fontWeight="bold">
+          <Text fontSize="xl" fontWeight="bold" color={logoColor}>
             StayBnB
           </Text>
         </Link>
 
-        {/* Desktop links */}
-        <HStack spacing={6} display={{ base: "none", md: "flex" }}>
-          <NavLinks />
-        </HStack>
+        {/* ============================================== */}
+        {/* = DESKTOP NAV (md+)                           = */}
+        {/* ============================================== */}
+        <Flex
+          display={{ base: "none", md: "flex" }}
+          align="center"
+          justify="space-between"
+          w="100%"
+          ml={20}
+        >
+          {/* LEFT SIDE: NAVLINKS */}
+          <HStack spacing={8}>
+            <NavLinks />
+          </HStack>
 
-        <HStack spacing={4}>
-          <ThemeToggle />
+          {/* RIGHT SIDE: USER + DARK MODE */}
+          <HStack spacing={4}>
 
-          {/* Login knop */}
-          {!user && (
-            <Button colorScheme="teal" onClick={() => navigate("/login")}>
-              Login
-            </Button>
-          )}
+            {/* DARK MODE TOGGLE */}
+            <IconButton
+              aria-label="Toggle dark mode"
+              icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+              onClick={toggleColorMode}
+              variant="ghost"
+              color={textColor}
+              _hover={{ bg: "gray.100", color: "teal.500" }}
+            />
 
-          {/* Avatar + naam + logout */}
-          {user && (
-            <HStack spacing={3}>
-              <Avatar size="sm" name={user.name || user.email} />
-              <Text>{user.name || user.email}</Text>
-
+            {!user && (
               <Button
-                variant="outline"
-                colorScheme="red"
-                onClick={handleLogout}
+                colorScheme="teal"
+                size="sm"
+                onClick={() => navigate("/login")}
               >
-                Logout
+                Login
               </Button>
-            </HStack>
-          )}
+            )}
 
-          {/* Mobile menu */}
+            {user && (
+              <HStack spacing={4}>
+                <Avatar size="sm" name={user.name || user.email} />
+                <Text
+                  fontSize="sm"
+                  color={textColor}
+                  noOfLines={1}
+                  maxW="140px"
+                >
+                  {user.name || user.email}
+                </Text>
+                <Button
+                  variant="outline"
+                  colorScheme="red"
+                  size="sm"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              </HStack>
+            )}
+          </HStack>
+        </Flex>
+
+        {/* ============================================== */}
+        {/* = MOBILE MENU (rechtsboven)                   = */}
+        {/* ============================================== */}
+        <Box display={{ base: "block", md: "none" }}>
           <MobileMenu />
-        </HStack>
+        </Box>
       </Flex>
     </Box>
   );

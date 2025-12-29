@@ -5,38 +5,61 @@
 
 import api from "./axios";
 
+// Helper: veilige API wrapper
+async function safeRequest(promise) {
+  try {
+    const res = await promise;
+    return res.data;
+  } catch (err) {
+    console.error("❌ Reviews API error:", err);
+    throw err.response?.data || err;
+  }
+}
+
 // ==============================================
 // = GET REVIEWS PER PROPERTY                    =
 // = GET /reviews/property/:id                   =
 // ==============================================
-export async function getReviewsByPropertyId(id) {
-  const res = await api.get(`/reviews/property/${id}`);
-  return res.data;
+export function getReviewsByPropertyId(id, token) {
+  return safeRequest(
+    api.get(`/reviews/property/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  );
 }
 
 // ==============================================
 // = GET REVIEWS VAN INGELOGDE USER              =
 // = GET /reviews/user/:userId                   =
 // ==============================================
-export async function getUserReviews(userId) {
-  const res = await api.get(`/reviews/user/${userId}`);
-  return res.data;
+export function getUserReviews(userId, token) {
+  return safeRequest(
+    api.get(`/reviews/user/${userId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  );
 }
 
 // ==============================================
 // = DELETE REVIEW                               =
 // = DELETE /reviews/:id                         =
 // ==============================================
-export async function deleteReview(reviewId) {
-  const res = await api.delete(`/reviews/${reviewId}`);
-  return res.data;
+export function deleteReview(reviewId, token) {
+  return safeRequest(
+    api.delete(`/reviews/${reviewId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  );
 }
 
 // ==============================================
 // = UPDATE REVIEW                               =
 // = PUT /reviews/:id                            =
 // ==============================================
-export async function updateReview(reviewId, updatedData) {
-  const res = await api.put(`/reviews/${reviewId}`, updatedData);
-  return res.data;
+export function updateReview(reviewId, updatedData, token) {
+  return safeRequest(
+    api.put(`/reviews/${reviewId}`, updatedData, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  );
 }

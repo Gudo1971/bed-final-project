@@ -1,9 +1,9 @@
 // ==============================================
 // = CALENDAR GRID                               =
-// = Dagen, disabled dates, selectie & range     =
+// = Check-in, check-out, disabled & range       =
 // ==============================================
 
-import { Grid, Box, Text } from "@chakra-ui/react";
+import { Grid, Box, Text, useColorModeValue } from "@chakra-ui/react";
 
 // ==============================================
 // = COMPONENT                                   =
@@ -16,6 +16,22 @@ export default function CalendarGrid({
   onDateClick,
   isInteractive = true,
 }) {
+  // ==============================================
+  // = DARK MODE COLORS                           =
+  // ==============================================
+  const weekdayColor = useColorModeValue("gray.600", "gray.300");
+  const disabledBg = useColorModeValue("red.200", "red.600");
+  const disabledText = useColorModeValue("red.700", "red.100");
+
+  const checkInBg = useColorModeValue("green.400", "green.500");
+  const checkOutBg = useColorModeValue("blue.600", "blue.500");
+
+  const rangeBg = useColorModeValue("blue.100", "blue.900");
+  const defaultBg = useColorModeValue("white", "gray.700");
+  const defaultText = useColorModeValue("black", "white");
+
+  const hoverBg = useColorModeValue("green.50", "green.900");
+
   // ==============================================
   // = HELPERS                                    =
   // ==============================================
@@ -46,8 +62,12 @@ export default function CalendarGrid({
 
   const isInRange = (date) => {
     if (!checkIn || !checkOut) return false;
+
     const t = date.getTime();
-    return t > new Date(checkIn).getTime() && t < new Date(checkOut).getTime();
+    const start = new Date(checkIn).getTime();
+    const end = new Date(checkOut).getTime();
+
+    return t > start && t < end;
   };
 
   // ==============================================
@@ -56,7 +76,7 @@ export default function CalendarGrid({
   return (
     <>
       {/* ============================================== */}
-      {/* = WEEKDAYS                                    = */}
+      {/* = WEEKDAY LABELS                              = */}
       {/* ============================================== */}
       <Grid templateColumns="repeat(7, 1fr)" mb={2}>
         {["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"].map((day) => (
@@ -64,7 +84,7 @@ export default function CalendarGrid({
             key={day}
             textAlign="center"
             fontWeight="bold"
-            color="gray.600"
+            color={weekdayColor}
             py={1}
           >
             {day}
@@ -81,62 +101,63 @@ export default function CalendarGrid({
 
           const past = isPastDate(date);
           const disabled = isDisabled(date) || past;
-
-          // Property inactive → full disabled mode
-          const fullyDisabled = !isInteractive;
-
           const selectionType = getSelectionType(date);
           const inRange = isInRange(date);
 
-          // ==============================================
-          // = BORDER RADIUS                              =
-          // ==============================================
+          // ----------------------------------------------
+          // BACKGROUND COLOR
+          // ----------------------------------------------
+          let bgColor = defaultBg;
+
+          if (disabled) bgColor = disabledBg;
+          else if (selectionType === "checkin") bgColor = checkInBg;
+          else if (selectionType === "checkout") bgColor = checkOutBg;
+          else if (inRange) bgColor = rangeBg;
+
+          // ----------------------------------------------
+          // TEXT COLOR
+          // ----------------------------------------------
+          let textColor = defaultText;
+
+          if (disabled) textColor = disabledText;
+          if (selectionType) textColor = "white";
+
+          // ----------------------------------------------
+          // BORDER RADIUS (Airbnb style)
+          // ----------------------------------------------
           const borderRadius =
             selectionType === "checkin"
               ? "md 0 0 md"
               : selectionType === "checkout"
               ? "0 md md 0"
-              : "0";
+              : "md";
 
-          // ==============================================
-          // = BACKGROUND COLOR                           =
-          // ==============================================
-          const bgColor =
-            fullyDisabled
-              ? "red.300"
+          // ----------------------------------------------
+          // HOVER STYLE
+          // ----------------------------------------------
+          const hoverStyle =
+            !isInteractive
+              ? {}
               : disabled
-              ? "red.300"
-              : selectionType === "checkin"
-              ? "green.400"
-              : selectionType === "checkout"
-              ? "blue.700"
-              : inRange
-              ? "blue.100"
-              : "white";
+              ? { bg: disabledBg }
+              : {
+                  bg: hoverBg,
+                  transition: "0.15s ease",
+                };
 
           // ==============================================
-          // = TEXT COLOR                                 =
-          // ==============================================
-          const textColor =
-            fullyDisabled || disabled
-              ? "red.700"
-              : selectionType
-              ? "white"
-              : "black";
-
-          // ==============================================
-          // = RENDER DAY                                 =
+          // = DAY CELL                                   =
           // ==============================================
           return (
             <Box
               key={dateStr}
-              p={0.5}
-              minW="28px"
+              p={1}
+              minW="32px"
               textAlign="center"
               position="relative"
               borderRadius={borderRadius}
               cursor={
-                fullyDisabled
+                !isInteractive
                   ? "default"
                   : disabled
                   ? "not-allowed"
@@ -144,42 +165,29 @@ export default function CalendarGrid({
               }
               bg={bgColor}
               color={textColor}
-              _hover={
-                fullyDisabled || disabled
-                  ? {}
-                  : {
-                      bg:
-                        selectionType === "checkin"
-                          ? "green.500"
-                          : selectionType === "checkout"
-                          ? "blue.800"
-                          : inRange
-                          ? "blue.200"
-                          : "gray.100",
-                    }
-              }
+              _hover={hoverStyle}
               onClick={() => {
-                if (fullyDisabled) return;
+                if (!isInteractive) return;
                 if (!disabled) onDateClick(date);
               }}
-              boxShadow={fullyDisabled || disabled ? "none" : "sm"}
+              boxShadow={!isInteractive || disabled ? "none" : "sm"}
             >
               <Text fontWeight="medium">{date.getDate()}</Text>
 
               {selectionType === "checkin" && (
                 <Text fontSize="xs" color="white" mt={1}>
-                  Check-in
+                  Check‑in
                 </Text>
               )}
 
               {selectionType === "checkout" && (
                 <Text fontSize="xs" color="white" mt={1}>
-                  Check-out
+                  Check‑out
                 </Text>
               )}
 
-              {(fullyDisabled || disabled) && (
-                <Text fontSize="xs" color="red.700">
+              {disabled && (
+                <Text fontSize="xs" color={disabledText}>
                   🔒
                 </Text>
               )}

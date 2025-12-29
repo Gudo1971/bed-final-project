@@ -5,26 +5,49 @@
 
 import api from "./axios";
 
+// Helper: veilige API wrapper
+async function safeRequest(promise) {
+  try {
+    const res = await promise;
+    return res.data;
+  } catch (err) {
+    console.error("❌ Properties API error:", err);
+    throw err.response?.data || err;
+  }
+}
+
 // ==============================================
 // = GET ALL PROPERTIES                          =
+// = GET /properties                             =
 // ==============================================
-export async function getAllProperties() {
-  const res = await api.get("/properties");
-  return res.data;
+export function getAllProperties(token) {
+  return safeRequest(
+    api.get("/properties", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  );
 }
 
 // ==============================================
 // = GET PROPERTY BY ID                          =
+// = GET /properties/:id                         =
 // ==============================================
-export async function getPropertyById(id) {
-  const res = await api.get(`/properties/${id}`);
-  return res.data;
+export function getPropertyById(id, token) {
+  return safeRequest(
+    api.get(`/properties/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  );
 }
 
 // ==============================================
 // = CREATE PROPERTY                             =
+// = POST /properties                            =
 // ==============================================
-export async function createProperty(data) {
-  const res = await api.post("/properties", data);
-  return res.data;
+export function createProperty(data, token) {
+  return safeRequest(
+    api.post("/properties", data, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+  );
 }

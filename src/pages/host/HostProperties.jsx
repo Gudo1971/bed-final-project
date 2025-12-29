@@ -1,7 +1,7 @@
-// ==============================================
-// = HOST PROPERTIES                             =
-// = Overzicht + beheer van properties van host  =
-// ==============================================
+// ============================================================
+// = HOST PROPERTIES                                           =
+// = Overzicht + beheer van properties van host                =
+// ============================================================
 
 import { useEffect, useState } from "react";
 import {
@@ -15,11 +15,15 @@ import {
   Divider,
   Button,
   Switch,
+  Stack,
   useDisclosure,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/context/AuthContext.jsx";
+
 import PropertyForm from "../../components/properties/PropertyForm.jsx";
 import EditPropertyModal from "../../components/properties/EditPropertyModal.jsx";
 
@@ -27,10 +31,12 @@ import { getHostProperties, toggleProperty } from "../../api/host.js";
 
 export default function HostProperties() {
   const toast = useToast();
+  const navigate = useNavigate();
+  const { user, token } = useAuth();
 
-  // ==============================================
-  // = MODALS                                     =
-  // ==============================================
+  // ============================================================
+  // = MODALS                                                    =
+  // ============================================================
   const {
     isOpen: isCreateOpen,
     onOpen: onCreateOpen,
@@ -43,39 +49,50 @@ export default function HostProperties() {
     onClose: onEditClose,
   } = useDisclosure();
 
-  // ==============================================
-  // = AUTH                                       =
-  // ==============================================
-  const { user, token } = useAuth();
-
-  // ==============================================
-  // = STATE BLOKKEN                              =
-  // ==============================================
+  // ============================================================
+  // = STATE                                                     =
+  // ============================================================
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [deleteLoadingId, setDeleteLoadingId] = useState(null);
 
-  // ==============================================
-  // = TOGGLE ACTIVE/INACTIVE                     =
-  // ==============================================
-  async function handleToggle(propertyId, newState) {
+  // ============================================================
+  // = REDIRECT ALS USER GEEN HOST IS                           =
+  // ============================================================
+  useEffect(() => {
+    if (user && user.isHost === false) {
+      window.location.href = "/profile";
+    }
+  }, [user]);
+
+  // ============================================================
+  // = PROPERTIES OPHALEN                                       =
+  // ============================================================
+  async function fetchProperties() {
     try {
-      await toggleProperty(propertyId, newState, token);
-      fetchProperties();
+      const data = await getHostProperties(token);
+      setProperties(Array.isArray(data) ? data : []);
     } catch (err) {
       toast({
-        title: "Fout bij wijzigen",
-        description: "Kon de status niet aanpassen.",
+        title: "Fout bij ophalen",
+        description: "Kon jouw properties niet laden.",
         status: "error",
         duration: 3000,
       });
+    } finally {
+      setLoading(false);
     }
   }
 
-  // ==============================================
-  // = PROPERTY VERWIJDEREN                       =
-  // ==============================================
+  useEffect(() => {
+    if (!token) return;
+    fetchProperties();
+  }, [token]);
+
+  // ============================================================
+  // = PROPERTY VERWIJDEREN                                     =
+  // ============================================================
   async function handleDelete(id) {
     const confirmDelete = window.confirm(
       "Weet je zeker dat je deze property wilt verwijderen?"
@@ -114,167 +131,228 @@ export default function HostProperties() {
     }
   }
 
-  // ==============================================
-  // = REDIRECT ALS USER GEEN HOST IS             =
-  // ==============================================
-  useEffect(() => {
-    if (user && user.isHost === false) {
-      window.location.href = "/profile";
-    }
-  }, [user]);
-
-  // ==============================================
-  // = PROPERTIES OPHALEN                         =
-  // ==============================================
-  async function fetchProperties() {
+  // ============================================================
+  // = TOGGLE ACTIVE/INACTIVE                                   =
+  // ============================================================
+  async function handleToggle(propertyId, newState) {
     try {
-      const data = await getHostProperties(token);
-      setProperties(Array.isArray(data) ? data : []);
+      await toggleProperty(propertyId, newState, token);
+      fetchProperties();
     } catch (err) {
       toast({
-        title: "Fout bij ophalen",
-        description: "Kon jouw properties niet laden.",
+        title: "Fout bij wijzigen",
+        description: "Kon de status niet aanpassen.",
         status: "error",
         duration: 3000,
       });
-    } finally {
-      setLoading(false);
     }
   }
 
-  // ==============================================
-  // = FETCH STARTEN ZODRA TOKEN BESTAAT          =
-  // ==============================================
-  useEffect(() => {
-    if (!token) return;
-    fetchProperties();
-  }, [token]);
-
-  // ==============================================
-  // = LOADING STATE                              =
-  // ==============================================
+  // ============================================================
+  // = LOADING STATE                                            =
+  // ============================================================
   if (loading) {
     return (
-      <HStack>
+      <HStack spacing={3} py={4}>
         <Spinner />
         <Text>Properties laden...</Text>
       </HStack>
     );
   }
 
-  // ==============================================
-  // = RENDER                                      =
-  // ==============================================
+  // ============================================================
+  // = RENDER                                                   =
+  // ============================================================
   return (
     <Box>
-      {/* ============================================== */}
-      {/* = HEADER + NIEUWE PROPERTY KNOP               = */}
-      {/* ============================================== */}
-      <HStack justify="space-between" mb={4}>
-        <Heading size="md">Mijn Properties</Heading>
+
+      {/* ====================================================== */}
+      {/* = TERUG NAAR DASHBOARD (SAME STYLE AS BOOKINGS)       = */}
+      {/* ====================================================== */}
+      <Button
+        as="a"
+        href="/host/dashboard"
+        variant="ghost"
+        colorScheme="teal"
+        size="sm"
+        mb={4}
+      >
+        ← Terug naar dashboard
+      </Button>
+
+      {/* ====================================================== */}
+      {/* = HEADER + NIEUWE PROPERTY KNOP                       = */}
+      {/* ====================================================== */}
+      <HStack justify="space-between" mb={6} flexWrap="wrap" gap={3}>
+        <Heading size="md" color={useColorModeValue("teal.700", "teal.300")}>
+          Mijn Properties
+        </Heading>
 
         <Button colorScheme="teal" size="sm" onClick={onCreateOpen}>
           Nieuwe Property
         </Button>
       </HStack>
 
-      {/* ============================================== */}
-      {/* = GEEN PROPERTIES                             = */}
-      {/* ============================================== */}
+      {/* ====================================================== */}
+      {/* = GEEN PROPERTIES                                      = */}
+      {/* ====================================================== */}
       {properties.length === 0 && (
-        <Text>Je hebt nog geen properties toegevoegd.</Text>
+        <Text color="gray.500" textAlign="center">
+          Je hebt nog geen properties toegevoegd.
+        </Text>
       )}
 
-      {/* ============================================== */}
-      {/* = PROPERTY LIJST                              = */}
-      {/* ============================================== */}
-      <VStack align="stretch" spacing={4}>
-        {properties.map((property) => (
-          <Box
-            key={property.id}
-            border="1px solid #ddd"
-            borderRadius="md"
-            p={4}
-            _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
-            transition="all 0.2s"
-          >
-            {/* ============================================== */}
-            {/* = TITEL + STATUS + ACTIES                    = */}
-            {/* ============================================== */}
-            <HStack justify="space-between" mb={2}>
-              <Heading size="sm">{property.title}</Heading>
+      {/* ====================================================== */}
+      {/* = PROPERTY LIJST                                       = */}
+      {/* ====================================================== */}
+      <VStack align="stretch" spacing={5}>
+        {properties.map((property) => {
+          const imageUrl =
+            property?.images?.[0]?.url ??
+            "https://placehold.co/400x250?text=Geen+afbeelding";
 
-              <HStack spacing={3}>
-                <Badge colorScheme={property.isActive ? "green" : "red"}>
-                  {property.isActive ? "Actief" : "Inactief"}
-                </Badge>
-
-                <Switch
-                  size="md"
-                  colorScheme="teal"
-                  isChecked={property.isActive}
-                  onChange={(e) =>
-                    handleToggle(property.id, e.target.checked)
-                  }
-                />
-
-                <Button
-                  size="xs"
-                  colorScheme="blue"
-                  onClick={() => {
-                    setSelectedProperty(property);
-                    onEditOpen();
-                  }}
+          return (
+            <Box
+              key={property.id}
+              border="1px solid"
+              borderColor={useColorModeValue("gray.300", "gray.600")}
+              borderRadius="lg"
+              p={{ base: 4, md: 5 }}
+              bg={useColorModeValue("white", "gray.800")}
+              boxShadow="sm"
+              _hover={{ boxShadow: "md", transform: "translateY(-3px)" }}
+              transition="all 0.2s ease"
+            >
+              {/* ================================================== */}
+              {/* = KAART LAYOUT (THUMBNAIL + CONTENT)             = */}
+              {/* ================================================== */}
+              <Stack
+                direction={{ base: "column", sm: "row" }}
+                spacing={4}
+                align={{ base: "center", sm: "flex-start" }}
+              >
+                {/* Thumbnail */}
+                <Box
+                  w="90px"
+                  h="90px"
+                  borderRadius="md"
+                  overflow="hidden"
+                  flexShrink={0}
+                  bg={useColorModeValue("gray.200", "gray.700")}
                 >
-                  Bewerken
-                </Button>
+                  <img
+                    src={imageUrl}
+                    alt={property.title}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </Box>
 
-                <Button
-                  size="xs"
-                  colorScheme="red"
-                  variant="outline"
-                  onClick={() => handleDelete(property.id)}
-                  isLoading={deleteLoadingId === property.id}
-                >
-                  Verwijderen
-                </Button>
-              </HStack>
-            </HStack>
+                {/* Content */}
+                <Box flex="1" width="100%">
+                  {/* Titel + Status */}
+                  <Stack
+                    direction={{ base: "column", sm: "row" }}
+                    justify={{ base: "center", sm: "space-between" }}
+                    align={{ base: "center", sm: "center" }}
+                    spacing={3}
+                    width="100%"
+                  >
+                    <Heading
+                      size="sm"
+                      noOfLines={1}
+                      textAlign={{ base: "center", sm: "left" }}
+                    >
+                      {property.title}
+                    </Heading>
 
-            <Divider my={3} />
+                    <HStack spacing={2}>
+                      <Badge
+                        colorScheme={property.isActive ? "green" : "red"}
+                        px={2}
+                        py={0.5}
+                        borderRadius="md"
+                        textTransform="uppercase"
+                        fontSize="0.7rem"
+                      >
+                        {property.isActive ? "Actief" : "Inactief"}
+                      </Badge>
 
-            {/* ============================================== */}
-            {/* = DETAILS                                     = */}
-            {/* ============================================== */}
-            <VStack align="start" spacing={1}>
-              <Text>
-                <strong>Locatie:</strong> {property.location}
-              </Text>
+                      <Switch
+                        size="md"
+                        colorScheme="teal"
+                        isChecked={property.isActive}
+                        onChange={(e) =>
+                          handleToggle(property.id, e.target.checked)
+                        }
+                      />
+                    </HStack>
+                  </Stack>
 
-              <Text>
-                <strong>Prijs per nacht:</strong> € {property.pricePerNight}
-              </Text>
+                  <Divider my={3} />
 
-              <Text>
-                <strong>Afbeeldingen:</strong> {property.images?.length || 0}
-              </Text>
-            </VStack>
-          </Box>
-        ))}
+                  {/* Details */}
+                  <VStack
+                    align={{ base: "center", sm: "start" }}
+                    spacing={1}
+                    fontSize="sm"
+                    textAlign={{ base: "center", sm: "left" }}
+                  >
+                    <Text><strong>Locatie:</strong> {property.location}</Text>
+                    <Text><strong>Prijs per nacht:</strong> € {property.pricePerNight}</Text>
+                    <Text><strong>Afbeeldingen:</strong> {property.images?.length || 0}</Text>
+                  </VStack>
+
+                  {/* ================================================== */}
+                  {/* = ACTIE KNOPPEN (ONDERAAN)                      = */}
+                  {/* ================================================== */}
+                  <HStack
+                    justify={{ base: "center", sm: "flex-end" }}
+                    spacing={2}
+                    mt={4}
+                  >
+                    <Button
+                      size="xs"
+                      minW="90px"
+                      colorScheme="blue"
+                      onClick={() => {
+                        setSelectedProperty(property);
+                        onEditOpen();
+                      }}
+                    >
+                      Bewerken
+                    </Button>
+
+                    <Button
+                      size="xs"
+                      minW="100px"
+                      colorScheme="red"
+                      variant="outline"
+                      onClick={() => handleDelete(property.id)}
+                      isLoading={deleteLoadingId === property.id}
+                    >
+                      Verwijderen
+                    </Button>
+                  </HStack>
+                </Box>
+              </Stack>
+            </Box>
+          );
+        })}
       </VStack>
 
-      {/* ============================================== */}
-      {/* = MODAL: NIEUWE PROPERTY                      = */}
-      {/* ============================================== */}
+      {/* ====================================================== */}
+      {/* = MODALS                                              = */}
+      {/* ====================================================== */}
       <PropertyForm
         isOpen={isCreateOpen}
         onClose={onCreateClose}
         onSuccess={fetchProperties}
       />
 
-      {/* ============================================== */}
-      {/* = MODAL: PROPERTY BEWERKEN                    = */}
-      {/* ============================================== */}
       <EditPropertyModal
         isOpen={isEditOpen}
         onClose={onEditClose}

@@ -9,9 +9,10 @@ import {
   Text,
   Button,
   VStack,
-  HStack,
   Divider,
   useDisclosure,
+  useColorModeValue,
+  Stack,
 } from "@chakra-ui/react";
 
 import { useAuth } from "../../components/context/AuthContext.jsx";
@@ -41,14 +42,24 @@ export default function HostDashboardPage() {
   // ==============================================
   return (
     <Box maxW="900px" mx="auto" mt={10} px={4}>
+      
       {/* ============================================== */}
       {/* = TITEL + INTRO                               = */}
       {/* ============================================== */}
-      <Heading size="lg" mb={4}>
+      <Heading
+        size="lg"
+        mb={2}
+        textAlign={{ base: "center", sm: "left" }}
+      >
         Host Dashboard
       </Heading>
 
-      <Text fontSize="lg" mb={6}>
+      <Text
+        fontSize="lg"
+        mb={6}
+        textAlign={{ base: "center", sm: "left" }}
+        color={useColorModeValue("gray.600", "gray.300")}
+      >
         Welkom terug, <strong>{user?.name}</strong>.  
         Je bent nu officieel host.
       </Text>
@@ -59,21 +70,41 @@ export default function HostDashboardPage() {
       {/* = SECTIES                                     = */}
       {/* ============================================== */}
       <VStack align="stretch" spacing={6}>
-
+        
         {/* ============================================== */}
         {/* = ACCOMMODATIES                              = */}
         {/* ============================================== */}
-        <Box p={5} borderWidth="1px" borderRadius="lg">
+        <Box
+          p={5}
+          borderWidth="1px"
+          borderRadius="lg"
+          bg={useColorModeValue("gray.50", "gray.800")}
+          _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+          transition="all 0.2s"
+        >
           <Heading size="md" mb={2}>
             Jouw accommodaties
           </Heading>
 
-          <Text mb={4}>
+          <Text mb={4} color={useColorModeValue("gray.600", "gray.300")}>
             Bekijk, bewerk of voeg nieuwe accommodaties toe.
           </Text>
 
-          <HStack spacing={4}>
-            <Button colorScheme="teal" onClick={onOpen}>
+          {/* ============================================== */}
+          {/* = RESPONSIVE KNOPPEN BLOK                    = */}
+          {/* ============================================== */}
+          <Stack
+            direction={{ base: "column", sm: "row" }}
+            spacing={3}
+            align={{ base: "center", sm: "flex-start" }}
+            flexWrap="wrap"                         // ⭐ FIX: voorkomt overflow
+            justify={{ base: "center", sm: "flex-start" }}
+          >
+            <Button
+              colorScheme="teal"
+              onClick={onOpen}
+              width={{ base: "100%", sm: "auto" }}  // ⭐ FIX: 100% op mobiel
+            >
               Nieuwe accommodatie toevoegen
             </Button>
 
@@ -82,25 +113,38 @@ export default function HostDashboardPage() {
               colorScheme="teal"
               as="a"
               href="/host/properties"
+              width={{ base: "100%", sm: "auto" }}  // ⭐ FIX: 100% op mobiel
             >
               Mijn accommodaties bekijken
             </Button>
-          </HStack>
+          </Stack>
         </Box>
 
         {/* ============================================== */}
         {/* = BOEKINGEN                                   = */}
         {/* ============================================== */}
-        <Box p={5} borderWidth="1px" borderRadius="lg">
+        <Box
+          p={5}
+          borderWidth="1px"
+          borderRadius="lg"
+          bg={useColorModeValue("gray.50", "gray.800")}
+          _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+          transition="all 0.2s"
+        >
           <Heading size="md" mb={2}>
             Boekingen
           </Heading>
 
-          <Text mb={4}>
+          <Text mb={4} color={useColorModeValue("gray.600", "gray.300")}>
             Bekijk alle boekingen voor jouw accommodaties.
           </Text>
 
-          <Button as="a" href="/host/bookings" colorScheme="purple">
+          <Button
+            as="a"
+            href="/host/bookings"
+            colorScheme="purple"
+            width={{ base: "100%", sm: "auto" }}    // ⭐ FIX
+          >
             Bekijk boekingen
           </Button>
         </Box>
@@ -108,16 +152,28 @@ export default function HostDashboardPage() {
         {/* ============================================== */}
         {/* = VERDIENSTEN                                 = */}
         {/* ============================================== */}
-        <Box p={5} borderWidth="1px" borderRadius="lg">
+        <Box
+          p={5}
+          borderWidth="1px"
+          borderRadius="lg"
+          bg={useColorModeValue("gray.50", "gray.800")}
+          _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+          transition="all 0.2s"
+        >
           <Heading size="md" mb={2}>
             Verdiensten
           </Heading>
 
-          <Text mb={4}>
+          <Text mb={4} color={useColorModeValue("gray.600", "gray.300")}>
             Bekijk je inkomsten en prestaties als host.
           </Text>
 
-          <Button as="a" href="/host/earnings" colorScheme="orange">
+          <Button
+            as="a"
+            href="/host/earnings"
+            colorScheme="orange"
+            width={{ base: "100%", sm: "auto" }}    // ⭐ FIX
+          >
             Bekijk verdiensten
           </Button>
         </Box>

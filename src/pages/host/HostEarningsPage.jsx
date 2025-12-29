@@ -18,6 +18,9 @@ import {
   Divider,
   Alert,
   AlertIcon,
+  SimpleGrid,
+  Button,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { useAuth } from "../../components/context/AuthContext.jsx";
@@ -89,23 +92,51 @@ export default function HostEarningsPage() {
   return (
     <Box maxW="900px" mx="auto" mt={10} px={4}>
       {/* ============================================== */}
+      {/* = TERUG NAAR DASHBOARD                        = */}
+      {/* ============================================== */}
+      <Button
+        as="a"
+        href="/host/dashboard"
+        variant="ghost"
+        colorScheme="teal"
+        size="sm"
+        mb={4}
+      >
+        ← Terug naar dashboard
+      </Button>
+
+      {/* ============================================== */}
       {/* = TITEL + INTRO                               = */}
       {/* ============================================== */}
-      <Heading size="lg" mb={4}>
+      <Heading size="lg" mb={2} textAlign={{ base: "center", sm: "left" }}>
         Verdiensten
       </Heading>
 
-      <Text fontSize="lg" mb={6}>
+      <Text
+        fontSize="lg"
+        mb={6}
+        textAlign={{ base: "center", sm: "left" }}
+        color={useColorModeValue("gray.600", "gray.300")}
+      >
         Overzicht van je inkomsten en prestaties als host.
       </Text>
 
       <Divider mb={8} />
 
       {/* ============================================== */}
-      {/* = TOTALE STATISTIEKEN                         = */}
+      {/* = TOTALE STATISTIEKEN (RESPONSIVE GRID)       = */}
       {/* ============================================== */}
-      <HStack spacing={10} mb={10}>
-        <Stat>
+      <SimpleGrid
+        columns={{ base: 1, sm: 2, md: 3 }}
+        spacing={6}
+        mb={10}
+      >
+        <Stat
+          p={4}
+          borderWidth="1px"
+          borderRadius="lg"
+          bg={useColorModeValue("gray.50", "gray.700")}
+        >
           <StatLabel>Verdiend tot nu toe</StatLabel>
           <StatNumber>
             € {(data.totalEarningsToDate ?? 0).toFixed(2)}
@@ -113,7 +144,12 @@ export default function HostEarningsPage() {
           <StatHelpText>Afgeronde verblijven</StatHelpText>
         </Stat>
 
-        <Stat>
+        <Stat
+          p={4}
+          borderWidth="1px"
+          borderRadius="lg"
+          bg={useColorModeValue("gray.50", "gray.700")}
+        >
           <StatLabel>Verwachte inkomsten</StatLabel>
           <StatNumber>
             € {(data.expectedEarnings ?? 0).toFixed(2)}
@@ -121,19 +157,24 @@ export default function HostEarningsPage() {
           <StatHelpText>Inclusief toekomstige boekingen</StatHelpText>
         </Stat>
 
-        <Stat>
+        <Stat
+          p={4}
+          borderWidth="1px"
+          borderRadius="lg"
+          bg={useColorModeValue("gray.50", "gray.700")}
+        >
           <StatLabel>Totaal boekingen</StatLabel>
           <StatNumber>{data.totalBookings ?? 0}</StatNumber>
           <StatHelpText>Alle accommodaties</StatHelpText>
         </Stat>
-      </HStack>
+      </SimpleGrid>
 
       <Divider mb={8} />
 
       {/* ============================================== */}
       {/* = VERDIENSTEN PER ACCOMMODATIE (CHART)        = */}
       {/* ============================================== */}
-      <Heading size="md" mb={4}>
+      <Heading size="md" mb={4} textAlign={{ base: "center", sm: "left" }}>
         Verdiensten per accommodatie
       </Heading>
 
@@ -148,26 +189,32 @@ export default function HostEarningsPage() {
         {data.properties.map((p) => (
           <Box
             key={p.propertyId}
-            p={4}
+            p={5}
             borderWidth="1px"
             borderRadius="lg"
+            bg={useColorModeValue("white", "gray.800")}
             _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
             transition="all 0.2s"
           >
-            <Heading size="sm" mb={2}>
+            <Heading
+              size="sm"
+              mb={2}
+              textAlign={{ base: "center", sm: "left" }}
+            >
               {p.title}
             </Heading>
 
-            <Text>Afgeronde boekingen: {p.bookingsCompleted}</Text>
-            <Text>Toekomstige boekingen: {p.bookingsUpcoming}</Text>
-
-            <Text mt={1}>
-              Verdiend: € {(p.earningsToDate ?? 0).toFixed(2)}
-            </Text>
-
-            <Text>
-              Verwacht: € {(p.expectedEarnings ?? 0).toFixed(2)}
-            </Text>
+            <VStack
+              align={{ base: "center", sm: "start" }}
+              spacing={1}
+              fontSize="sm"
+              textAlign={{ base: "center", sm: "left" }}
+            >
+              <Text>Afgeronde boekingen: {p.bookingsCompleted}</Text>
+              <Text>Toekomstige boekingen: {p.bookingsUpcoming}</Text>
+              <Text>Verdiend: € {(p.earningsToDate ?? 0).toFixed(2)}</Text>
+              <Text>Verwacht: € {(p.expectedEarnings ?? 0).toFixed(2)}</Text>
+            </VStack>
           </Box>
         ))}
       </VStack>

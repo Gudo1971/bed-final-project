@@ -1,7 +1,6 @@
-// ==============================================
-// = PROFILE PAGE                                =
-// = Tabs: Persoonsgegevens / Boekingen / Reviews / Account
-// ==============================================
+// ============================================================
+// = PROFILE PAGE                                              =
+// ============================================================
 
 import {
   Tabs,
@@ -14,6 +13,7 @@ import {
   Button,
   Box,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { useSearchParams } from "react-router-dom";
@@ -28,27 +28,21 @@ export default function ProfilePage() {
   const toast = useToast();
   const { user, token, updateUser } = useAuth();
 
-  // ==============================================
-  // = QUERY PARAM → TAB INDEX                    =
-  // ==============================================
   const [searchParams] = useSearchParams();
   const tab = searchParams.get("tab");
 
   const defaultIndex =
     tab === "bookings"
-      ? 1 // 📅 Mijn Boekingen
+      ? 1
       : tab === "reviews"
-      ? 2 // 📃 Mijn Reviews
+      ? 2
       : tab === "account"
-      ? 3 // 🔐 Account
-      : 0; // 👤 Persoonsgegevens (default)
+      ? 3
+      : 0;
 
-  // ==============================================
-  // = WORD HOST ACTIE                            =
-  // ==============================================
   async function handleBecomeHost() {
     try {
-      const res = await fetch("http://localhost:3000/api/auth/become-host", {
+      const res = await fetch("http://localhost:3000/api/account/become-host", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -58,7 +52,12 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error("Host worden mislukt");
 
       const data = await res.json();
-      updateUser(data);
+
+      updateUser({
+        ...user,
+        isHost: true,
+        token: data.token,
+      });
 
       toast({
         title: "Je bent nu host!",
@@ -77,68 +76,102 @@ export default function ProfilePage() {
     }
   }
 
-  // ==============================================
-  // = RENDER                                      =
-  // ==============================================
-  return (
-    <Container maxW="6xl" py={10}>
-      {/* ============================================== */}
-      {/* = PAGINA TITEL                               = */}
-      {/* ============================================== */}
-      <Heading mb={6}>Mijn Profiel</Heading>
+  const titleColor = useColorModeValue("teal.600", "teal.300");
 
-      {/* ============================================== */}
-      {/* = WORD HOST KNOP (alleen voor non-hosts)       = */}
-      {/* ============================================== */}
+  return (
+    <Container
+      maxW="container.sm"
+      px={{ base: 4, md: 0 }}
+      py={{ base: 6, md: 10 }}
+      centerContent
+    >
+      <Heading
+        mb={6}
+        fontSize={{ base: "2xl", md: "3xl" }}
+        fontWeight="extrabold"
+        color={titleColor}
+        textAlign="center"
+        width="100%"
+      >
+        Mijn Profiel
+      </Heading>
+
       {!user?.isHost && (
-        <Box mb={6}>
-          <Button colorScheme="teal" onClick={handleBecomeHost}>
+        <Box mb={6} width="100%" display="flex" justifyContent="center">
+          <Button
+            colorScheme="teal"
+            size="lg"
+            width="100%"
+            maxW="260px"
+            onClick={handleBecomeHost}
+          >
             Word Host
           </Button>
         </Box>
       )}
 
-      {/* ============================================== */}
-      {/* = TABS MET AUTOMATISCHE SELECTIE              = */}
-      {/* ============================================== */}
       <Tabs
         variant="enclosed"
         colorScheme="teal"
-        isFitted
+        width="100%"
         defaultIndex={defaultIndex}
       >
-        <TabList>
-          <Tab>👤 Persoonsgegevens</Tab>
-          <Tab>📅 Mijn Boekingen</Tab>
-          <Tab>📃 Mijn Reviews</Tab>
-          <Tab>🔐 Account</Tab>
+        <TabList
+          flexWrap={{ base: "wrap", md: "wrap", lg: "nowrap" }}
+          justifyContent="center"
+          gap={{ base: 2, md: 3, lg: 4 }}
+          px={2}
+        >
+          <Tab
+            flex={{ base: "1 1 100%", md: "1 1 45%", lg: "0 0 auto" }}
+            minW={{ base: "100%", md: "45%", lg: "auto" }}
+            fontSize={{ base: "xs", sm: "sm" }}
+            textAlign="center"
+          >
+            👤 Persoonsgegevens
+          </Tab>
+
+          <Tab
+            flex={{ base: "1 1 100%", md: "1 1 45%", lg: "0 0 auto" }}
+            minW={{ base: "100%", md: "45%", lg: "auto" }}
+            fontSize={{ base: "xs", sm: "sm" }}
+            textAlign="center"
+          >
+            📅 Mijn Boekingen
+          </Tab>
+
+          <Tab
+            flex={{ base: "1 1 100%", md: "1 1 45%", lg: "0 0 auto" }}
+            minW={{ base: "100%", md: "45%", lg: "auto" }}
+            fontSize={{ base: "xs", sm: "sm" }}
+            textAlign="center"
+          >
+            📃 Mijn Reviews
+          </Tab>
+
+          <Tab
+            flex={{ base: "1 1 100%", md: "1 1 45%", lg: "0 0 auto" }}
+            minW={{ base: "100%", md: "45%", lg: "auto" }}
+            fontSize={{ base: "xs", sm: "sm" }}
+            textAlign="center"
+          >
+            🔐 Account
+          </Tab>
         </TabList>
 
-        <TabPanels>
-          {/* ============================================== */}
-          {/* = PERSOONSGEGEVENS TAB                        = */}
-          {/* ============================================== */}
+        <TabPanels mt={4}>
           <TabPanel>
             <ProfileTab />
           </TabPanel>
 
-          {/* ============================================== */}
-          {/* = MIJN BOEKINGEN TAB                          = */}
-          {/* ============================================== */}
           <TabPanel>
             <BookingsTab />
           </TabPanel>
 
-          {/* ============================================== */}
-          {/* = MIJN REVIEWS TAB                            = */}
-          {/* ============================================== */}
           <TabPanel>
             <MyReviews />
           </TabPanel>
 
-          {/* ============================================== */}
-          {/* = ACCOUNT TAB                                 = */}
-          {/* ============================================== */}
           <TabPanel>
             <AccountTab />
           </TabPanel>

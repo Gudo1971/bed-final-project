@@ -1,5 +1,6 @@
 // ==============================================
-// = BOOKING FORM                               =
+// = BOOKING FORM                                =
+// = Check-in, check-out, gasten, prijs          =
 // ==============================================
 
 import { useState, useEffect } from "react";
@@ -12,6 +13,9 @@ import {
   Text,
   Flex,
   useToast,
+  NumberInput,
+  NumberInputField,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { createBooking } from "../../api/bookings";
@@ -24,9 +28,18 @@ export default function BookingForm({
   onBookingCreated,
   onCancel,
   disabledDates,
-  isActive, 
+  isActive,
 }) {
   const toast = useToast();
+
+  // ==============================================
+  // = DARK MODE COLORS                           =
+  // ==============================================
+  const labelColor = useColorModeValue("gray.700", "gray.200");
+  const textColor = useColorModeValue("gray.800", "gray.100");
+  const bannerBg = useColorModeValue("red.50", "red.900");
+  const bannerBorder = useColorModeValue("red.200", "red.700");
+  const bannerText = useColorModeValue("red.700", "red.200");
 
   // ==============================================
   // = STATE BLOKKEN                              =
@@ -41,19 +54,16 @@ export default function BookingForm({
   // = DATUM BLOKKADE (verleden + disabledDates)  =
   // ==============================================
   const isDateDisabled = (dateStr) => {
-  if (!dateStr) return false;
+    if (!dateStr) return false;
+    if (!Array.isArray(disabledDates)) return false;
 
-  // Als disabledDates nog niet geladen is → nooit blokkeren
-  if (!Array.isArray(disabledDates)) return false;
+    const date = new Date(dateStr);
 
-  const date = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  // Verleden blokkeren
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (date < today) return true;
-
-  return disabledDates.includes(dateStr);
+    if (date < today) return true;
+    return disabledDates.includes(dateStr);
   };
 
   // ==============================================
@@ -75,7 +85,6 @@ export default function BookingForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Property staat op inactief → blokkeren
     if (!isActive) {
       toast({
         title: "Niet beschikbaar",
@@ -103,11 +112,11 @@ export default function BookingForm({
         token
       );
 
-      if (onBookingCreated) onBookingCreated();
+      onBookingCreated?.();
     } catch (err) {
       toast({
         title: "Boeking mislukt",
-        description: err.message, // ⭐ toont backend error correct
+        description: err.message,
         status: "error",
         duration: 3000,
       });
@@ -121,19 +130,19 @@ export default function BookingForm({
   // ==============================================
   return (
     <Box as="form" onSubmit={handleSubmit}>
-      <VStack spacing={3} align="stretch">
+      <VStack spacing={4} align="stretch">
 
         {/* ============================================== */}
         {/* = INACTIEVE PROPERTY BANNER                   = */}
         {/* ============================================== */}
         {!isActive && (
           <Box
-            bg="red.50"
+            bg={bannerBg}
             border="1px solid"
-            borderColor="red.200"
+            borderColor={bannerBorder}
             p={3}
             borderRadius="md"
-            color="red.700"
+            color={bannerText}
             fontWeight="bold"
           >
             Deze accommodatie is momenteel niet beschikbaar voor boekingen.
@@ -141,14 +150,15 @@ export default function BookingForm({
         )}
 
         {/* ============================================== */}
-        {/* = CHECK-IN VELD                               = */}
+        {/* = CHECK-IN                                    = */}
         {/* ============================================== */}
         <Box>
-          <FormLabel>Check-in</FormLabel>
+          <FormLabel color={labelColor}>Check-in</FormLabel>
           <Input
             type="date"
             value={checkinDate}
             disabled={!isActive}
+            color={textColor}
             onChange={(e) => {
               const value = e.target.value;
 
@@ -168,14 +178,15 @@ export default function BookingForm({
         </Box>
 
         {/* ============================================== */}
-        {/* = CHECK-OUT VELD                              = */}
+        {/* = CHECK-OUT                                   = */}
         {/* ============================================== */}
         <Box>
-          <FormLabel>Check-out</FormLabel>
+          <FormLabel color={labelColor}>Check-out</FormLabel>
           <Input
             type="date"
             value={checkoutDate}
             disabled={!isActive}
+            color={textColor}
             onChange={(e) => {
               const value = e.target.value;
 
@@ -198,20 +209,23 @@ export default function BookingForm({
         {/* = AANTAL GASTEN                               = */}
         {/* ============================================== */}
         <Box>
-          <FormLabel>Gasten</FormLabel>
-          <Input
-            type="number"
-            min="1"
-            disabled={!isActive}
+          <FormLabel color={labelColor}>Gasten</FormLabel>
+          <NumberInput
+            min={1}
             value={numberOfGuests}
-            onChange={(e) => setNumberOfGuests(e.target.value)}
-          />
+            onChange={(v) => setNumberOfGuests(v)}
+            isDisabled={!isActive}
+          >
+            <NumberInputField color={textColor} />
+          </NumberInput>
         </Box>
 
         {/* ============================================== */}
         {/* = TOTALE PRIJS                                = */}
         {/* ============================================== */}
-        <Text fontWeight="bold">Totale prijs: €{totalPrice.toFixed(2)}</Text>
+        <Text fontWeight="bold" color={textColor}>
+          Totale prijs: €{totalPrice.toFixed(2)}
+        </Text>
 
         {/* ============================================== */}
         {/* = KNOPPEN                                     = */}
@@ -225,7 +239,7 @@ export default function BookingForm({
             type="submit"
             colorScheme="blue"
             isLoading={loading}
-            isDisabled={!isActive} // ⭐ voorkomt boeken
+            isDisabled={!isActive}
           >
             Bevestig boeking
           </Button>

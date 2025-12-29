@@ -17,6 +17,7 @@ import {
   Input,
   FormErrorMessage,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { useForm } from "react-hook-form";
@@ -29,6 +30,13 @@ import { updatePassword } from "../../api/users";
 export default function PasswordChangeModal({ isOpen, onClose }) {
   const toast = useToast();
   const { user } = useAuth();
+
+  // ==============================================
+  // = DARK MODE COLORS                           =
+  // ==============================================
+  const headerColor = useColorModeValue("gray.800", "gray.100");
+  const labelColor = useColorModeValue("gray.700", "gray.200");
+  const inputText = useColorModeValue("gray.800", "gray.100");
 
   // ==============================================
   // = FORM SETUP                                 =
@@ -77,11 +85,11 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
 
-      <ModalContent>
+      <ModalContent borderRadius="lg">
         {/* ============================================== */}
         {/* = HEADER                                      = */}
         {/* ============================================== */}
-        <ModalHeader>Wachtwoord wijzigen</ModalHeader>
+        <ModalHeader color={headerColor}>Wachtwoord wijzigen</ModalHeader>
         <ModalCloseButton />
 
         {/* ============================================== */}
@@ -90,9 +98,10 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
         <ModalBody>
           {/* Huidig wachtwoord */}
           <FormControl mb={4} isInvalid={errors.currentPassword}>
-            <FormLabel>Huidig wachtwoord</FormLabel>
+            <FormLabel color={labelColor}>Huidig wachtwoord</FormLabel>
             <Input
               type="password"
+              color={inputText}
               {...register("currentPassword", {
                 required: "Veld is verplicht",
               })}
@@ -104,9 +113,10 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
 
           {/* Nieuw wachtwoord */}
           <FormControl mb={4} isInvalid={errors.newPassword}>
-            <FormLabel>Nieuw wachtwoord</FormLabel>
+            <FormLabel color={labelColor}>Nieuw wachtwoord</FormLabel>
             <Input
               type="password"
+              color={inputText}
               {...register("newPassword", {
                 required: "Veld is verplicht",
                 minLength: {
@@ -122,9 +132,10 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
 
           {/* Herhaal nieuw wachtwoord */}
           <FormControl mb={4} isInvalid={errors.confirmPassword}>
-            <FormLabel>Herhaal nieuw wachtwoord</FormLabel>
+            <FormLabel color={labelColor}>Herhaal nieuw wachtwoord</FormLabel>
             <Input
               type="password"
+              color={inputText}
               {...register("confirmPassword", {
                 required: "Veld is verplicht",
                 validate: (value) =>

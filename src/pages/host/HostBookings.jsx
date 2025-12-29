@@ -15,6 +15,8 @@ import {
   useToast,
   Skeleton,
   Button,
+  Stack,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { useAuth } from "../../components/context/AuthContext.jsx";
@@ -92,16 +94,13 @@ export default function HostBookings() {
   // = SORTEER LOGICA                              =
   // ==============================================
   const sortedBookings = [...filteredBookings].sort((a, b) => {
-    // 1. Pending bovenaan
     if (a.bookingStatus === "PENDING" && b.bookingStatus !== "PENDING") return -1;
     if (b.bookingStatus === "PENDING" && a.bookingStatus !== "PENDING") return 1;
 
-    // 2. Confirmed sorteren op startDate
     if (a.bookingStatus === "CONFIRMED" && b.bookingStatus === "CONFIRMED") {
       return new Date(a.startDate) - new Date(b.startDate);
     }
 
-    // 3. Cancelled onderaan
     if (a.bookingStatus === "CANCELLED" && b.bookingStatus !== "CANCELLED") return 1;
     if (b.bookingStatus === "CANCELLED" && a.bookingStatus !== "CANCELLED") return -1;
 
@@ -122,8 +121,6 @@ export default function HostBookings() {
         duration: 2000,
       });
     } catch (err) {
-      console.error(err);
-
       toast({
         title: "Fout bij bevestigen",
         status: "error",
@@ -143,8 +140,6 @@ export default function HostBookings() {
         duration: 2000,
       });
     } catch (err) {
-      console.error(err);
-
       toast({
         title: "Fout bij afwijzen",
         status: "error",
@@ -160,7 +155,7 @@ export default function HostBookings() {
     return (
       <VStack align="stretch" spacing={4}>
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} height="120px" borderRadius="md" />
+          <Skeleton key={i} height="140px" borderRadius="md" />
         ))}
       </VStack>
     );
@@ -171,20 +166,42 @@ export default function HostBookings() {
   // ==============================================
   return (
     <Box>
+
+      {/* ============================================== */}
+      {/* = TERUG NAAR DASHBOARD                        = */}
+      {/* ============================================== */}
+      <Button
+        as="a"
+        href="/host/dashboard"
+        variant="ghost"
+        colorScheme="teal"
+        size="sm"
+        mb={4}
+      >
+        ← Terug naar dashboard
+      </Button>
+
       {/* ============================================== */}
       {/* = TITEL                                       = */}
       {/* ============================================== */}
-      <Heading size="lg" mb={6}>
+      <Heading size="lg" mb={6} textAlign={{ base: "center", sm: "left" }}>
         Mijn Boekingen
       </Heading>
 
       {/* ============================================== */}
-      {/* = FILTER KNOPPEN                              = */}
+      {/* = FILTER KNOPPEN (RESPONSIVE)                 = */}
       {/* ============================================== */}
-      <HStack mb={4} spacing={4}>
+      <Stack
+        direction={{ base: "column", sm: "row" }}
+        spacing={3}
+        mb={4}
+        flexWrap="wrap"
+        justify={{ base: "center", sm: "flex-start" }}
+      >
         <Button
           variant={filter === "all" ? "solid" : "outline"}
           colorScheme="blue"
+          width={{ base: "100%", sm: "auto" }}
           onClick={() => setFilter("all")}
         >
           Alles
@@ -193,6 +210,7 @@ export default function HostBookings() {
         <Button
           variant={filter === "future" ? "solid" : "outline"}
           colorScheme="green"
+          width={{ base: "100%", sm: "auto" }}
           onClick={() => setFilter("future")}
         >
           Toekomstig
@@ -201,6 +219,7 @@ export default function HostBookings() {
         <Button
           variant={filter === "past" ? "solid" : "outline"}
           colorScheme="orange"
+          width={{ base: "100%", sm: "auto" }}
           onClick={() => setFilter("past")}
         >
           Afgelopen
@@ -209,19 +228,27 @@ export default function HostBookings() {
         <Button
           variant={filter === "hidePast" ? "solid" : "outline"}
           colorScheme="red"
+          width={{ base: "100%", sm: "auto" }}
           onClick={() => setFilter("hidePast")}
         >
           Verberg afgelopen
         </Button>
-      </HStack>
+      </Stack>
 
       {/* ============================================== */}
-      {/* = SORTEER KNOPPEN                             = */}
+      {/* = SORTEER KNOPPEN (RESPONSIVE)                = */}
       {/* ============================================== */}
-      <HStack mb={6} spacing={4}>
+      <Stack
+        direction={{ base: "column", sm: "row" }}
+        spacing={3}
+        mb={6}
+        flexWrap="wrap"
+        justify={{ base: "center", sm: "flex-start" }}
+      >
         <Button
           variant={sortBy === "date" ? "solid" : "outline"}
           colorScheme="purple"
+          width={{ base: "100%", sm: "auto" }}
           onClick={() => setSortBy("date")}
         >
           Sorteer op check-in datum
@@ -230,11 +257,12 @@ export default function HostBookings() {
         <Button
           variant={sortBy === "property" ? "solid" : "outline"}
           colorScheme="purple"
+          width={{ base: "100%", sm: "auto" }}
           onClick={() => setSortBy("property")}
         >
           Sorteer op accommodatie
         </Button>
-      </HStack>
+      </Stack>
 
       {/* ============================================== */}
       {/* = GEEN BOEKINGEN                              = */}
@@ -252,86 +280,139 @@ export default function HostBookings() {
       )}
 
       {/* ============================================== */}
-      {/* = BOEKINGEN LIJST                             = */}
+      {/* = BOEKINGEN LIJST (THUMBNAIL CARDS)           = */}
       {/* ============================================== */}
-      <VStack align="stretch" spacing={4}>
+      <VStack align="stretch" spacing={5}>
         {sortedBookings.map((booking) => {
-          const start = new Date(booking.startDate).toLocaleDateString();
-          const end = new Date(booking.endDate).toLocaleDateString();
+          const imageUrl =
+            booking?.property?.images?.[0]?.url ??
+            "https://placehold.co/400x250?text=Geen+afbeelding";
 
           return (
             <Box
               key={booking.id}
-              border="1px solid #ddd"
-              borderRadius="md"
-              p={4}
-              _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
-              transition="all 0.2s"
+              border="1px solid"
+              borderColor={useColorModeValue("gray.300", "gray.600")}
+              borderRadius="lg"
+              p={{ base: 4, md: 5 }}
+              bg={useColorModeValue("white", "gray.800")}
+              boxShadow="sm"
+              _hover={{ boxShadow: "md", transform: "translateY(-3px)" }}
+              transition="all 0.2s ease"
             >
-              {/* ============================================== */}
-              {/* = HEADER (property + status)                  = */}
-              {/* ============================================== */}
-              <HStack justify="space-between">
-                <Heading size="sm">
-                  {booking.property?.title || "Onbekende property"}
-                </Heading>
-
-                <Badge
-                  colorScheme={
-                    booking.bookingStatus === "CANCELLED"
-                      ? "red"
-                      : booking.bookingStatus === "PENDING"
-                      ? "yellow"
-                      : "green"
-                  }
+              <Stack
+                direction={{ base: "column", sm: "row" }}
+                spacing={4}
+                align={{ base: "center", sm: "flex-start" }}
+              >
+                {/* Thumbnail */}
+                <Box
+                  w="90px"
+                  h="90px"
+                  borderRadius="md"
+                  overflow="hidden"
+                  flexShrink={0}
+                  bg={useColorModeValue("gray.200", "gray.700")}
                 >
-                  {booking.bookingStatus}
-                </Badge>
-              </HStack>
+                  <img
+                    src={imageUrl}
+                    alt={booking.property?.title}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </Box>
 
-              <Divider my={2} />
-
-              {/* ============================================== */}
-              {/* = DETAILS                                     = */}
-              {/* ============================================== */}
-              <Text>
-                <strong>Gast:</strong> {booking.user?.name || "Anonieme gast"}
-              </Text>
-
-              <Text>
-                <strong>Check-in:</strong> {start}
-              </Text>
-
-              <Text>
-                <strong>Check-out:</strong> {end}
-              </Text>
-
-              <Text mt={2} fontWeight="bold">
-                Totaal: € {booking.totalPrice}
-              </Text>
-
-              {/* ============================================== */}
-              {/* = ACTIES VOOR PENDING                         = */}
-              {/* ============================================== */}
-              {booking.bookingStatus === "PENDING" && (
-                <HStack mt={3}>
-                  <Button
-                    size="sm"
-                    colorScheme="green"
-                    onClick={() => handleConfirm(booking.id)}
+                {/* Content */}
+                <Box flex="1" width="100%">
+                  {/* Titel + Status */}
+                  <Stack
+                    direction={{ base: "column", sm: "row" }}
+                    justify={{ base: "center", sm: "space-between" }}
+                    align={{ base: "center", sm: "center" }}
+                    spacing={3}
+                    width="100%"
                   >
-                    Accepteren
-                  </Button>
+                    <Heading
+                      size="sm"
+                      noOfLines={1}
+                      textAlign={{ base: "center", sm: "left" }}
+                    >
+                      {booking.property?.title}
+                    </Heading>
 
-                  <Button
-                    size="sm"
-                    colorScheme="red"
-                    onClick={() => handleReject(booking.id)}
+                    <Badge
+                      colorScheme={
+                        booking.bookingStatus === "PENDING"
+                          ? "yellow"
+                          : booking.bookingStatus === "CONFIRMED"
+                          ? "green"
+                          : "red"
+                      }
+                      px={2}
+                      py={0.5}
+                      borderRadius="md"
+                      textTransform="uppercase"
+                      fontSize="0.7rem"
+                    >
+                      {booking.bookingStatus}
+                    </Badge>
+                  </Stack>
+
+                  <Divider my={3} />
+
+                  {/* Details */}
+                  <VStack
+                    align={{ base: "center", sm: "start" }}
+                    spacing={1}
+                    fontSize="sm"
+                    textAlign={{ base: "center", sm: "left" }}
                   >
-                    Afwijzen
-                  </Button>
-                </HStack>
-              )}
+                    <Text>
+                      <strong>Gast:</strong> {booking.user?.name}
+                    </Text>
+                    <Text>
+                      <strong>Check-in:</strong>{" "}
+                      {new Date(booking.startDate).toLocaleDateString()}
+                    </Text>
+                    <Text>
+                      <strong>Check-out:</strong>{" "}
+                      {new Date(booking.endDate).toLocaleDateString()}
+                    </Text>
+                    <Text>
+                      <strong>Totaal:</strong> € {booking.totalPrice}
+                    </Text>
+                  </VStack>
+
+                  {/* Actieknoppen */}
+                  {booking.bookingStatus === "PENDING" && (
+                    <HStack
+                      justify={{ base: "center", sm: "flex-end" }}
+                      spacing={2}
+                      mt={4}
+                    >
+                      <Button
+                        size="xs"
+                        colorScheme="green"
+                        onClick={() => handleConfirm(booking.id)}
+                      >
+                        Bevestigen
+                      </Button>
+
+                      <Button
+                        size="xs"
+                        colorScheme="red"
+                        variant="outline"
+                        onClick={() => handleReject(booking.id)}
+                      >
+                        Afwijzen
+                      </Button>
+                    </HStack>
+                  )}
+                </Box>
+              </Stack>
             </Box>
           );
         })}

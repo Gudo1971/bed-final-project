@@ -19,6 +19,7 @@ import {
   NumberInputField,
   VStack,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { useState } from "react";
@@ -27,6 +28,12 @@ import ImageUpload from "../images/upload/ImageUpload.jsx";
 export default function PropertyForm({ isOpen, onClose, onSuccess }) {
   const toast = useToast();
   const token = localStorage.getItem("token");
+
+  // ==============================================
+  // = DARK MODE COLORS                           =
+  // ==============================================
+  const labelColor = useColorModeValue("gray.700", "gray.200");
+  const textColor = useColorModeValue("gray.800", "gray.100");
 
   // ==============================================
   // = FORM STATE                                 =
@@ -56,7 +63,6 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
     try {
       setLoading(true);
 
-      // Multipart form data
       const formData = new FormData();
       formData.append("title", title);
       formData.append("location", location);
@@ -66,12 +72,10 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
       formData.append("bedroomCount", bedroomCount);
       formData.append("bathRoomCount", bathRoomCount);
 
-      // Images toevoegen
       images.forEach((file) => {
         formData.append("images", file);
       });
 
-      // Backend request
       const res = await fetch("http://localhost:3000/api/properties", {
         method: "POST",
         headers: {
@@ -114,20 +118,25 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
       trapFocus={false}
     >
       <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Nieuwe Property</ModalHeader>
+
+      <ModalContent borderRadius="lg">
+        <ModalHeader color={textColor}>Nieuwe Property</ModalHeader>
 
         <ModalBody>
-          <VStack spacing={4} align="stretch">
+          <VStack spacing={5} align="stretch">
 
             {/* ============================================== */}
             {/* = TITEL                                       = */}
             {/* ============================================== */}
             <FormControl>
-              <FormLabel>Titel</FormLabel>
+              <FormLabel fontWeight="bold" color={labelColor}>
+                Titel
+              </FormLabel>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                color={textColor}
+                placeholder="Naam van de accommodatie"
               />
             </FormControl>
 
@@ -135,10 +144,14 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
             {/* = LOCATIE                                     = */}
             {/* ============================================== */}
             <FormControl>
-              <FormLabel>Locatie</FormLabel>
+              <FormLabel fontWeight="bold" color={labelColor}>
+                Locatie
+              </FormLabel>
               <Input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
+                color={textColor}
+                placeholder="Bijv. Amsterdam, Nederland"
               />
             </FormControl>
 
@@ -146,10 +159,16 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
             {/* = BESCHRIJVING                                = */}
             {/* ============================================== */}
             <FormControl>
-              <FormLabel>Beschrijving</FormLabel>
+              <FormLabel fontWeight="bold" color={labelColor}>
+                Beschrijving
+              </FormLabel>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                color={textColor}
+                resize="vertical"
+                rows={4}
+                placeholder="Beschrijf de accommodatie..."
               />
             </FormControl>
 
@@ -157,13 +176,15 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
             {/* = PRIJS PER NACHT                             = */}
             {/* ============================================== */}
             <FormControl>
-              <FormLabel>Prijs per nacht (€)</FormLabel>
+              <FormLabel fontWeight="bold" color={labelColor}>
+                Prijs per nacht (€)
+              </FormLabel>
               <NumberInput
                 min={10}
                 value={pricePerNight}
                 onChange={(v) => setPricePerNight(Number(v))}
               >
-                <NumberInputField />
+                <NumberInputField color={textColor} />
               </NumberInput>
             </FormControl>
 
@@ -171,13 +192,15 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
             {/* = AANTAL GASTEN                               = */}
             {/* ============================================== */}
             <FormControl>
-              <FormLabel>Aantal gasten</FormLabel>
+              <FormLabel fontWeight="bold" color={labelColor}>
+                Aantal gasten
+              </FormLabel>
               <NumberInput
                 min={1}
                 value={guestCount}
                 onChange={(v) => setGuestCount(Number(v))}
               >
-                <NumberInputField />
+                <NumberInputField color={textColor} />
               </NumberInput>
             </FormControl>
 
@@ -185,13 +208,15 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
             {/* = SLAAPKAMERS                                 = */}
             {/* ============================================== */}
             <FormControl>
-              <FormLabel>Slaapkamers</FormLabel>
+              <FormLabel fontWeight="bold" color={labelColor}>
+                Slaapkamers
+              </FormLabel>
               <NumberInput
                 min={1}
                 value={bedroomCount}
                 onChange={(v) => setBedroomCount(Number(v))}
               >
-                <NumberInputField />
+                <NumberInputField color={textColor} />
               </NumberInput>
             </FormControl>
 
@@ -199,13 +224,15 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
             {/* = BADKAMERS                                   = */}
             {/* ============================================== */}
             <FormControl>
-              <FormLabel>Badkamers</FormLabel>
+              <FormLabel fontWeight="bold" color={labelColor}>
+                Badkamers
+              </FormLabel>
               <NumberInput
                 min={1}
                 value={bathRoomCount}
                 onChange={(v) => setBathRoomCount(Number(v))}
               >
-                <NumberInputField />
+                <NumberInputField color={textColor} />
               </NumberInput>
             </FormControl>
 

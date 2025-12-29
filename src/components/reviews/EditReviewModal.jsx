@@ -18,6 +18,7 @@ import {
   NumberInputField,
   FormControl,
   FormLabel,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 
 import { useState } from "react";
@@ -29,10 +30,15 @@ export default function EditReviewModal({ isOpen, onClose, review, onSave }) {
   const [rating, setRating] = useState(review.rating);
   const [comment, setComment] = useState(review.comment);
 
+  const isRatingInvalid = rating < 1 || rating > 5;
+  const isCommentInvalid = comment.trim().length < 5;
+
   // ==============================================
   // = SUBMIT HANDLER                             =
   // ==============================================
   function handleSubmit() {
+    if (isRatingInvalid || isCommentInvalid) return;
+
     onSave({
       rating: Number(rating),
       comment,
@@ -57,15 +63,13 @@ export default function EditReviewModal({ isOpen, onClose, review, onSave }) {
         {/* = BODY                                        = */}
         {/* ============================================== */}
         <ModalBody>
-          <VStack spacing={4} align="stretch">
+          <VStack spacing={5} align="stretch">
 
             {/* ============================================== */}
             {/* = RATING                                      = */}
             {/* ============================================== */}
-            <FormControl>
-              <FormLabel fontSize="sm" color="gray.600">
-                Rating (1–5)
-              </FormLabel>
+            <FormControl isInvalid={isRatingInvalid}>
+              <FormLabel fontWeight="bold">Rating (1–5)</FormLabel>
 
               <NumberInput
                 value={rating}
@@ -75,21 +79,33 @@ export default function EditReviewModal({ isOpen, onClose, review, onSave }) {
               >
                 <NumberInputField />
               </NumberInput>
+
+              {isRatingInvalid && (
+                <FormErrorMessage>
+                  Rating moet tussen 1 en 5 liggen.
+                </FormErrorMessage>
+              )}
             </FormControl>
 
             {/* ============================================== */}
             {/* = COMMENT                                     = */}
             {/* ============================================== */}
-            <FormControl>
-              <FormLabel fontSize="sm" color="gray.600">
-                Review
-              </FormLabel>
+            <FormControl isInvalid={isCommentInvalid}>
+              <FormLabel fontWeight="bold">Review</FormLabel>
 
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Schrijf je review..."
+                resize="vertical"
+                minH="120px"
               />
+
+              {isCommentInvalid && (
+                <FormErrorMessage>
+                  Review moet minimaal 5 karakters bevatten.
+                </FormErrorMessage>
+              )}
             </FormControl>
 
           </VStack>
@@ -103,7 +119,11 @@ export default function EditReviewModal({ isOpen, onClose, review, onSave }) {
             Annuleren
           </Button>
 
-          <Button colorScheme="blue" onClick={handleSubmit}>
+          <Button
+            colorScheme="blue"
+            onClick={handleSubmit}
+            isDisabled={isRatingInvalid || isCommentInvalid}
+          >
             Opslaan
           </Button>
         </ModalFooter>

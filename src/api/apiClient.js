@@ -10,16 +10,30 @@ export async function apiClient(url, options = {}) {
   const token = localStorage.getItem("token");
 
   // ==============================================
+  // = HEADERS                                    =
+  // ==============================================
+  const headers = {
+    ...(options.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  // Alleen JSON header toevoegen als body geen FormData is
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  // ==============================================
   // = FINAL OPTIONS                              =
   // ==============================================
   const finalOptions = {
     method: options.method || "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-    ...(options.body ? { body: JSON.stringify(options.body) } : {}),
+    headers,
+    body:
+      options.body instanceof FormData
+        ? options.body
+        : options.body
+        ? JSON.stringify(options.body)
+        : undefined,
   };
 
   // ==============================================
@@ -30,16 +44,24 @@ export async function apiClient(url, options = {}) {
   try {
     res = await fetch(url, finalOptions);
   } catch (err) {
-    throw new Error("Kan geen verbinding maken met de server");
+    throw {
+      error: "Kan geen verbinding maken met de server",
+      network: true,
+    };
   }
 
   // ==============================================
-  // = JSON PARSING                               =
+  // = JSON PARSING (safe)                        =
   // ==============================================
   let data = null;
 
   try {
-    data = await res.json();
+    // 204 No Content → geen JSON
+    if (res.status === 204) {
+      data = {};
+    } else {
+      data = await res.json();
+    }
   } catch {
     data = { error: "Onbekende fout" };
   }
@@ -48,12 +70,15 @@ export async function apiClient(url, options = {}) {
   // = ERROR HANDLING                             =
   // ==============================================
   if (!res.ok) {
-    // Automatisch uitloggen bij 401
     if (res.status === 401) {
       localStorage.removeItem("token");
     }
 
-    throw new Error(data.error || "Er ging iets mis");
+    throw {
+      status: res.status,
+      error: data.error || "Er ging iets mis",
+      details: data,
+    };
   }
 
   // ==============================================

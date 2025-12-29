@@ -42,7 +42,9 @@ export const AuthProvider = ({ children }) => {
     if (!token) return;
 
     try {
-      const res = await api.get("/auth/me");
+      const res = await api.get("/auth/me",{
+        headers: { Authorization: `Bearer ${token}` }
+      })
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
     } catch (err) {
@@ -55,21 +57,27 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [token]);
 
-  // ==============================================
-  // = LOGIN                                      =
-  // ==============================================
-  const login = async (email, password) => {
-    try {
-      const res = await api.post("/auth/login", { email, password });
+// ==============================================
+// = LOGIN                                      =
+// ==============================================
+const login = async (email, password) => {
+  try {
+    const res = await api.post("/auth/login", { email, password });
 
-      saveToken(res.data.token);
-      await fetchUser();
-    } catch (err) {
-      const backendError =
-        err.response?.data?.error || "Login mislukt. Probeer opnieuw.";
-      throw new Error(backendError);
-    }
-  };
+    saveToken(res.data.token);
+    await fetchUser();
+  } catch (err) {
+    console.log("❌ Login error in AuthContext:", err);
+
+    // Axios-interceptor geeft ALTIJD: { error: "..." }
+    const backendError =
+      err.error || err.message || "Login mislukt. Probeer opnieuw.";
+
+    // Gooi in exact hetzelfde formaat door naar LoginPage
+    throw { error: backendError };
+  }
+};
+
 
   // ==============================================
   // = LOGOUT                                     =
@@ -83,13 +91,7 @@ export const AuthProvider = ({ children }) => {
   // ==============================================
   // = REGISTER                                   =
   // ==============================================
-  const registerUser = async (
-    username,
-    email,
-    password,
-    name,
-    phoneNumber
-  ) => {
+  const registerUser = async (username, email, password, name, phoneNumber) => {
     try {
       await api.post("/auth/register", {
         username,
@@ -103,6 +105,39 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       const backendError =
         err.response?.data?.error || "Registratie mislukt.";
+      throw new Error(backendError);
+    }
+  };
+
+  // ==============================================
+  // = UPDATE PROFILE (email, name, phoneNumber)  =
+  // ==============================================
+  const updateProfile = async (form) => {
+    try {
+      const res = await api.patch("/auth/update-profile", form);
+
+      const { user: updatedUser, token: newToken } = res.data;
+      const emailChanged = form.email && form.email !== user.email;
+
+      // Token opslaan (alleen als backend een nieuwe geeft)
+      if (newToken) {
+        saveToken(newToken);
+      }
+
+      // User opslaan
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // Als email is gewijzigd → DIRECT uitloggen (geen fetchUser!)
+      if (emailChanged) {
+        logout();
+        return updatedUser;
+      }
+
+      return updatedUser;
+    } catch (err) {
+      const backendError =
+        err.response?.data?.error || "Kon profiel niet bijwerken.";
       throw new Error(backendError);
     }
   };
@@ -140,14 +175,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = UPDATE USER (client-side)                  =
-  // ==============================================
-  const updateUser = (updated) => {
-    setUser(updated);
-    localStorage.setItem("user", JSON.stringify(updated));
-  };
-
-  // ==============================================
   // = PROVIDER                                   =
   // ==============================================
   return (
@@ -158,7 +185,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         registerUser,
-        updateUser,
+        updateProfile,
         becomeHost,
         stopHost,
       }}

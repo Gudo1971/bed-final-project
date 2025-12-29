@@ -1,6 +1,5 @@
 // ==============================================
 // = APPLICATION ENTRY POINT                     =
-// = Mount React + Providers + Router            =
 // ==============================================
 
 import React from "react";
@@ -13,16 +12,15 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { AuthProvider } from "./components/context/AuthContext.jsx";
 import { UserProvider } from "./components/context/UserContext.jsx";
 
+import theme from "./theme.js";
+
 // ==============================================
 // = RENDER                                      =
 // ==============================================
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/* ============================================== */}
-    {/* = ROUTER + UI PROVIDERS                       = */}
-    {/* ============================================== */}
     <BrowserRouter>
-      <ChakraProvider>
+      <ChakraProvider theme={theme}>
         <AuthProvider>
           <UserProvider>
             <App />

@@ -12,8 +12,10 @@ import {
   VStack,
   Image,
   Button,
+  Select,
   useDisclosure,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 import { Link } from "react-router-dom";
@@ -54,6 +56,13 @@ export default function MyReviews() {
   const toast = useToast();
 
   const userId = getUserIdFromToken();
+
+  // ==============================================
+  // = DARK MODE COLORS                           =
+  // ==============================================
+  const cardBg = useColorModeValue("gray.100", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.100");
+  const subTextColor = useColorModeValue("gray.600", "gray.400");
 
   // ==============================================
   // = REVIEWS OPHALEN                            =
@@ -128,13 +137,23 @@ export default function MyReviews() {
   // ==============================================
   // = LOADING STATE                              =
   // ==============================================
-  if (loading) return <Spinner />;
+  if (loading) {
+    return (
+      <HStack justify="center" w="100%" mt={10}>
+        <Spinner size="lg" />
+      </HStack>
+    );
+  }
 
   // ==============================================
   // = GEEN REVIEWS                               =
   // ==============================================
   if (reviews.length === 0) {
-    return <Text>Je hebt nog geen reviews geschreven.</Text>;
+    return (
+      <Text fontSize="lg" color={subTextColor}>
+        Je hebt nog geen reviews geschreven.
+      </Text>
+    );
   }
 
   // ==============================================
@@ -189,36 +208,39 @@ export default function MyReviews() {
       {/* ============================================== */}
       {/* = SORTERING                                   = */}
       {/* ============================================== */}
-      <HStack mb={4}>
-        <Text fontWeight="bold">Sorteren op:</Text>
+      <HStack mb={4} spacing={3}>
+        <Text fontWeight="bold" color={textColor}>
+          Sorteren op:
+        </Text>
 
-        <select
+        <Select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          style={{
-            padding: "6px 10px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-          }}
+          maxW="250px"
+          bg={cardBg}
+          color={textColor}
+          borderColor="gray.500"
         >
           <option value="date_desc">Datum (nieuwste eerst)</option>
           <option value="date_asc">Datum (oudste eerst)</option>
           <option value="property_asc">Property (A–Z)</option>
           <option value="property_desc">Property (Z–A)</option>
-        </select>
+        </Select>
       </HStack>
 
       {/* ============================================== */}
       {/* = REVIEW LIJST                                = */}
       {/* ============================================== */}
-      <VStack spacing={4} align="start" w="100%">
+      <VStack spacing={4} align="stretch" w="100%">
         {sortReviews(reviews, sortBy).map((review) => (
           <Box
             key={review.id}
             p={4}
-            border="1px solid #ddd"
+            bg={cardBg}
             borderRadius="md"
-            w="100%"
+            boxShadow="sm"
+            _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
+            transition="all 0.2s ease"
           >
             <HStack spacing={4} align="start">
               <Image
@@ -231,15 +253,15 @@ export default function MyReviews() {
 
               <VStack align="start" spacing={1} flex="1">
                 <Link to={`/properties/${review.propertyId}`}>
-                  <Text fontWeight="bold" fontSize="lg" color="blue.500">
+                  <Text fontWeight="bold" fontSize="lg" color="teal.400">
                     {review.property?.title || "Onbekende accommodatie"}
                   </Text>
                 </Link>
 
-                <Text>⭐ {review.rating} / 5</Text>
-                <Text>{review.comment}</Text>
+                <Text color={textColor}>⭐ {review.rating} / 5</Text>
+                <Text color={textColor}>{review.comment}</Text>
 
-                <Text fontSize="sm" color="gray.500">
+                <Text fontSize="sm" color={subTextColor}>
                   {new Date(review.createdAt).toLocaleDateString("nl-NL")}
                 </Text>
 

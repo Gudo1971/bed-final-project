@@ -1,7 +1,7 @@
-// ==============================================
-// = REGISTER PAGE                               =
-// = Nieuw account aanmaken                      =
-// ==============================================
+// ============================================================
+// = REGISTER PAGE                                             =
+// = Nieuw account aanmaken                                    =
+// ============================================================
 
 import { useState } from "react";
 import {
@@ -15,6 +15,7 @@ import {
   VStack,
   Text,
   Link as ChakraLink,
+  Flex,
   useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
@@ -23,31 +24,31 @@ import { useAuth } from "../../components/context/AuthContext.jsx";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function RegisterPage() {
-  // ==============================================
-  // = AUTH + ROUTER + TOAST                      =
-  // ==============================================
+  // ============================================================
+  // = AUTH + ROUTER + TOAST                                    =
+  // ============================================================
   const { registerUser } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
-  // ==============================================
-  // = FORM STATE                                 =
-  // ==============================================
+  // ============================================================
+  // = FORM STATE                                               =
+  // ============================================================
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ==============================================
-  // = ERROR STATE                                =
-  // ==============================================
+  // ============================================================
+  // = ERROR STATE                                              =
+  // ============================================================
   const [errorField, setErrorField] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // ==============================================
-  // = INPUT STYLING                              =
-  // ==============================================
+  // ============================================================
+  // = INPUT STYLING                                            =
+  // ============================================================
   const inputStyle = {
     bg: useColorModeValue("gray.100", "gray.800"),
     border: "1px solid",
@@ -55,9 +56,9 @@ export default function RegisterPage() {
     _placeholder: { color: useColorModeValue("gray.500", "gray.400") },
   };
 
-  // ==============================================
-  // = SUBMIT HANDLER                             =
-  // ==============================================
+  // ============================================================
+  // = SUBMIT HANDLER                                           =
+  // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorField("");
@@ -87,35 +88,39 @@ export default function RegisterPage() {
     }
   };
 
-  // ==============================================
-  // = RENDER                                      =
-  // ==============================================
+  // ============================================================
+  // = RENDER                                                   =
+  // ============================================================
   return (
     <Box
       maxW="420px"
       mx="auto"
-      mt="80px"
-      p={8}
+      mt={{ base: "60px", md: "80px" }}
+      p={{ base: 6, md: 8 }}
       borderRadius="md"
       boxShadow="lg"
       bg={useColorModeValue("white", "gray.700")}
     >
-      {/* ============================================== */}
-      {/* = TITEL                                       = */}
-      {/* ============================================== */}
-      <Heading mb={6} textAlign="center" fontSize="2xl">
+      {/* ====================================================== */}
+      {/* = TITEL                                               = */}
+      {/* ====================================================== */}
+      <Heading
+        mb={6}
+        textAlign="center"
+        fontSize={{ base: "xl", md: "2xl" }}
+        fontWeight="extrabold"
+        color={useColorModeValue("teal.600", "teal.300")}
+      >
         Registreren bij StayBnB
       </Heading>
 
-      {/* ============================================== */}
-      {/* = FORM                                        = */}
-      {/* ============================================== */}
+      {/* ====================================================== */}
+      {/* = FORM                                                = */}
+      {/* ====================================================== */}
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">
 
-          {/* ============================================== */}
-          {/* = USERNAME                                   = */}
-          {/* ============================================== */}
+          {/* USERNAME */}
           <FormControl isRequired isInvalid={errorField === "username"}>
             <FormLabel>Username</FormLabel>
             <Input
@@ -130,9 +135,7 @@ export default function RegisterPage() {
             )}
           </FormControl>
 
-          {/* ============================================== */}
-          {/* = NAAM                                       = */}
-          {/* ============================================== */}
+          {/* NAAM */}
           <FormControl isRequired isInvalid={errorField === "name"}>
             <FormLabel>Naam</FormLabel>
             <Input
@@ -147,9 +150,7 @@ export default function RegisterPage() {
             )}
           </FormControl>
 
-          {/* ============================================== */}
-          {/* = TELEFOONNUMMER (OPTIONEEL)                 = */}
-          {/* ============================================== */}
+          {/* TELEFOONNUMMER */}
           <FormControl isInvalid={errorField === "phoneNumber"}>
             <FormLabel>Telefoonnummer (optioneel)</FormLabel>
             <Input
@@ -164,9 +165,7 @@ export default function RegisterPage() {
             )}
           </FormControl>
 
-          {/* ============================================== */}
-          {/* = EMAIL                                      = */}
-          {/* ============================================== */}
+          {/* EMAIL */}
           <FormControl isRequired isInvalid={errorField === "email"}>
             <FormLabel>Email</FormLabel>
             <Input
@@ -181,9 +180,7 @@ export default function RegisterPage() {
             )}
           </FormControl>
 
-          {/* ============================================== */}
-          {/* = PASSWORD                                   = */}
-          {/* ============================================== */}
+          {/* PASSWORD */}
           <FormControl isRequired isInvalid={errorField === "password"}>
             <FormLabel>Wachtwoord</FormLabel>
             <Input
@@ -198,25 +195,37 @@ export default function RegisterPage() {
             )}
           </FormControl>
 
-          {/* ============================================== */}
-          {/* = ALGEMENE FOUT                              = */}
-          {/* ============================================== */}
+          {/* ALGEMENE FOUT */}
           {errorField === "form" && (
             <Text color="red.400" fontSize="sm" textAlign="center">
               {errorMessage}
             </Text>
           )}
 
-          {/* ============================================== */}
-          {/* = SUBMIT KNOP                                = */}
-          {/* ============================================== */}
-          <Button colorScheme="teal" type="submit" width="100%">
-            Account aanmaken
-          </Button>
+          {/* ====================================================== */}
+          {/* = KNOPPEN (Annuleren + Registreren)                   = */}
+          {/* ====================================================== */}
+          <Flex justify="space-between" mt={2}>
+            <Button
+              variant="outline"
+              size="md"
+              width="48%"
+              onClick={() => navigate("/login")}
+            >
+              Annuleren
+            </Button>
 
-          {/* ============================================== */}
-          {/* = LOGIN LINK                                 = */}
-          {/* ============================================== */}
+            <Button
+              colorScheme="teal"
+              type="submit"
+              size="md"
+              width="48%"
+            >
+              Account aanmaken
+            </Button>
+          </Flex>
+
+          {/* LOGIN LINK */}
           <Text fontSize="sm" textAlign="center">
             Heb je al een account?{" "}
             <ChakraLink as={Link} to="/login" color="teal.500">
