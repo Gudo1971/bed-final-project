@@ -25,6 +25,7 @@ export async function getProperties(req, res) {
             name: true,
             email: true,
             pictureUrl: true,
+            aboutMe: true,
           },
         },
       },
@@ -54,6 +55,8 @@ export async function getProperty(req, res) {
             name: true,
             email: true,
             pictureUrl: true,
+            aboutMe: true,
+            phoneNumber: true,
           },
         },
         reviews: {
@@ -63,6 +66,7 @@ export async function getProperty(req, res) {
                 id: true,
                 name: true,
                 pictureUrl: true,
+                phoneNumber: true,
               },
             },
           },
@@ -133,7 +137,6 @@ export async function createProperty(req, res) {
         maxGuestCount: Number(maxGuestCount),
         rating: 0,
 
-        // ⭐ BELANGRIJK: connect via email
         host: {
           connect: { email: hostEmail },
         },
@@ -296,8 +299,7 @@ export async function deleteProperty(req, res) {
     console.error("❌ Error deleting property:", error);
     return res.status(500).json({ message: "Failed to delete property" });
   }
-}
-
+};
 
 /* ============================================================
    GET BOOKINGS FOR PROPERTY (HOST ONLY)

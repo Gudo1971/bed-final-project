@@ -17,7 +17,11 @@ export const createBooking = async (data) => {
     },
     include: {
       user: true,
-      property: true,
+      property: {
+        include: {
+          images: true,
+        },
+      },
     },
   });
 
@@ -31,7 +35,11 @@ export const getAllBookings = async () => {
   const bookings = await prisma.booking.findMany({
     include: {
       user: true,
-      property: true,
+      property: {
+        include: {
+          images: true,
+        },
+      },
     },
   });
 
@@ -46,7 +54,11 @@ export const getBookingById = async (id) => {
     where: { id },
     include: {
       user: true,
-      property: true,
+      property: {
+        include: {
+          images: true,
+        },
+      },
     },
   });
 
@@ -61,15 +73,12 @@ export const getBookingsByUserId = async (userId) => {
     where: { userId },
     include: {
       property: {
-        select: {
-          id: true,
-          title: true,
-          location: true,
+        include: {
           images: true,
-          pricePerNight: true,
-          rating: true,
         },
       },
+
+      user: true,
     },
   });
 
@@ -84,7 +93,11 @@ export const getBookingsByPropertyId = async (propertyId) => {
     where: { propertyId },
     include: {
       user: true,
-      property: true,
+      property: {
+        include: {
+          images: true,
+        },
+      },
     },
   });
 
@@ -92,7 +105,7 @@ export const getBookingsByPropertyId = async (propertyId) => {
 };
 
 /* ============================================================
-   UPDATE BOOKING (dates, guests, price)
+   UPDATE BOOKING
 ============================================================ */
 export const updateBooking = async (id, data) => {
   const updated = await prisma.booking.update({
@@ -102,12 +115,14 @@ export const updateBooking = async (id, data) => {
       endDate: data.checkoutDate ? new Date(data.checkoutDate) : undefined,
       numberOfGuests: data.numberOfGuests ?? undefined,
       totalPrice: data.totalPrice ?? undefined,
-      // bookingStatus wordt NIET aangepast hier
-      // propertyId wordt NIET aangepast hier
     },
     include: {
       user: true,
-      property: true,
+      property: {
+        include: {
+          images: true,
+        },
+      },
     },
   });
 
@@ -122,7 +137,11 @@ export const deleteBooking = async (id) => {
     where: { id },
     include: {
       user: true,
-      property: true,
+      property: {
+        include: {
+          images: true,
+        },
+      },
     },
   });
 

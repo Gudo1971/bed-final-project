@@ -1,5 +1,5 @@
 import { Router } from "express";
-import authenticateToken, { requireHost } from "../middleware/auth.middleware.js";
+import authenticateToken from "../middleware/auth.middleware.js";
 import prisma from "../lib/prisma.js";
 
 import {
@@ -32,6 +32,9 @@ router.get("/disabled-dates/:propertyId", getDisabledDatesByPropertyIdController
 
 /* ============================================================
    GET BOOKINGS FOR LOGGED-IN HOST
+   - thumbnails werken nu
+   - geen select/include conflict meer
+   - geen 500 errors meer
 ============================================================ */
 router.get("/host/me", authenticateToken, async (req, res) => {
   try {
@@ -39,16 +42,16 @@ router.get("/host/me", authenticateToken, async (req, res) => {
 
     // 1. Haal alle properties van deze host op
     const properties = await prisma.property.findMany({
-      where: { hostEmail: hostEmail },
-      select: { id: true }
+      where: { hostEmail: hostEmail }
+      // ❗ Geen select hier → anders crasht Prisma bij include
     });
 
-    const propertyIds = properties.map(p => p.id);
+    const propertyIds = properties.map((p) => p.id);
 
     // 2. Haal alle bookings op voor deze properties
     const bookings = await prisma.booking.findMany({
       where: {
-        propertyId: { in: propertyIds }
+        propertyId: { in: propertyIds },
       },
       include: {
         user: {
@@ -56,17 +59,15 @@ router.get("/host/me", authenticateToken, async (req, res) => {
             id: true,
             name: true,
             email: true,
-            pictureUrl: true
-          }
+            pictureUrl: true,
+          },
         },
         property: {
-          select: {
-            id: true,
-            title: true,
-            location: true
-          }
-        }
-      }
+          include: {
+            images: true, // ⭐ FIX: thumbnails komen nu mee
+          },
+        },
+      },
     });
 
     return res.status(200).json(bookings);
@@ -76,7 +77,6 @@ router.get("/host/me", authenticateToken, async (req, res) => {
   }
 });
 
-
 /* ============================================================
    CONFIRM BOOKING (HOST ONLY)
 ============================================================ */
@@ -85,24 +85,19 @@ router.patch("/:id/confirm", authenticateToken, async (req, res) => {
     const bookingId = req.params.id;
     const hostEmail = req.user.email;
 
-    // 1. Haal booking + property op
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
-      include: {
-        property: true,
-      },
+      include: { property: true },
     });
 
     if (!booking) {
       return res.status(404).json({ error: "Boeking niet gevonden" });
     }
 
-    // 2. Check of deze host eigenaar is van de property
     if (booking.property.hostEmail !== hostEmail) {
       return res.status(403).json({ error: "Geen toegang tot deze booking" });
     }
 
-    // 3. Update booking status
     const updated = await prisma.booking.update({
       where: { id: bookingId },
       data: { bookingStatus: "CONFIRMED" },
@@ -115,7 +110,6 @@ router.patch("/:id/confirm", authenticateToken, async (req, res) => {
   }
 });
 
-
 /* ============================================================
    REJECT BOOKING (HOST ONLY)
 ============================================================ */
@@ -124,7 +118,6 @@ router.patch("/:id/reject", authenticateToken, async (req, res) => {
     const bookingId = req.params.id;
     const hostEmail = req.user.email;
 
-    // 1. Haal booking + property op
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
       include: { property: true },
@@ -134,12 +127,10 @@ router.patch("/:id/reject", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "Boeking niet gevonden" });
     }
 
-    // 2. Check of deze host eigenaar is van de property
     if (booking.property.hostEmail !== hostEmail) {
       return res.status(403).json({ error: "Geen toegang tot deze booking" });
     }
 
-    // 3. Verwijder de booking volledig
     await prisma.booking.delete({
       where: { id: bookingId },
     });
@@ -150,8 +141,6 @@ router.patch("/:id/reject", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: "Failed to reject booking" });
   }
 });
-
-
 
 /* ============================================================
    CRUD ROUTES
