@@ -23,6 +23,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 
+// Profielfoto upload component
+import ProfileImageUpload from "../images/upload/ProfielfotoUpload.jsx";
+
 export default function EditPersonalInfoModal({ isOpen, onClose }) {
   const toast = useToast();
   const navigate = useNavigate();
@@ -35,6 +38,7 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
     name: "",
     phoneNumber: "",
     email: "",
+    pictureUrl: "",
   });
 
   // Prefill wanneer modal opent
@@ -44,6 +48,7 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
         name: user.name || "",
         phoneNumber: user.phoneNumber || "",
         email: user.email || "",
+        pictureUrl: user.pictureUrl || "",
       });
     }
   }, [user, isOpen]);
@@ -100,6 +105,12 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
         <ModalBody>
           <VStack spacing={4}>
 
+            {/* Profielfoto upload */}
+            <ProfileImageUpload
+              pictureUrl={form.pictureUrl}
+              setPictureUrl={(url) => setForm({ ...form, pictureUrl: url })}
+            />
+
             {/* Email (editable) */}
             <FormControl>
               <FormLabel>E‑mail</FormLabel>
@@ -111,6 +122,7 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
               />
             </FormControl>
 
+            {/* Naam */}
             <FormControl>
               <FormLabel>Naam</FormLabel>
               <Input
@@ -120,6 +132,7 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
               />
             </FormControl>
 
+            {/* Telefoonnummer */}
             <FormControl>
               <FormLabel>Telefoonnummer</FormLabel>
               <Input

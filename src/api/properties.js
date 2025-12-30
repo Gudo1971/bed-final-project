@@ -18,11 +18,11 @@ async function safeRequest(promise) {
 
 // ==============================================
 // = GET ALL PROPERTIES                          =
-// = GET /properties                             =
+// = GET /api/properties                         =
 // ==============================================
 export function getAllProperties(token) {
   return safeRequest(
-    api.get("/properties", {
+    api.get("/api/properties", {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -30,11 +30,11 @@ export function getAllProperties(token) {
 
 // ==============================================
 // = GET PROPERTY BY ID                          =
-// = GET /properties/:id                         =
+// = GET /api/properties/:id                     =
 // ==============================================
 export function getPropertyById(id, token) {
   return safeRequest(
-    api.get(`/properties/${id}`, {
+    api.get(`/api/properties/${id}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -42,11 +42,11 @@ export function getPropertyById(id, token) {
 
 // ==============================================
 // = CREATE PROPERTY                             =
-// = POST /properties                            =
+// = POST /api/properties                        =
 // ==============================================
 export function createProperty(data, token) {
   return safeRequest(
-    api.post("/properties", data, {
+    api.post("/api/properties", data, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
