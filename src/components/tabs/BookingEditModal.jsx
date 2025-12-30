@@ -54,6 +54,8 @@ export default function BookingEditModal({
   const [checkOut, setCheckOut] = useState(null);
   const [guests, setGuests] = useState(1);
 
+  const maxGuests = booking?.property?.maxGuestCount || 1;
+
   // ============================================================
   // = NORMALIZE (timezone‑safe)                                 =
   // ============================================================
@@ -69,7 +71,7 @@ export default function BookingEditModal({
   }
 
   // ============================================================
-  // = STATUS ENGINE (CENTRAAL, CLEAN, FUTURE-PROOF)             =
+  // = STATUS ENGINE                                             =
   // ============================================================
   const status = getBookingStatus(
     booking?.checkinDate,
@@ -79,7 +81,6 @@ export default function BookingEditModal({
   const isPastBooking = status === "verlopen";
   const isCanceled = booking?.bookingStatus?.toLowerCase() === "canceled";
 
-  // Gebruiker mag NIET bewerken als booking canceled of verleden is
   const canEdit = !isPastBooking && !isCanceled;
 
   // ============================================================
@@ -181,6 +182,15 @@ export default function BookingEditModal({
       return;
     }
 
+    if (guests > maxGuests) {
+      toast({
+        title: "Te veel gasten",
+        description: `Maximaal ${maxGuests} gasten toegestaan.`,
+        status: "error",
+      });
+      return;
+    }
+
     try {
       await updateBooking(booking.id, {
         checkinDate: checkIn,
@@ -248,14 +258,38 @@ export default function BookingEditModal({
           {/* ============================================================ */}
           <FormControl mb={4}>
             <FormLabel color={labelColor}>Aantal personen</FormLabel>
+
+            <Text fontSize="sm" color={labelColor} mb={1}>
+              Maximaal {maxGuests} gasten toegestaan
+            </Text>
+
             <NumberInput
               min={1}
+              max={maxGuests}
               value={guests}
-              onChange={(vStr, vNum) => setGuests(vNum || 1)}
+              onChange={(vStr, vNum) => {
+                const val = vNum || 1;
+                setGuests(val);
+
+                if (val > maxGuests) {
+                  toast({
+                    title: "Te veel gasten",
+                    description: `Maximaal ${maxGuests} gasten toegestaan.`,
+                    status: "warning",
+                    duration: 2500,
+                  });
+                }
+              }}
               isDisabled={!canEdit}
             >
               <NumberInputField color={textColor} />
             </NumberInput>
+
+            {guests > maxGuests && (
+              <Text color="red.500" fontSize="sm" mt={1}>
+                Maximaal {maxGuests} gasten toegestaan
+              </Text>
+            )}
           </FormControl>
 
           {/* ============================================================ */}
@@ -308,7 +342,7 @@ export default function BookingEditModal({
           <Button
             colorScheme="teal"
             onClick={handleSave}
-            isDisabled={!canEdit}
+            isDisabled={!canEdit || guests > maxGuests}
           >
             Opslaan
           </Button>

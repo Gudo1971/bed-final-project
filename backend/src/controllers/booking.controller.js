@@ -27,10 +27,19 @@ export const createBookingController = async (req, res) => {
 
     const userId = req.user?.id;
 
+    /* ============================================================
+       INPUT PARSING
+       - numberOfGuests kan als string binnenkomen
+    ============================================================ */
+    const guests = Number(numberOfGuests);
+
+    /* ============================================================
+       INPUT VALIDATION
+    ============================================================ */
     if (
       !checkinDate ||
       !checkoutDate ||
-      !numberOfGuests ||
+      !guests ||
       !totalPrice ||
       !propertyId ||
       !userId
@@ -38,9 +47,16 @@ export const createBookingController = async (req, res) => {
       return res.status(400).json({ error: "Invalid input" });
     }
 
+    /* ============================================================
+       PROPERTY FETCH
+       - ophalen van maxGuestCount en isActive
+    ============================================================ */
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
-      select: { isActive: true },
+      select: {
+        isActive: true,
+        maxGuestCount: true, // correcte veldnaam
+      },
     });
 
     if (!property) {
@@ -53,11 +69,23 @@ export const createBookingController = async (req, res) => {
       });
     }
 
+    /* ============================================================
+       MAX GUEST VALIDATION
+    ============================================================ */
+    if (guests > property.maxGuestCount) {
+      return res.status(400).json({
+        error: `Maximaal ${property.maxGuestCount} gasten toegestaan.`,
+      });
+    }
+
+    /* ============================================================
+       CREATE BOOKING
+    ============================================================ */
     const booking = await prisma.booking.create({
       data: {
         startDate: new Date(checkinDate),
         endDate: new Date(checkoutDate),
-        numberOfGuests,
+        numberOfGuests: guests,
         totalPrice,
         bookingStatus: "PENDING",
         propertyId,
@@ -67,7 +95,7 @@ export const createBookingController = async (req, res) => {
 
     return res.status(201).json(mapBooking(booking));
   } catch (error) {
-    console.error("❌ BOOKING ERROR:", error);
+    console.error("BOOKING ERROR:", error);
 
     if (error instanceof Prisma.PrismaClientValidationError) {
       return res.status(400).json({ error: "Invalid input" });
@@ -85,7 +113,7 @@ export const getAllBookingsController = async (req, res) => {
     const bookings = await getAllBookings();
     return res.status(200).json(bookings.map(mapBooking));
   } catch (error) {
-    console.error("❌ ERROR (getAllBookings):", error);
+    console.error("ERROR (getAllBookings):", error);
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
@@ -104,7 +132,7 @@ export const getBookingByIdController = async (req, res) => {
 
     return res.status(200).json(mapBooking(booking));
   } catch (err) {
-    console.error("❌ ERROR (getBookingById):", err);
+    console.error("ERROR (getBookingById):", err);
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
@@ -119,7 +147,7 @@ export const getBookingsByUserIdController = async (req, res) => {
 
     return res.status(200).json(bookings.map(mapBooking));
   } catch (error) {
-    console.error("❌ ERROR (getBookingsByUserId):", error);
+    console.error("ERROR (getBookingsByUserId):", error);
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
@@ -134,7 +162,7 @@ export const getBookingsByPropertyIdController = async (req, res) => {
 
     return res.status(200).json(bookings.map(mapBooking));
   } catch (error) {
-    console.error("❌ ERROR (getBookingsByPropertyId):", error);
+    console.error("ERROR (getBookingsByPropertyId):", error);
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
@@ -148,6 +176,9 @@ export const updateBookingController = async (req, res) => {
   try {
     const { id } = req.params;
 
+    /* ============================================================
+       FETCH EXISTING BOOKING
+    ============================================================ */
     const existing = await prisma.booking.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ error: "Booking not found" });
@@ -169,6 +200,9 @@ export const updateBookingController = async (req, res) => {
       });
     }
 
+    /* ============================================================
+       INPUT PARSING
+    ============================================================ */
     const {
       checkinDate,
       checkoutDate,
@@ -187,6 +221,9 @@ export const updateBookingController = async (req, res) => {
       });
     }
 
+    /* ============================================================
+       UPDATE BOOKING
+    ============================================================ */
     const updated = await prisma.booking.update({
       where: { id },
       data: {
@@ -195,8 +232,6 @@ export const updateBookingController = async (req, res) => {
         numberOfGuests: numberOfGuests ?? existing.numberOfGuests,
         totalPrice: totalPrice ?? existing.totalPrice,
         propertyId: propertyId ?? existing.propertyId,
-
-        // ⭐ FIX: status alleen aanpassen als frontend dat vraagt
         bookingStatus: bookingStatus ?? existing.bookingStatus,
       },
     });
@@ -206,7 +241,7 @@ export const updateBookingController = async (req, res) => {
       booking: mapBooking(updated),
     });
   } catch (error) {
-    console.error("❌ ERROR (updateBooking):", error);
+    console.error("ERROR (updateBooking):", error);
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
@@ -241,7 +276,7 @@ export const deleteBookingController = async (req, res) => {
       booking: mapBooking(deleted),
     });
   } catch (error) {
-    console.error("❌ ERROR (deleteBooking):", error);
+    console.error("ERROR (deleteBooking):", error);
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -281,7 +316,7 @@ export const getDisabledDatesByPropertyIdController = async (req, res) => {
 
     return res.status(200).json(disabledDates);
   } catch (error) {
-    console.error("❌ ERROR (getDisabledDates):", error);
+    console.error("ERROR (getDisabledDates):", error);
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
