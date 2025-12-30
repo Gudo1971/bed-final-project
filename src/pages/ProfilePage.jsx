@@ -10,9 +10,6 @@ import {
   TabPanel,
   Container,
   Heading,
-  Button,
-  Box,
-  useToast,
   useColorModeValue,
 } from "@chakra-ui/react";
 
@@ -25,13 +22,14 @@ import AccountTab from "../components/tabs/AccountTab.jsx";
 import MyReviews from "../components/profile/MyReviews.jsx";
 
 export default function ProfilePage() {
-  const toast = useToast();
-  const { user, token, updateUser } = useAuth();
-
-  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab");
 
-  const defaultIndex =
+  // ----------------------------------------------
+  // MAP URL → TAB INDEX
+  // ----------------------------------------------
+  const tabIndex =
     tab === "bookings"
       ? 1
       : tab === "reviews"
@@ -40,43 +38,23 @@ export default function ProfilePage() {
       ? 3
       : 0;
 
-  async function handleBecomeHost() {
-    try {
-      const res = await fetch("http://localhost:3000/api/account/become-host", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  const titleColor = useColorModeValue("teal.600", "teal.300");
 
-      if (!res.ok) throw new Error("Host worden mislukt");
-
-      const data = await res.json();
-
-      updateUser({
-        ...user,
-        isHost: true,
-        token: data.token,
-      });
-
-      toast({
-        title: "Je bent nu host!",
-        status: "success",
-        duration: 3000,
-      });
-
-      window.location.href = "/host/dashboard";
-    } catch (err) {
-      toast({
-        title: "Fout",
-        description: "Kon host-status niet instellen",
-        status: "error",
-        duration: 3000,
-      });
+  // ----------------------------------------------
+  // TAB CHANGE → UPDATE URL
+  // ----------------------------------------------
+  function handleTabChange(index) {
+    if (index === 0) {
+      searchParams.delete("tab");
+      setSearchParams(searchParams, { replace: true });
+    } else if (index === 1) {
+      setSearchParams({ tab: "bookings" }, { replace: true });
+    } else if (index === 2) {
+      setSearchParams({ tab: "reviews" }, { replace: true });
+    } else if (index === 3) {
+      setSearchParams({ tab: "account" }, { replace: true });
     }
   }
-
-  const titleColor = useColorModeValue("teal.600", "teal.300");
 
   return (
     <Container
@@ -96,25 +74,12 @@ export default function ProfilePage() {
         Mijn Profiel
       </Heading>
 
-      {!user?.isHost && (
-        <Box mb={6} width="100%" display="flex" justifyContent="center">
-          <Button
-            colorScheme="teal"
-            size="lg"
-            width="100%"
-            maxW="260px"
-            onClick={handleBecomeHost}
-          >
-            Word Host
-          </Button>
-        </Box>
-      )}
-
       <Tabs
         variant="enclosed"
         colorScheme="teal"
         width="100%"
-        defaultIndex={defaultIndex}
+        index={tabIndex}          // ⭐ controlled, reageert op URL
+        onChange={handleTabChange} // ⭐ kliks updaten URL
       >
         <TabList
           flexWrap={{ base: "wrap", md: "wrap", lg: "nowrap" }}
