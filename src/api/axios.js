@@ -1,15 +1,15 @@
 // ============================================================
 // = AXIOS INSTANCE                                            =
-// = Base URL + automatische JWT injectie + nette errors       =
+// = Automatische JWT injectie + nette errors                  =
 // ============================================================
 
 import axios from "axios";
 
 // ============================================================
-// = INSTANCE                                                  =
+// = INSTANCE MET baseURL                                      =
 // ============================================================
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
+  baseURL: import.meta.env.VITE_API_URL,   // ⭐ DIT IS DE FIX
   withCredentials: false,
   headers: {
     "Content-Type": "application/json",
@@ -47,20 +47,12 @@ api.interceptors.response.use(
 
     console.error("❌ Axios response error:", backendError || error);
 
-    // ============================================================
-    // = ERROR FLATTENING                                          =
-    // = Altijd een string teruggeven aan AuthContext/LoginPage    =
-    // ============================================================
     return Promise.reject({
       error:
-        // Backend stuurt direct een string
         typeof backendError === "string"
           ? backendError
-          // Backend stuurt { error: "..." }
           : backendError?.error
-          // Axios zelf gooit een fout
           || error.message
-          // Fallback
           || "Er ging iets mis."
     });
   }

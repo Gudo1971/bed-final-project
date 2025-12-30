@@ -27,7 +27,8 @@ import { useNavigate, Link } from "react-router-dom";
 // ============================================================
 async function checkEmailExists(email) {
   const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/auth/check-email?email=${email}`
+    `${import.meta.env.VITE_API_URL}/api/auth/check-email?email=${email}`
+
   );
 
   const data = await res.json();

@@ -91,7 +91,7 @@ export default function Navbar() {
       py={4}
     >
       <HStack spacing={8} align="center" width="100%">
-        
+
         {/* ============================================================
             LOGO → LANDING PAGE
         ============================================================ */}
@@ -135,7 +135,6 @@ export default function Navbar() {
               </MenuButton>
 
               <MenuList zIndex={6000}>
-
                 <MenuItem
                   onClick={() => !isProfileRoot && goTo("/profile")}
                   isDisabled={isProfileRoot}
@@ -173,7 +172,6 @@ export default function Navbar() {
                 >
                   Mijn Account
                 </MenuItem>
-
               </MenuList>
             </Menu>
           )}
@@ -192,7 +190,6 @@ export default function Navbar() {
               </MenuButton>
 
               <MenuList zIndex={6000}>
-
                 <MenuItem
                   onClick={() => goTo("/host/dashboard")}
                   isDisabled={isHostDashboard}
@@ -224,7 +221,6 @@ export default function Navbar() {
                 >
                   Verdiensten
                 </MenuItem>
-
               </MenuList>
             </Menu>
           )}
@@ -238,26 +234,31 @@ export default function Navbar() {
         ============================================================ */}
         {user && (
           <HStack spacing={4} align="center">
-
-            {/* Avatar + Naam */}
             <Avatar name={user.name} size="sm" />
             <Text fontWeight="medium">{user.name}</Text>
 
-            {/* Logout */}
             <Button size="sm" variant="outline" onClick={logout}>
               Logout
             </Button>
 
-            {/* Light/Dark Mode Toggle (Icons) */}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={toggleColorMode}
-            >
+            <Button size="sm" variant="ghost" onClick={toggleColorMode}>
               {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
             </Button>
-
           </HStack>
+        )}
+
+        {/* ============================================================
+            LOGIN BUTTON (when no user)
+        ============================================================ */}
+        {!user && (
+          <Button
+            size="sm"
+            variant="solid"
+            colorScheme="teal"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </Button>
         )}
 
       </HStack>

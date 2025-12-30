@@ -1,6 +1,5 @@
 // ============================================================
 // = HOST PROPERTIES                                           =
-// = Overzicht + beheer van properties van host                =
 // ============================================================
 
 import { useEffect, useState } from "react";
@@ -33,6 +32,14 @@ export default function HostProperties() {
   const toast = useToast();
   const navigate = useNavigate();
   const { user, token } = useAuth();
+
+  // ============================================================
+  // = COLOR MODE VALUES (MAG NIET IN LOOPS!)                   =
+  // ============================================================
+  const cardBorderColor = useColorModeValue("gray.300", "gray.600");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const thumbBg = useColorModeValue("gray.200", "gray.700");
+  const headerColor = useColorModeValue("teal.700", "teal.300");
 
   // ============================================================
   // = MODALS                                                    =
@@ -165,10 +172,6 @@ export default function HostProperties() {
   // ============================================================
   return (
     <Box>
-
-      {/* ====================================================== */}
-      {/* = TERUG NAAR DASHBOARD (SAME STYLE AS BOOKINGS)       = */}
-      {/* ====================================================== */}
       <Button
         as="a"
         href="/host/dashboard"
@@ -180,11 +183,8 @@ export default function HostProperties() {
         ← Terug naar dashboard
       </Button>
 
-      {/* ====================================================== */}
-      {/* = HEADER + NIEUWE PROPERTY KNOP                       = */}
-      {/* ====================================================== */}
       <HStack justify="space-between" mb={6} flexWrap="wrap" gap={3}>
-        <Heading size="md" color={useColorModeValue("teal.700", "teal.300")}>
+        <Heading size="md" color={headerColor}>
           Mijn Properties
         </Heading>
 
@@ -193,18 +193,12 @@ export default function HostProperties() {
         </Button>
       </HStack>
 
-      {/* ====================================================== */}
-      {/* = GEEN PROPERTIES                                      = */}
-      {/* ====================================================== */}
       {properties.length === 0 && (
         <Text color="gray.500" textAlign="center">
           Je hebt nog geen properties toegevoegd.
         </Text>
       )}
 
-      {/* ====================================================== */}
-      {/* = PROPERTY LIJST                                       = */}
-      {/* ====================================================== */}
       <VStack align="stretch" spacing={5}>
         {properties.map((property) => {
           const imageUrl =
@@ -215,30 +209,26 @@ export default function HostProperties() {
             <Box
               key={property.id}
               border="1px solid"
-              borderColor={useColorModeValue("gray.300", "gray.600")}
+              borderColor={cardBorderColor}
               borderRadius="lg"
               p={{ base: 4, md: 5 }}
-              bg={useColorModeValue("white", "gray.800")}
+              bg={cardBg}
               boxShadow="sm"
               _hover={{ boxShadow: "md", transform: "translateY(-3px)" }}
               transition="all 0.2s ease"
             >
-              {/* ================================================== */}
-              {/* = KAART LAYOUT (THUMBNAIL + CONTENT)             = */}
-              {/* ================================================== */}
               <Stack
                 direction={{ base: "column", sm: "row" }}
                 spacing={4}
                 align={{ base: "center", sm: "flex-start" }}
               >
-                {/* Thumbnail */}
                 <Box
                   w="90px"
                   h="90px"
                   borderRadius="md"
                   overflow="hidden"
                   flexShrink={0}
-                  bg={useColorModeValue("gray.200", "gray.700")}
+                  bg={thumbBg}
                 >
                   <img
                     src={imageUrl}
@@ -251,9 +241,7 @@ export default function HostProperties() {
                   />
                 </Box>
 
-                {/* Content */}
                 <Box flex="1" width="100%">
-                  {/* Titel + Status */}
                   <Stack
                     direction={{ base: "column", sm: "row" }}
                     justify={{ base: "center", sm: "space-between" }}
@@ -294,7 +282,6 @@ export default function HostProperties() {
 
                   <Divider my={3} />
 
-                  {/* Details */}
                   <VStack
                     align={{ base: "center", sm: "start" }}
                     spacing={1}
@@ -306,9 +293,6 @@ export default function HostProperties() {
                     <Text><strong>Afbeeldingen:</strong> {property.images?.length || 0}</Text>
                   </VStack>
 
-                  {/* ================================================== */}
-                  {/* = ACTIE KNOPPEN (ONDERAAN)                      = */}
-                  {/* ================================================== */}
                   <HStack
                     justify={{ base: "center", sm: "flex-end" }}
                     spacing={2}
@@ -344,9 +328,6 @@ export default function HostProperties() {
         })}
       </VStack>
 
-      {/* ====================================================== */}
-      {/* = MODALS                                              = */}
-      {/* ====================================================== */}
       <PropertyForm
         isOpen={isCreateOpen}
         onClose={onCreateClose}

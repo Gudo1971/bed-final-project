@@ -5,8 +5,6 @@
 
 import { apiClient } from "./apiClient";
 
-const BASE_URL = "http://localhost:3000/api";
-
 // ==============================================
 // = SAFE REQUEST WRAPPER                        =
 // ==============================================
@@ -26,11 +24,11 @@ function authHeaders(token) {
 
 /* ============================================================
    CREATE BOOKING
-   POST /bookings
+   POST /api/bookings
 ============================================================ */
 export function createBooking(data, token) {
   return safeRequest(
-    apiClient(`${BASE_URL}/bookings`, {
+    apiClient(`/api/bookings`, {
       method: "POST",
       headers: authHeaders(token),
       body: data,
@@ -40,11 +38,11 @@ export function createBooking(data, token) {
 
 /* ============================================================
    GET USER BOOKINGS
-   GET /bookings/user/:userId
+   GET /api/bookings/user/:userId
 ============================================================ */
 export function getUserBookings(userId, token) {
   return safeRequest(
-    apiClient(`${BASE_URL}/bookings/user/${userId}`, {
+    apiClient(`/api/bookings/user/${userId}`, {
       headers: authHeaders(token),
     })
   );
@@ -52,11 +50,11 @@ export function getUserBookings(userId, token) {
 
 /* ============================================================
    GET BOOKING BY ID
-   GET /bookings/:id
+   GET /api/bookings/:id
 ============================================================ */
 export function getBookingById(id, token) {
   return safeRequest(
-    apiClient(`${BASE_URL}/bookings/${id}`, {
+    apiClient(`/api/bookings/${id}`, {
       headers: authHeaders(token),
     })
   );
@@ -64,11 +62,11 @@ export function getBookingById(id, token) {
 
 /* ============================================================
    GET BOOKINGS FOR PROPERTY
-   GET /bookings/property/:propertyId
+   GET /api/bookings/property/:propertyId
 ============================================================ */
 export function getBookingsByPropertyId(propertyId, token) {
   return safeRequest(
-    apiClient(`${BASE_URL}/bookings/property/${propertyId}`, {
+    apiClient(`/api/bookings/property/${propertyId}`, {
       headers: authHeaders(token),
     })
   );
@@ -76,11 +74,11 @@ export function getBookingsByPropertyId(propertyId, token) {
 
 /* ============================================================
    DELETE BOOKING
-   DELETE /bookings/:id
+   DELETE /api/bookings/:id
 ============================================================ */
 export function deleteBooking(id, token) {
   return safeRequest(
-    apiClient(`${BASE_URL}/bookings/${id}`, {
+    apiClient(`/api/bookings/${id}`, {
       method: "DELETE",
       headers: authHeaders(token),
     })
@@ -89,11 +87,11 @@ export function deleteBooking(id, token) {
 
 /* ============================================================
    UPDATE BOOKING
-   PUT /bookings/:id
+   PUT /api/bookings/:id
 ============================================================ */
 export function updateBooking(id, data, token) {
   return safeRequest(
-    apiClient(`${BASE_URL}/bookings/${id}`, {
+    apiClient(`/api/bookings/${id}`, {
       method: "PUT",
       headers: authHeaders(token),
       body: data,
@@ -103,10 +101,10 @@ export function updateBooking(id, data, token) {
 
 /* ============================================================
    GET DISABLED DATES
-   GET /bookings/disabled-dates/:propertyId
+   GET /api/bookings/disabled-dates/:propertyId
 ============================================================ */
 export function getDisabledDates(propertyId) {
   return safeRequest(
-    apiClient(`${BASE_URL}/bookings/disabled-dates/${propertyId}`)
+    apiClient(`/api/bookings/disabled-dates/${propertyId}`)
   );
 }

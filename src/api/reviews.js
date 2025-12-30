@@ -18,11 +18,11 @@ async function safeRequest(promise) {
 
 // ==============================================
 // = GET REVIEWS PER PROPERTY                    =
-// = GET /reviews/property/:id                   =
+// = GET /api/reviews/property/:id               =
 // ==============================================
 export function getReviewsByPropertyId(id, token) {
   return safeRequest(
-    api.get(`/reviews/property/${id}`, {
+    api.get(`/api/reviews/property/${id}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -30,11 +30,11 @@ export function getReviewsByPropertyId(id, token) {
 
 // ==============================================
 // = GET REVIEWS VAN INGELOGDE USER              =
-// = GET /reviews/user/:userId                   =
+// = GET /api/reviews/user/:userId               =
 // ==============================================
 export function getUserReviews(userId, token) {
   return safeRequest(
-    api.get(`/reviews/user/${userId}`, {
+    api.get(`/api/reviews/user/${userId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -42,11 +42,11 @@ export function getUserReviews(userId, token) {
 
 // ==============================================
 // = DELETE REVIEW                               =
-// = DELETE /reviews/:id                         =
+// = DELETE /api/reviews/:id                     =
 // ==============================================
 export function deleteReview(reviewId, token) {
   return safeRequest(
-    api.delete(`/reviews/${reviewId}`, {
+    api.delete(`/api/reviews/${reviewId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -54,11 +54,11 @@ export function deleteReview(reviewId, token) {
 
 // ==============================================
 // = UPDATE REVIEW                               =
-// = PUT /reviews/:id                            =
+// = PUT /api/reviews/:id                        =
 // ==============================================
 export function updateReview(reviewId, updatedData, token) {
   return safeRequest(
-    api.put(`/reviews/${reviewId}`, updatedData, {
+    api.put(`/api/reviews/${reviewId}`, updatedData, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );

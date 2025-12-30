@@ -1,6 +1,5 @@
 // ==============================================
 // = AUTH CONTEXT                               =
-// = Token sync + user sync + host flow         =
 // ==============================================
 
 import { createContext, useContext, useState, useEffect } from "react";
@@ -10,7 +9,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   // ==============================================
-  // = STATE: user + token                        =
+  // = USER & TOKEN STATE                         =
   // ==============================================
   const [user, setUser] = useState(() => {
     try {
@@ -22,9 +21,6 @@ export const AuthProvider = ({ children }) => {
 
   const [token, setToken] = useState(() => localStorage.getItem("token"));
 
-  // ==============================================
-  // = TOKEN HELPERS                              =
-  // ==============================================
   const saveToken = (newToken) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
@@ -36,19 +32,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = FETCH USER (/auth/me)                      =
+  // = FETCH USER (/api/auth/me)                  =
   // ==============================================
   const fetchUser = async () => {
     if (!token) return;
 
     try {
-      const res = await api.get("/auth/me",{
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const res = await api.get("/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
     } catch (err) {
-      console.error("❌ Fout bij ophalen /auth/me:", err);
+      console.error("❌ Fout bij ophalen /api/auth/me:", err);
       logout();
     }
   };
@@ -57,27 +54,21 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [token]);
 
-// ==============================================
-// = LOGIN                                      =
-// ==============================================
-const login = async (email, password) => {
-  try {
-    const res = await api.post("/auth/login", { email, password });
+  // ==============================================
+  // = LOGIN (/api/auth/login)                    =
+  // ==============================================
+  const login = async (email, password) => {
+    try {
+      const res = await api.post("/api/auth/login", { email, password });
 
-    saveToken(res.data.token);
-    await fetchUser();
-  } catch (err) {
-    console.log("❌ Login error in AuthContext:", err);
-
-    // Axios-interceptor geeft ALTIJD: { error: "..." }
-    const backendError =
-      err.error || err.message || "Login mislukt. Probeer opnieuw.";
-
-    // Gooi in exact hetzelfde formaat door naar LoginPage
-    throw { error: backendError };
-  }
-};
-
+      saveToken(res.data.token);
+      await fetchUser();
+    } catch (err) {
+      const backendError =
+        err.response?.data?.error || "Login mislukt. Probeer opnieuw.";
+      throw new Error(backendError);
+    }
+  };
 
   // ==============================================
   // = LOGOUT                                     =
@@ -89,11 +80,17 @@ const login = async (email, password) => {
   };
 
   // ==============================================
-  // = REGISTER                                   =
+  // = REGISTER (/api/auth/register)              =
   // ==============================================
-  const registerUser = async (username, email, password, name, phoneNumber) => {
+  const registerUser = async (
+    username,
+    email,
+    password,
+    name,
+    phoneNumber
+  ) => {
     try {
-      await api.post("/auth/register", {
+      await api.post("/api/auth/register", {
         username,
         email,
         password,
@@ -110,28 +107,22 @@ const login = async (email, password) => {
   };
 
   // ==============================================
-  // = UPDATE PROFILE (email, name, phoneNumber)  =
+  // = UPDATE PROFILE (PUT /api/users/:id)        =
   // ==============================================
   const updateProfile = async (form) => {
     try {
-      const res = await api.patch("/auth/update-profile", form);
+      const res = await api.put(`/api/users/${user.id}`, form);
 
-      const { user: updatedUser, token: newToken } = res.data;
+      const updatedUser = res.data;
       const emailChanged = form.email && form.email !== user.email;
 
-      // Token opslaan (alleen als backend een nieuwe geeft)
-      if (newToken) {
-        saveToken(newToken);
-      }
-
-      // User opslaan
+      // Update local user
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      // Als email is gewijzigd → DIRECT uitloggen (geen fetchUser!)
+      // Als email is gewijzigd → direct uitloggen
       if (emailChanged) {
         logout();
-        return updatedUser;
       }
 
       return updatedUser;
@@ -143,11 +134,11 @@ const login = async (email, password) => {
   };
 
   // ==============================================
-  // = BECOME HOST                                =
+  // = BECOME HOST (/api/account/become-host)     =
   // ==============================================
   const becomeHost = async () => {
     try {
-      const res = await api.post("/account/become-host");
+      const res = await api.post("/api/account/become-host");
 
       saveToken(res.data.token);
       await fetchUser();
@@ -159,11 +150,11 @@ const login = async (email, password) => {
   };
 
   // ==============================================
-  // = STOP HOST                                  =
+  // = STOP HOST (/api/account/stop-host)         =
   // ==============================================
   const stopHost = async () => {
     try {
-      const res = await api.delete("/account/stop-host");
+      const res = await api.delete("/api/account/stop-host");
 
       saveToken(res.data.token);
       await fetchUser();
@@ -174,9 +165,6 @@ const login = async (email, password) => {
     }
   };
 
-  // ==============================================
-  // = PROVIDER                                   =
-  // ==============================================
   return (
     <AuthContext.Provider
       value={{
