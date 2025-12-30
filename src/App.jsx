@@ -1,7 +1,6 @@
 // ============================================================
 // = APP ROUTER                                                =
 // ============================================================
-
 import { Routes, Route } from "react-router-dom";
 
 // Layouts
@@ -10,6 +9,7 @@ import AuthLayout from "./layouts/AuthLayout.jsx";
 import HostLayout from "./layouts/HostLayout.jsx";
 
 // Public pages
+import { LandingPage } from "./pages/LandingPage";
 import PropertyPage from "./pages/PropertyPage.jsx";
 import PropertyDetailPage from "./pages/PropertyDetailPage.jsx";
 import BookingPage from "./pages/BookingPage.jsx";
@@ -35,7 +35,9 @@ export default function App() {
 
       {/* PUBLIC ROUTES */}
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<PropertyPage />} />
+      <Route path="/" element={<LandingPage />} />
+
+        <Route path="/properties" element={<PropertyPage />} />
         <Route path="/properties/:id" element={<PropertyDetailPage />} />
         <Route path="/booking/:propertyId" element={<BookingPage />} />
         <Route path="/profile" element={<ProfilePage />} />
