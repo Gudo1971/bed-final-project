@@ -27,7 +27,6 @@ export const getAllUsersController = async (req, res, next) => {
 export const getUserByIdController = async (req, res, next) => {
   try {
     const { id } = req.params;
-    console.log("🔍 ID uit URL:", id);
 
     if (!id) {
       return res.status(404).json({ error: "User not found" });
@@ -70,6 +69,8 @@ export const createUserController = async (req, res, next) => {
 
 /* ============================================================
    UPDATE USER (protected)
+   → ondersteunt nu pictureUrl
+   → geen verplichte velden meer
 ============================================================ */
 export const updateUserController = async (req, res, next) => {
   try {
@@ -80,11 +81,7 @@ export const updateUserController = async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const { email, password, username } = req.body;
-
-    if (!email && !password && !username) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+    const { email, password, username, pictureUrl, name, phoneNumber } = req.body;
 
     const updateData = {};
 
@@ -109,6 +106,25 @@ export const updateUserController = async (req, res, next) => {
     // Password hashing
     if (password !== undefined) {
       updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    // ⭐ NEW: Profielfoto opslaan
+    if (pictureUrl !== undefined) {
+      updateData.pictureUrl = pictureUrl;
+    }
+
+    // ⭐ NEW: Naam & telefoonnummer opslaan
+    if (name !== undefined) {
+      updateData.name = name;
+    }
+
+    if (phoneNumber !== undefined) {
+      updateData.phoneNumber = phoneNumber;
+    }
+
+    // Als er niets te updaten is
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No valid fields to update" });
     }
 
     const updated = await prisma.user.update({

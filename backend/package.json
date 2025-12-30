@@ -2,15 +2,16 @@
   "name": "backend",
   "version": "1.0.0",
   "type": "module",
-  "main": "server.js",
-  "scripts": {
-    "dev": "nodemon server.js",
-    "reset-db": "npx prisma db push --force-reset && npx prisma db seed",
-    "clean-start": "npm run reset-db && npm run dev",
-    "test-positive": "newman run \"./postman/collections/Bookings API.json\" -e \"./postman/environments/Local.postman_environment.json\"",
-    "test-negative": "newman run \"./postman/collections/Bookings API Negative.json\" -e \"./postman/environments/Local.postman_environment.json\"",
-    "test": "npm run test-positive && npm run test-negative"
-  },
+  
+ "scripts": {
+  "dev": "nodemon server.js",
+  "reset-db": "npx prisma db push --force-reset && npx prisma db seed",
+  "clean-start": "npm run reset-db && npm run dev",
+  "test-positive": "newman run \"./postman/collections/Bookings API.json\" -e \"./postman/environments/Local.postman_environment.json\"",
+  "test-negative": "newman run \"./postman/collections/Bookings API Negative.json\" -e \"./postman/environments/Local.postman_environment.json\"",
+  "test": "npm run test-positive && npm run test-negative"
+},
+
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcrypt": "^6.0.0",
