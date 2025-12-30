@@ -29,6 +29,7 @@ export default function BookingForm({
   onCancel,
   disabledDates,
   isActive,
+  maxGuests, // <-- komt uit parent
 }) {
   const toast = useToast();
 
@@ -49,6 +50,9 @@ export default function BookingForm({
   const [numberOfGuests, setNumberOfGuests] = useState(1);
   const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  // Veilige fallback voor maxGuests (voorkomt undefined/NaN)
+  const safeMaxGuests = typeof maxGuests === "number" && maxGuests > 0 ? maxGuests : 1;
 
   // ==============================================
   // = DATUM BLOKKADE (verleden + disabledDates)  =
@@ -80,6 +84,20 @@ export default function BookingForm({
   }, [checkinDate, checkoutDate, pricePerNight]);
 
   // ==============================================
+  // = REAL-TIME MAX GUEST VALIDATIE              =
+  // ==============================================
+  useEffect(() => {
+    if (numberOfGuests > safeMaxGuests) {
+      toast({
+        title: "Te veel gasten",
+        description: `Er zijn maximaal ${safeMaxGuests} gasten toegestaan.`,
+        status: "warning",
+        duration: 2500,
+      });
+    }
+  }, [numberOfGuests, safeMaxGuests, toast]);
+
+  // ==============================================
   // = SUBMIT HANDLER                             =
   // ==============================================
   const handleSubmit = async (e) => {
@@ -90,6 +108,16 @@ export default function BookingForm({
         title: "Niet beschikbaar",
         description:
           "Deze accommodatie staat op inactief en kan niet geboekt worden.",
+        status: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    if (numberOfGuests > safeMaxGuests) {
+      toast({
+        title: "Aantal gasten ongeldig",
+        description: `Maximaal ${safeMaxGuests} gasten toegestaan.`,
         status: "error",
         duration: 3000,
       });
@@ -210,14 +238,27 @@ export default function BookingForm({
         {/* ============================================== */}
         <Box>
           <FormLabel color={labelColor}>Gasten</FormLabel>
+
+          {/* Max aantal gasten direct bij het veld tonen */}
+          <Text fontSize="sm" color={labelColor} mb={1}>
+            Maximaal {safeMaxGuests} gasten toegestaan
+          </Text>
+
           <NumberInput
             min={1}
+            max={safeMaxGuests}
             value={numberOfGuests}
-            onChange={(v) => setNumberOfGuests(v)}
+            onChange={(v) => setNumberOfGuests(Number(v))}
             isDisabled={!isActive}
           >
             <NumberInputField color={textColor} />
           </NumberInput>
+
+          {numberOfGuests > safeMaxGuests && (
+            <Text color="red.500" fontSize="sm">
+              Maximaal {safeMaxGuests} gasten toegestaan
+            </Text>
+          )}
         </Box>
 
         {/* ============================================== */}
@@ -239,7 +280,7 @@ export default function BookingForm({
             type="submit"
             colorScheme="blue"
             isLoading={loading}
-            isDisabled={!isActive}
+            isDisabled={!isActive || numberOfGuests > safeMaxGuests}
           >
             Bevestig boeking
           </Button>
