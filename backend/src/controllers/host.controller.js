@@ -17,7 +17,7 @@ export const getAllHostsController = async (req, res, next) => {
 };
 
 /* ============================================================
-   GET HOST BY EMAIL (public)
+   GET HOST BY ID (public)
 ============================================================ */
 export const getHostById = async (req, res, next) => {
   try {
@@ -118,7 +118,6 @@ export const updateHost = async (req, res, next) => {
 
 /* ============================================================
    DELETE HOST (protected)
-   - verwijdert host + alle gekoppelde properties/bookings/reviews
 ============================================================ */
 export const deleteHost = async (req, res, next) => {
   try {
@@ -131,26 +130,18 @@ export const deleteHost = async (req, res, next) => {
 
     const hostEmail = host.email;
 
-    // Reviews verwijderen
     await prisma.review.deleteMany({
-      where: {
-        property: { hostEmail },
-      },
+      where: { property: { hostEmail } },
     });
 
-    // Bookings verwijderen
     await prisma.booking.deleteMany({
-      where: {
-        property: { hostEmail },
-      },
+      where: { property: { hostEmail } },
     });
 
-    // Properties verwijderen
     await prisma.property.deleteMany({
       where: { hostEmail },
     });
 
-    // Host verwijderen
     await prisma.host.delete({ where: { id } });
 
     return res.status(200).json({ message: "Host deleted" });
@@ -161,6 +152,8 @@ export const deleteHost = async (req, res, next) => {
 
 /* ============================================================
    GET HOST EARNINGS (protected)
+   - Inclusief debug logs
+   - Inclusief case-insensitive status fix
 ============================================================ */
 export const getHostEarnings = async (req, res) => {
   try {
@@ -173,7 +166,6 @@ export const getHostEarnings = async (req, res) => {
 
     const hostEmail = host.email;
 
-    // Alle properties van deze host
     const properties = await prisma.property.findMany({
       where: { hostEmail },
       select: { id: true, title: true },
@@ -194,37 +186,72 @@ export const getHostEarnings = async (req, res) => {
     const propertyIds = properties.map((p) => p.id);
     const today = new Date();
 
+    // ==============================================
+    // = RAW BOOKINGS (NO FILTER)
+    // ==============================================
+    const rawBookings = await prisma.booking.findMany({
+      where: { propertyId: { in: propertyIds } },
+    });
+    console.log("🔍 RAW BOOKINGS:", rawBookings);
+
+    // ==============================================
+    // = FILTERED BOOKINGS (CASE-INSENSITIVE)
+    // ==============================================
     const allBookings = await prisma.booking.findMany({
       where: {
         propertyId: { in: propertyIds },
-        bookingStatus: "CONFIRMED",
+        OR: [
+          { bookingStatus: "CONFIRMED" },
+          { bookingStatus: "confirmed" },
+          { bookingStatus: "Confirmed" },
+        ],
       },
       select: {
         id: true,
         totalPrice: true,
         propertyId: true,
+        startDate: true,
         endDate: true,
+        bookingStatus: true,
       },
     });
+    console.log("🔍 FILTERED BOOKINGS (CONFIRMED, CASE-INSENSITIVE):", allBookings);
 
-    const completedBookings = allBookings.filter(
-      (b) => new Date(b.endDate) <= today
+    // ==============================================
+    // = SAFE BOOKINGS (VALID endDate)
+    // ==============================================
+    const safeBookings = allBookings.filter(
+      (b) => b.endDate !== null && b.totalPrice !== null
+    );
+    console.log("🔍 SAFE BOOKINGS (VALID endDate):", safeBookings);
+
+    // ==============================================
+    // = COMPLETED VS UPCOMING
+    // ==============================================
+    const completedBookings = safeBookings.filter(
+      (b) => new Date(b.endDate).getTime() <= today.getTime()
     );
 
-    const upcomingBookings = allBookings.filter(
-      (b) => new Date(b.endDate) > today
+    const upcomingBookings = safeBookings.filter(
+      (b) => new Date(b.endDate).getTime() > today.getTime()
     );
 
+    // ==============================================
+    // = TOTALS
+    // ==============================================
     const totalEarningsToDate = completedBookings.reduce(
       (sum, b) => sum + b.totalPrice,
       0
     );
 
-    const expectedEarnings = allBookings.reduce(
+    const expectedEarnings = safeBookings.reduce(
       (sum, b) => sum + b.totalPrice,
       0
     );
 
+    // ==============================================
+    // = PER PROPERTY
+    // ==============================================
     const earningsPerProperty = properties.map((p) => {
       const completed = completedBookings.filter((b) => b.propertyId === p.id);
       const upcoming = upcomingBookings.filter((b) => b.propertyId === p.id);
@@ -246,7 +273,7 @@ export const getHostEarnings = async (req, res) => {
       hostEmail,
       totalEarningsToDate,
       expectedEarnings,
-      totalBookings: allBookings.length,
+      totalBookings: safeBookings.length,
       bookingsCompleted: completedBookings.length,
       bookingsUpcoming: upcomingBookings.length,
       properties: earningsPerProperty,

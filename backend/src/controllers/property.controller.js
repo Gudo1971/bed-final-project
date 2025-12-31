@@ -13,6 +13,7 @@ function getHostEmail(req) {
 
 /* ============================================================
    GET ALL PROPERTIES (PUBLIC)
+   ⭐ FIX: reviews toegevoegd zodat PropertyCard rating kan tonen
 ============================================================ */
 export async function getProperties(req, res) {
   try {
@@ -28,6 +29,13 @@ export async function getProperties(req, res) {
             aboutMe: true,
           },
         },
+
+        // ⭐ DIT IS DE FIX
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
       },
     });
 
@@ -40,6 +48,7 @@ export async function getProperties(req, res) {
 
 /* ============================================================
    GET SINGLE PROPERTY (PUBLIC)
+   (Deze was al goed — reviews zaten er al in)
 ============================================================ */
 export async function getProperty(req, res) {
   try {

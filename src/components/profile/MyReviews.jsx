@@ -27,25 +27,15 @@ import {
 } from "../../api/reviews";
 
 import EditReviewModal from "../reviews/EditReviewModal";
-
-// ==============================================
-// = USER ID UIT JWT                            =
-// ==============================================
-function getUserIdFromToken() {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-
-  const payload = JSON.parse(atob(token.split(".")[1]));
-  return payload.id;
-}
+import { useAuth } from "../../components/context/AuthContext.jsx";
 
 // ==============================================
 // = COMPONENT                                   =
 // ==============================================
 export default function MyReviews() {
-  // ==============================================
-  // = STATE                                      =
-  // ==============================================
+  // 🔹 ALLE HOOKS EERST
+  const { user, token } = useAuth();
+
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,22 +45,19 @@ export default function MyReviews() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
-  const userId = getUserIdFromToken();
-
-  // ==============================================
-  // = DARK MODE COLORS                           =
-  // ==============================================
   const cardBg = useColorModeValue("gray.100", "gray.700");
   const textColor = useColorModeValue("gray.800", "gray.100");
   const subTextColor = useColorModeValue("gray.600", "gray.400");
 
-  // ==============================================
-  // = REVIEWS OPHALEN                            =
-  // ==============================================
   async function loadReviews() {
+    if (!user || !token) {
+      setReviews([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("token");
-      const data = await getUserReviews(userId, token);
+      const data = await getUserReviews(user.id, token);
       setReviews(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Kon reviews niet laden:", err);
@@ -80,17 +67,14 @@ export default function MyReviews() {
   }
 
   useEffect(() => {
+    setLoading(true);
     loadReviews();
-  }, []);
+  }, [user, token]);
 
-  // ==============================================
-  // = REVIEW VERWIJDEREN                         =
-  // ==============================================
   async function handleDelete(id) {
     if (!confirm("Weet je zeker dat je deze review wilt verwijderen?")) return;
 
     try {
-      const token = localStorage.getItem("token");
       await deleteReview(id, token);
 
       toast({
@@ -109,12 +93,8 @@ export default function MyReviews() {
     }
   }
 
-  // ==============================================
-  // = REVIEW OPSLAAN (EDIT)                      =
-  // ==============================================
   async function handleSave(updatedData) {
     try {
-      const token = localStorage.getItem("token");
       await updateReview(selectedReview.id, updatedData, token);
 
       toast({
@@ -134,9 +114,16 @@ export default function MyReviews() {
     }
   }
 
-  // ==============================================
-  // = LOADING STATE                              =
-  // ==============================================
+  // PAS NA ALLE HOOKS: CONDITIONEEL RENDEREN
+
+  if (!user || !token) {
+    return (
+      <Text fontSize="lg" color={subTextColor}>
+        Je bent uitgelogd.
+      </Text>
+    );
+  }
+
   if (loading) {
     return (
       <HStack justify="center" w="100%" mt={10}>
@@ -145,20 +132,15 @@ export default function MyReviews() {
     );
   }
 
-  // ==============================================
-  // = GEEN REVIEWS                               =
-  // ==============================================
   if (reviews.length === 0) {
     return (
+      
       <Text fontSize="lg" color={subTextColor}>
         Je hebt nog geen reviews geschreven.
       </Text>
     );
   }
 
-  // ==============================================
-  // = SORT LOGICA                                =
-  // ==============================================
   function sortReviews(list, sortBy) {
     const sorted = [...list];
 
@@ -167,35 +149,28 @@ export default function MyReviews() {
         return sorted.sort(
           (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
-
       case "date_desc":
         return sorted.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-
       case "property_asc":
         return sorted.sort((a, b) =>
           a.property.title.localeCompare(b.property.title)
         );
-
       case "property_desc":
         return sorted.sort((a, b) =>
           b.property.title.localeCompare(a.property.title)
         );
-
       default:
         return sorted;
     }
   }
 
-  // ==============================================
-  // = RENDER                                      =
-  // ==============================================
   return (
     <>
-      {/* ============================================== */}
-      {/* = EDIT MODAL                                  = */}
-      {/* ============================================== */}
+
+      
+
       {selectedReview && (
         <EditReviewModal
           isOpen={isOpen}
@@ -205,9 +180,6 @@ export default function MyReviews() {
         />
       )}
 
-      {/* ============================================== */}
-      {/* = SORTERING                                   = */}
-      {/* ============================================== */}
       <HStack mb={4} spacing={3}>
         <Text fontWeight="bold" color={textColor}>
           Sorteren op:
@@ -228,9 +200,6 @@ export default function MyReviews() {
         </Select>
       </HStack>
 
-      {/* ============================================== */}
-      {/* = REVIEW LIJST                                = */}
-      {/* ============================================== */}
       <VStack spacing={4} align="stretch" w="100%">
         {sortReviews(reviews, sortBy).map((review) => (
           <Box

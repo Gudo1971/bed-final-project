@@ -1,5 +1,5 @@
 export default {
-  heroTitle: "StayBnB — Mijn Full‑Stack Reis",
+  heroTitle: "StayBnB  Mijn Full‑Stack Reis",
   heroSubtitle:
     "Een persoonlijk project waarin ik laat zien hoe ik denk, ontwerp en bouw als full‑stack developer.",
 
