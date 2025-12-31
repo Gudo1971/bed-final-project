@@ -122,7 +122,7 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
                 onChange={handleChange}
               />
             </FormControl>
-
+<p> add some text for changes </p>
             <FormControl>
               <FormLabel>Telefoonnummer</FormLabel>
               <Input
