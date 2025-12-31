@@ -90,7 +90,7 @@ export const LandingPage = () => {
     "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127880/ldnlracaj0s2jlcluzpo.png",
     "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767128017/skxe53uqycc7sitcq1wj.png",
     "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767128095/otvif6h8spbhcosx8bs4.png",
-    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767128155/utgoqawj6d1ehftj8jvv.png",
+    
   ];
 
   return (
