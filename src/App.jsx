@@ -9,7 +9,7 @@ import AuthLayout from "./layouts/AuthLayout.jsx";
 import HostLayout from "./layouts/HostLayout.jsx";
 
 // Public pages
-
+import { LandingPage } from "./pages/LandingPage.jsx";
 import PropertyPage from "./pages/PropertyPage.jsx";
 import PropertyDetailPage from "./pages/PropertyDetailPage.jsx";
 import BookingPage from "./pages/BookingPage.jsx";
