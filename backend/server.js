@@ -37,19 +37,19 @@ app.get("/", (req, res) => {
 /* ============================================================
    AUTH (login shortcut)
 ============================================================ */
-app.post("/api/login", loginController);
+app.post("/login", loginController);
 
 /* ============================================================
    API ROUTES
 ============================================================ */
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/properties", propertiesRoutes);
-app.use("/api/reviews", reviewsRoutes);
-app.use("/api/hosts", hostRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/account", accountRoutes);
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
+app.use("/bookings", bookingRoutes);
+app.use("/properties", propertiesRoutes);
+app.use("/reviews", reviewsRoutes);
+app.use("/hosts", hostRoutes);
+app.use("/upload", uploadRoutes);
+app.use("/account", accountRoutes);
 
 /* ============================================================
    404 HANDLER

@@ -20,11 +20,11 @@ async function safeRequest(promise) {
 
 /* ============================================================
    GET HOST PROPERTIES
-   GET /api/hosts/properties
+   GET /hosts/properties
 ============================================================ */
 export function getHostProperties(token) {
   return safeRequest(
-    api.get("/api/hosts/properties", {
+    api.get("/hosts/properties", {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -32,11 +32,11 @@ export function getHostProperties(token) {
 
 /* ============================================================
    GET HOST BOOKINGS
-   GET /api/bookings/host/me
+   GET /bookings/host/me
 ============================================================ */
 export function getHostBookings(token) {
   return safeRequest(
-    api.get("/api/bookings/host/me", {
+    api.get("/bookings/host/me", {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -44,11 +44,11 @@ export function getHostBookings(token) {
 
 /* ============================================================
    GET HOST REVIEWS
-   GET /api/reviews/host/me
+   GET /reviews/host/me
 ============================================================ */
 export function getHostReviews(token) {
   return safeRequest(
-    api.get("/api/reviews/host/me", {
+    api.get("/reviews/host/me", {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -56,12 +56,12 @@ export function getHostReviews(token) {
 
 /* ============================================================
    TOGGLE PROPERTY ACTIVE/INACTIVE
-   PUT /api/properties/:id/toggle
+   PUT /properties/:id/toggle
 ============================================================ */
 export function toggleProperty(id, isActive, token) {
   return safeRequest(
     api.put(
-      `/api/properties/${id}/toggle`,
+      `/properties/${id}/toggle`,
       { isActive },
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -72,11 +72,11 @@ export function toggleProperty(id, isActive, token) {
 
 /* ============================================================
    UPDATE PROPERTY (JSON — Edit Modal)
-   PUT /api/properties/:propertyId
+   PUT /properties/:propertyId
 ============================================================ */
 export function updateProperty(propertyId, data, token) {
   return safeRequest(
-    api.put(`/api/properties/${propertyId}`, data, {
+    api.put(`/properties/${propertyId}`, data, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -84,11 +84,11 @@ export function updateProperty(propertyId, data, token) {
 
 /* ============================================================
    DELETE PROPERTY IMAGE
-   DELETE /api/properties/:propertyId/images/:imageId
+   DELETE /properties/:propertyId/images/:imageId
 ============================================================ */
 export function deletePropertyImage(propertyId, imageId, token) {
   return safeRequest(
-    api.delete(`/api/properties/${propertyId}/images/${imageId}`, {
+    api.delete(`/properties/${propertyId}/images/${imageId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
   );
@@ -96,14 +96,14 @@ export function deletePropertyImage(propertyId, imageId, token) {
 
 /* ============================================================
    UPLOAD NEW PROPERTY IMAGES (PATCH — multipart/form-data)
-   PATCH /api/properties/:propertyId
+   PATCH /properties/:propertyId
 ============================================================ */
 export function uploadPropertyImages(propertyId, files, token) {
   const formData = new FormData();
   files.forEach((file) => formData.append("images", file));
 
   return safeRequest(
-    api.patch(`/api/properties/${propertyId}`, formData, {
+    api.patch(`/properties/${propertyId}`, formData, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         "Content-Type": "multipart/form-data",
@@ -114,12 +114,12 @@ export function uploadPropertyImages(propertyId, files, token) {
 
 /* ============================================================
    HOST: CONFIRM BOOKING
-   PATCH /api/bookings/:id/confirm
+   PATCH /bookings/:id/confirm
 ============================================================ */
 export function confirmBooking(id, token) {
   return safeRequest(
     api.patch(
-      `/api/bookings/${id}/confirm`,
+      `/bookings/${id}/confirm`,
       {},
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -130,12 +130,12 @@ export function confirmBooking(id, token) {
 
 /* ============================================================
    HOST: REJECT BOOKING
-   PATCH /api/bookings/:id/reject
+   PATCH /bookings/:id/reject
 ============================================================ */
 export function rejectBooking(id, token) {
   return safeRequest(
     api.patch(
-      `/api/bookings/${id}/reject`,
+      `/bookings/${id}/reject`,
       {},
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},

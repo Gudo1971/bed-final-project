@@ -7,16 +7,16 @@ import api from "./axios";
 
 // ==============================================
 // = UPDATE PASSWORD                             =
-// = PATCH /api/auth/password                    =
+// = PATCH /auth/password                    =
 // ==============================================
 export function updatePassword(data) {
-  return api.patch("/api/auth/password", data);
+  return api.patch("/auth/password", data);
 }
 
 // ==============================================
 // = GET USER BY ID                              
-// = GET /api/users/:id                          
+// = GET /users/:id                          
 // ==============================================
 export function getUserById(id) {
-  return api.get(`/api/users/${id}`).then((res) => res.data);
+  return api.get(`/users/${id}`).then((res) => res.data);
 }

@@ -32,20 +32,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = FETCH USER (/api/auth/me)                  =
+  // = FETCH USER (/auth/me)                  =
   // ==============================================
   const fetchUser = async () => {
     if (!token) return;
 
     try {
-      const res = await api.get("/api/auth/me", {
+      const res = await api.get("/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
     } catch (err) {
-      console.error("❌ Fout bij ophalen /api/auth/me:", err);
+      console.error("❌ Fout bij ophalen /auth/me:", err);
       logout();
     }
   };
@@ -55,11 +55,11 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   // ==============================================
-  // = LOGIN (/api/auth/login)                    =
+  // = LOGIN (/auth/login)                    =
   // ==============================================
   const login = async (email, password) => {
     try {
-      const res = await api.post("/api/auth/login", { email, password });
+      const res = await api.post("/auth/login", { email, password });
 
       saveToken(res.data.token);
       await fetchUser();
@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = REGISTER (/api/auth/register)              =
+  // = REGISTER (/auth/register)              =
   // ==============================================
   const registerUser = async (
     username,
@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }) => {
     phoneNumber
   ) => {
     try {
-      await api.post("/api/auth/register", {
+      await api.post("/auth/register", {
         username,
         email,
         password,
@@ -137,11 +137,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = UPDATE PROFILE (PUT /api/users/:id)        =
+  // = UPDATE PROFILE (PUT /users/:id)        =
   // ==============================================
   const updateProfile = async (form) => {
     try {
-      const res = await api.put(`/api/users/${user.id}`, form);
+      const res = await api.put(`/users/${user.id}`, form);
 
       const updatedUser = res.data;
       const emailChanged = form.email && form.email !== user.email;
@@ -164,11 +164,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = BECOME HOST (/api/account/become-host)     =
+  // = BECOME HOST (/account/become-host)     =
   // ==============================================
   const becomeHost = async () => {
     try {
-      const res = await api.post("/api/account/become-host");
+      const res = await api.post("/account/become-host");
 
       saveToken(res.data.token);
       await fetchUser();
@@ -180,11 +180,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = STOP HOST (/api/account/stop-host)         =
+  // = STOP HOST (/account/stop-host)         =
   // ==============================================
   const stopHost = async () => {
     try {
-      const res = await api.delete("/api/account/stop-host");
+      const res = await api.delete("/account/stop-host");
 
       saveToken(res.data.token);
       await fetchUser();
