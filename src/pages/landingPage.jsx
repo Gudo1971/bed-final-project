@@ -1,3 +1,4 @@
+// LandingPage.jsx
 import { useState, useEffect } from "react";
 import { MdPhone, MdEmail } from "react-icons/md";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
