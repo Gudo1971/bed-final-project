@@ -26,7 +26,7 @@ import { useAuth } from "../../components/context/AuthContext.jsx";
 import EarningsChart from "../../components/earnings/EarningsChart.jsx";
 
 // 👉 JOUW AXIOS INSTANCE
-import api from "../../lib/api";
+import api from "../lib/api"
 
 export default function HostEarningsPage() {
   // ==============================================
