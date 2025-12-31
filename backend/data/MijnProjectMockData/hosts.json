@@ -1,64 +1,72 @@
-{
-  "hosts": [
-    {
-      "id": "f1234567-89ab-cdef-0123-456789abcdef",
-      "username": "johnDoe",
-      "password": "johnDoe123",
-      "name": "John Doe",
-      "email": "johndoe@email.com",
-      "phoneNumber": "+11234567890",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
-      "aboutMe": "I'm a passionate traveler who loves to share my home with fellow explorers. Welcome!"
-    },
-    {
-      "id": "e2345678-90bc-def0-0123-456789abcdef",
-      "username": "lindaSmith",
-      "password": "lindaS123",
-      "name": "Linda Smith",
-      "email": "lindasmith@email.com",
-      "phoneNumber": "+12234567891",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/lindasmith.jpg",
-      "aboutMe": "A professional chef and a part-time host. I love curating unique experiences for my guests."
-    },
-    {
-      "id": "d3456789-01cd-def0-1234-56789abcdef0",
-      "username": "mikeBrown",
-      "password": "mikeB2023",
-      "name": "Mike Brown",
-      "email": "mikebrown@email.com",
-      "phoneNumber": "+13234567892",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/mikebrown.jpg",
-      "aboutMe": "Nature enthusiast, hiker, and a lover of arts. My home reflects my passions. Stay and enjoy!"
-    },
-    {
-      "id": "c4567890-12de-f012-3456-789abcdef012",
-      "username": "sarahLee",
-      "password": "sarahL456",
-      "name": "Sarah Lee",
-      "email": "sarahlee@email.com",
-      "phoneNumber": "+14234567893",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/sarahlee.jpg",
-      "aboutMe": "Travel blogger turned host. My home is filled with artifacts from around the world. Feel the global vibe!"
-    },
-    {
-      "id": "b5678901-23ef-0123-4567-89abcdef0123",
-      "username": "paulGreen",
-      "password": "greenP789",
-      "name": "Paul Green",
-      "email": "paulgreen@email.com",
-      "phoneNumber": "+15234567894",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/paulgreen.jpg",
-      "aboutMe": "Engineer by profession, passionate about history. Stay in my vintage-themed home and relive the past."
-    },
-	{
-      "id": "d2345678-90ab-cdef-1234-567890abcdef",
-      "username": "sofieJansen",
-      "password": "amsterdam2025",
-      "name": "Sofie Jansen",
-      "email": "sofie.jansen@email.com",
-      "phoneNumber": "+31612345678",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/sofiejansen.jpg",
-      "aboutMe": "Born and raised in Amsterdam. I love sharing hidden gems of the city with travelers from all over the world."
-    }
-  ]
-}
+[
+  {
+    "id": "f1234567-89ab-cdef-0123-456789abcdef",
+    "username": "johnDoe",
+    "password": "$2b$10$u.nbQnoxYrT0JvDVrwM27eRxJ//bGegwT.1gJwK5SDMg.qqtdwT8O",
+    "name": "John Doe",
+    "email": "johndoe@email.com",
+    "phoneNumber": "+11234567890",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
+    "aboutMe": "I'm a passionate traveler who loves to share my home with fellow explorers. Welcome!"
+  },
+  {
+    "id": "e2345678-90bc-def0-0123-456789abcdef",
+    "username": "lindaSmith",
+    "password": "$2b$10$ahCwDyyudAQAjrGeQjYuIegO7MjqtX7t7b9JqHOUrvLEGbKcBA2dG",
+    "name": "Linda Smith",
+    "email": "lindasmith@email.com",
+    "phoneNumber": "+12234567891",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/lindasmith.jpg",
+    "aboutMe": "A professional chef and a part-time host. I love curating unique experiences for my guests."
+  },
+  {
+    "id": "d3456789-01cd-def0-1234-56789abcdef0",
+    "username": "mikeBrown",
+    "password": "$2b$10$cBHzD03/CuaqOxuCCXYIyOAkEOd/m7w5.YHL/shG0gFlJeyMqkUVO",
+    "name": "Mike Brown",
+    "email": "mikebrown@email.com",
+    "phoneNumber": "+13234567892",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/mikebrown.jpg",
+    "aboutMe": "Nature enthusiast, hiker, and a lover of arts. My home reflects my passions. Stay and enjoy!"
+  },
+  {
+    "id": "c4567890-12de-f012-3456-789abcdef012",
+    "username": "sarahLee",
+    "password": "$2b$10$A7artnlgcjj/vNSCbDxsau5jWdOPwGQIjzvjG1BF9wvW3hogXzRji",
+    "name": "Sarah Lee",
+    "email": "sarahlee@email.com",
+    "phoneNumber": "+14234567893",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/sarahlee.jpg",
+    "aboutMe": "Travel blogger turned host. My home is filled with artifacts from around the world. Feel the global vibe!"
+  },
+  {
+    "id": "b5678901-23ef-0123-4567-89abcdef0123",
+    "username": "paulGreen",
+    "password": "$2b$10$4nM7esfVAjzK98Z6H6bGrOItUQsT0EIuUyZ.prvADt1X1wYXc79tK",
+    "name": "Paul Green",
+    "email": "paulgreen@email.com",
+    "phoneNumber": "+15234567894",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/paulgreen.jpg",
+    "aboutMe": "Engineer by profession, passionate about history. Stay in my vintage-themed home and relive the past."
+  },
+  {
+    "id": "d2345678-90ab-cdef-1234-567890abcdef",
+    "username": "sofieJansen",
+    "password": "$2b$10$ab1S0MwwHc/SoopA7hB4zeyn/52lzkawe/snC9sP/HuPLnfg9z3km",
+    "name": "Sofie Jansen",
+    "email": "sofie.jansen@email.com",
+    "phoneNumber": "+31612345678",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/sofiejansen.jpg",
+    "aboutMe": "Born and raised in Amsterdam. I love sharing hidden gems of the city with travelers from all over the world."
+  },
+  {
+    "id": "0ed64bfd-f807-4762-9845-6e3ef5465610",
+    "username": "Gudo",
+    "password": "$2b$10$wrGwTeB5FEABCLf2GZPaHOMvdzBsTrSccX20SWxwmdsmEn9y6d28O",
+    "name": "Gudo Gieles",
+    "email": "gbgieles@gmail.com",
+    "phoneNumber": "0649038246",
+    "pictureUrl": null,
+    "aboutMe": null
+  }
+]

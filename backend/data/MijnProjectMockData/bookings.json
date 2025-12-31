@@ -1,54 +1,82 @@
-{
-  "bookings": [
-    {
-      "id": "f0123456-78ab-cdef-0123-456789abcdef",
-      "userId": "7f3c2c4e-9b0d-4c0e-9f3a-2a4e5f9b1c11",
-      "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
-      "checkinDate": "2023-03-10T18:00:00.000Z",
-      "checkoutDate": "2023-03-15T10:00:00.000Z",
-      "numberOfGuests": 2,
-      "totalPrice": 150.25,
-      "bookingStatus": "confirmed"
-    },
-    {
-      "id": "e2345678-90ab-cdef-0123-456789abcdef",
-      "userId": "c8a1e3d2-4f6b-4c8e-9d22-1b7f4a9e8c44",
-      "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
-      "checkinDate": "2023-04-12T16:00:00.000Z",
-      "checkoutDate": "2023-04-19T11:00:00.000Z",
-      "numberOfGuests": 3,
-      "totalPrice": 220.0,
-      "bookingStatus": "pending"
-    },
-    {
-      "id": "d3456789-01bc-def0-0123-456789abcdef",
-      "userId": "f2d9b1a7-3c4e-4f8a-8b77-9d1e2c3f4b55",
-      "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
-      "checkinDate": "2023-05-01T14:00:00.000Z",
-      "checkoutDate": "2023-05-10T12:00:00.000Z",
-      "numberOfGuests": 4,
-      "totalPrice": 290.5,
-      "bookingStatus": "confirmed"
-    },
-    {
-      "id": "c4567890-12cd-ef01-2345-6789abcdef01",
-      "userId": "a4e7c9d1-8b2f-4d33-9e11-7c8f2a1b6d66",
-      "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
-      "checkinDate": "2023-06-05T15:00:00.000Z",
-      "checkoutDate": "2023-06-12T10:00:00.000Z",
-      "numberOfGuests": 1,
-      "totalPrice": 80.75,
-      "bookingStatus": "canceled"
-    },
-    {
-      "id": "b5678901-23de-f012-3456-789abcdef012",
-      "userId": "d1b8e4f2-7c3a-4e55-8f99-1a2b3c4d5e77",
-      "propertyId": "i1234567-89f0-1234-5678-9abcdef01234",
-      "checkinDate": "2023-07-20T13:00:00.000Z",
-      "checkoutDate": "2023-07-25T09:00:00.000Z",
-      "numberOfGuests": 2,
-      "totalPrice": 175.5,
-      "bookingStatus": "confirmed"
-    }
-  ]
-}
+[
+  {
+    "id": "f0123456-78ab-cdef-0123-456789abcdef",
+    "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "startDate": "2023-03-10T18:00:00.000Z",
+    "endDate": "2023-03-15T10:00:00.000Z",
+    "numberOfGuests": 2,
+    "totalPrice": 150.25,
+    "bookingStatus": "confirmed"
+  },
+  {
+    "id": "e2345678-90ab-cdef-0123-456789abcdef",
+    "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "startDate": "2023-04-12T16:00:00.000Z",
+    "endDate": "2023-04-19T11:00:00.000Z",
+    "numberOfGuests": 3,
+    "totalPrice": 220,
+    "bookingStatus": "pending"
+  },
+  {
+    "id": "d3456789-01bc-def0-0123-456789abcdef",
+    "userId": "c3456789-01de-f012-3456-789abcdef012",
+    "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
+    "startDate": "2023-05-01T14:00:00.000Z",
+    "endDate": "2023-05-10T12:00:00.000Z",
+    "numberOfGuests": 4,
+    "totalPrice": 290.5,
+    "bookingStatus": "confirmed"
+  },
+  {
+    "id": "b5678901-23de-f012-3456-789abcdef012",
+    "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+    "propertyId": "i1234567-89f0-1234-5678-9abcdef01234",
+    "startDate": "2023-07-20T13:00:00.000Z",
+    "endDate": "2023-07-25T09:00:00.000Z",
+    "numberOfGuests": 2,
+    "totalPrice": 175.5,
+    "bookingStatus": "confirmed"
+  },
+  {
+    "id": "3ddeaa28-6226-46bc-9b51-70ea74d90de5",
+    "userId": "d4567890-12ef-0123-4567-89abcdef0123",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "startDate": "2025-12-29T00:00:00.000Z",
+    "endDate": "2025-12-31T00:00:00.000Z",
+    "numberOfGuests": 1,
+    "totalPrice": 200,
+    "bookingStatus": "PENDING"
+  },
+  {
+    "id": "727f0d07-9e57-43ee-8993-bddf0e714959",
+    "userId": "47b6e2c7-e0e4-48fd-b23b-8f8db52e587f",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "startDate": "2026-01-01T00:00:00.000Z",
+    "endDate": "2026-01-17T00:00:00.000Z",
+    "numberOfGuests": 1,
+    "totalPrice": 1500,
+    "bookingStatus": "PENDING"
+  },
+  {
+    "id": "dc42c3e8-b91c-4760-94ed-fd800ede8360",
+    "userId": "47b6e2c7-e0e4-48fd-b23b-8f8db52e587f",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "startDate": "2026-01-24T00:00:00.000Z",
+    "endDate": "2026-01-26T00:00:00.000Z",
+    "numberOfGuests": 1,
+    "totalPrice": 200,
+    "bookingStatus": "PENDING"
+  },
+  {
+    "id": "0b1de249-6280-4f97-8467-1a54cabcaf8e",
+    "userId": "47b6e2c7-e0e4-48fd-b23b-8f8db52e587f",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "startDate": "2026-01-19T00:00:00.000Z",
+    "endDate": "2026-01-20T00:00:00.000Z",
+    "numberOfGuests": 12,
+    "totalPrice": 100,
+    "bookingStatus": "PENDING"
+  }
+]
