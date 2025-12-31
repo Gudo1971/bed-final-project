@@ -25,9 +25,11 @@ import {
 import { useState } from "react";
 import ImageUpload from "../images/upload/ImageUpload.jsx";
 
+// 👉 JOUW AXIOS INSTANCE
+import api from "../../lib/api";
+
 export default function PropertyForm({ isOpen, onClose, onSuccess }) {
   const toast = useToast();
-  const token = localStorage.getItem("token");
 
   // ==============================================
   // = DARK MODE COLORS                           =
@@ -57,7 +59,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
 
   // ==============================================
-  // = SUBMIT HANDLER                             =
+  // = SUBMIT HANDLER (AXIOS INSTANCE)            =
   // ==============================================
   async function handleSubmit() {
     try {
@@ -76,15 +78,16 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
         formData.append("images", file);
       });
 
-      const res = await fetch("http://localhost:3000/api/properties", {
-        method: "POST",
+      // 👉 axios instance regelt:
+      // - baseURL
+      // - /api prefix
+      // - Authorization header
+      // - error flattening
+      await api.post("/properties", formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
-        body: formData,
       });
-
-      if (!res.ok) throw new Error("Failed to create property");
 
       toast({
         title: "Property toegevoegd",
@@ -97,7 +100,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
     } catch (err) {
       toast({
         title: "Fout bij opslaan",
-        description: "Kon de property niet aanmaken.",
+        description: err.error || "Kon de property niet aanmaken.",
         status: "error",
         duration: 3000,
       });
@@ -125,9 +128,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
         <ModalBody>
           <VStack spacing={5} align="stretch">
 
-            {/* ============================================== */}
-            {/* = TITEL                                       = */}
-            {/* ============================================== */}
+            {/* TITEL */}
             <FormControl>
               <FormLabel fontWeight="bold" color={labelColor}>
                 Titel
@@ -140,9 +141,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
               />
             </FormControl>
 
-            {/* ============================================== */}
-            {/* = LOCATIE                                     = */}
-            {/* ============================================== */}
+            {/* LOCATIE */}
             <FormControl>
               <FormLabel fontWeight="bold" color={labelColor}>
                 Locatie
@@ -155,9 +154,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
               />
             </FormControl>
 
-            {/* ============================================== */}
-            {/* = BESCHRIJVING                                = */}
-            {/* ============================================== */}
+            {/* BESCHRIJVING */}
             <FormControl>
               <FormLabel fontWeight="bold" color={labelColor}>
                 Beschrijving
@@ -172,9 +169,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
               />
             </FormControl>
 
-            {/* ============================================== */}
-            {/* = PRIJS PER NACHT                             = */}
-            {/* ============================================== */}
+            {/* PRIJS PER NACHT */}
             <FormControl>
               <FormLabel fontWeight="bold" color={labelColor}>
                 Prijs per nacht (€)
@@ -188,9 +183,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
               </NumberInput>
             </FormControl>
 
-            {/* ============================================== */}
-            {/* = AANTAL GASTEN                               = */}
-            {/* ============================================== */}
+            {/* AANTAL GASTEN */}
             <FormControl>
               <FormLabel fontWeight="bold" color={labelColor}>
                 Aantal gasten
@@ -204,9 +197,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
               </NumberInput>
             </FormControl>
 
-            {/* ============================================== */}
-            {/* = SLAAPKAMERS                                 = */}
-            {/* ============================================== */}
+            {/* SLAAPKAMERS */}
             <FormControl>
               <FormLabel fontWeight="bold" color={labelColor}>
                 Slaapkamers
@@ -220,9 +211,7 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
               </NumberInput>
             </FormControl>
 
-            {/* ============================================== */}
-            {/* = BADKAMERS                                   = */}
-            {/* ============================================== */}
+            {/* BADKAMERS */}
             <FormControl>
               <FormLabel fontWeight="bold" color={labelColor}>
                 Badkamers
@@ -236,17 +225,12 @@ export default function PropertyForm({ isOpen, onClose, onSuccess }) {
               </NumberInput>
             </FormControl>
 
-            {/* ============================================== */}
-            {/* = IMAGE UPLOAD                                = */}
-            {/* ============================================== */}
+            {/* IMAGE UPLOAD */}
             <ImageUpload images={images} setImages={setImages} />
 
           </VStack>
         </ModalBody>
 
-        {/* ============================================== */}
-        {/* = FOOTER KNOPPEN                              = */}
-        {/* ============================================== */}
         <ModalFooter>
           <Button onClick={onClose} disabled={loading} mr={3}>
             Annuleren

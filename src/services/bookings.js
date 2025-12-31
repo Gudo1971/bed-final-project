@@ -3,29 +3,14 @@
 // = CRUD acties voor boekingen                  =
 // ==============================================
 
-import axios from "axios";
-
-// ==============================================
-// = BASE URL                                    =
-// ==============================================
-const API_URL = "http://localhost:3000/api";
-
-// ==============================================
-// = TOKEN HELPER                                =
-// ==============================================
-function authHeader() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import api from "../lib/api"; // <-- jouw axios instance
 
 // ==============================================
 // = GET ALL BOOKINGS                            =
 // = GET /bookings                               =
 // ==============================================
 export async function getBookings() {
-  const res = await axios.get(`${API_URL}/bookings`, {
-    headers: authHeader(),
-  });
+  const res = await api.get("/bookings");
   return res.data;
 }
 
@@ -34,9 +19,7 @@ export async function getBookings() {
 // = GET /bookings/:id                           =
 // ==============================================
 export async function getBookingById(id) {
-  const res = await axios.get(`${API_URL}/bookings/${id}`, {
-    headers: authHeader(),
-  });
+  const res = await api.get(`/bookings/${id}`);
   return res.data;
 }
 
@@ -45,9 +28,7 @@ export async function getBookingById(id) {
 // = POST /bookings                              =
 // ==============================================
 export async function createBooking(payload) {
-  const res = await axios.post(`${API_URL}/bookings`, payload, {
-    headers: authHeader(),
-  });
+  const res = await api.post("/bookings", payload);
   return res.data;
 }
 
@@ -56,9 +37,7 @@ export async function createBooking(payload) {
 // = PATCH /bookings/:id                         =
 // ==============================================
 export async function updateBooking(id, payload) {
-  const res = await axios.patch(`${API_URL}/bookings/${id}`, payload, {
-    headers: authHeader(),
-  });
+  const res = await api.patch(`/bookings/${id}`, payload);
   return res.data;
 }
 
@@ -67,8 +46,6 @@ export async function updateBooking(id, payload) {
 // = DELETE /bookings/:id                        =
 // ==============================================
 export async function deleteBooking(id) {
-  const res = await axios.delete(`${API_URL}/bookings/${id}`, {
-    headers: authHeader(),
-  });
+  const res = await api.delete(`/bookings/${id}`);
   return res.data;
 }

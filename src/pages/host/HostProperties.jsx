@@ -26,7 +26,9 @@ import { useAuth } from "../../components/context/AuthContext.jsx";
 import PropertyForm from "../../components/properties/PropertyForm.jsx";
 import EditPropertyModal from "../../components/properties/EditPropertyModal.jsx";
 
+// 👉 axios‑based API calls
 import { getHostProperties, toggleProperty } from "../../api/host.js";
+import api from "../../lib/api";
 
 export default function HostProperties() {
   const toast = useToast();
@@ -34,7 +36,7 @@ export default function HostProperties() {
   const { user, token } = useAuth();
 
   // ============================================================
-  // = COLOR MODE VALUES (MAG NIET IN LOOPS!)                   =
+  // = COLOR MODE VALUES                                        =
   // ============================================================
   const cardBorderColor = useColorModeValue("gray.300", "gray.600");
   const cardBg = useColorModeValue("white", "gray.800");
@@ -74,16 +76,16 @@ export default function HostProperties() {
   }, [user]);
 
   // ============================================================
-  // = PROPERTIES OPHALEN                                       =
+  // = PROPERTIES OPHALEN (AXIOS INSTANCE)                      =
   // ============================================================
   async function fetchProperties() {
     try {
-      const data = await getHostProperties(token);
+      const data = await getHostProperties(); // token wordt automatisch toegevoegd
       setProperties(Array.isArray(data) ? data : []);
     } catch (err) {
       toast({
         title: "Fout bij ophalen",
-        description: "Kon jouw properties niet laden.",
+        description: err.error || "Kon jouw properties niet laden.",
         status: "error",
         duration: 3000,
       });
@@ -98,7 +100,7 @@ export default function HostProperties() {
   }, [token]);
 
   // ============================================================
-  // = PROPERTY VERWIJDEREN                                     =
+  // = PROPERTY VERWIJDEREN (AXIOS INSTANCE)                    =
   // ============================================================
   async function handleDelete(id) {
     const confirmDelete = window.confirm(
@@ -109,15 +111,7 @@ export default function HostProperties() {
     try {
       setDeleteLoadingId(id);
 
-      const res = await fetch(`http://localhost:3000/api/properties/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        const { message } = await res.json();
-        throw new Error(message);
-      }
+      await api.delete(`/properties/${id}`);
 
       toast({
         title: "Property verwijderd",
@@ -129,7 +123,7 @@ export default function HostProperties() {
     } catch (err) {
       toast({
         title: "Fout bij verwijderen",
-        description: err.message,
+        description: err.error || "Kon de property niet verwijderen.",
         status: "error",
         duration: 3000,
       });
@@ -143,12 +137,12 @@ export default function HostProperties() {
   // ============================================================
   async function handleToggle(propertyId, newState) {
     try {
-      await toggleProperty(propertyId, newState, token);
+      await toggleProperty(propertyId, newState);
       fetchProperties();
     } catch (err) {
       toast({
         title: "Fout bij wijzigen",
-        description: "Kon de status niet aanpassen.",
+        description: err.error || "Kon de status niet aanpassen.",
         status: "error",
         duration: 3000,
       });
@@ -338,7 +332,6 @@ export default function HostProperties() {
         isOpen={isEditOpen}
         onClose={onEditClose}
         property={selectedProperty}
-        token={token}
         onSuccess={fetchProperties}
       />
     </Box>

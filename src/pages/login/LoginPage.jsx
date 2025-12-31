@@ -22,22 +22,18 @@ import {
 import { useAuth } from "../../components/context/AuthContext.jsx";
 import { useNavigate, Link } from "react-router-dom";
 
+// 👉 JOUW AXIOS INSTANCE
+import api from "../../lib/api";
+
 // ============================================================
 // = API CALL: CHECK EMAIL BESTAAT?                           =
 // ============================================================
 async function checkEmailExists(email) {
-  const res = await fetch(
-    `${import.meta.env.VITE_API_URL}/api/auth/check-email?email=${email}`
+  const res = await api.get(`/auth/check-email`, {
+    params: { email },
+  });
 
-  );
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw data;
-  }
-
-  return data;
+  return res.data;
 }
 
 export default function LoginPage() {
@@ -101,9 +97,6 @@ export default function LoginPage() {
 
       navigate("/");
     } catch (err) {
-      // ============================================================
-      // = FIX: correcte foutmelding bij fout wachtwoord            =
-      // ============================================================
       const backendError = err.error || err.message || "";
       const msg = backendError.toLowerCase();
 
@@ -113,7 +106,7 @@ export default function LoginPage() {
       } 
       else if (msg.includes("wachtwoord")) {
         setErrorField("password");
-        setErrorMessage(backendError); // <-- toont "Het wachtwoord is onjuist."
+        setErrorMessage(backendError);
       } 
       else {
         setErrorField("form");
@@ -172,14 +165,12 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onFocus={async () => {
-                // 1. Syntactische check
                 if (!validateEmailFormat(email)) {
                   setErrorField("email");
                   setErrorMessage("Voer een geldig e-mailadres in");
                   return;
                 }
 
-                // 2. Backend check
                 try {
                   await checkEmailExists(email);
                   if (errorField === "email") {

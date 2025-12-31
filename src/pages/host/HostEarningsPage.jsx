@@ -25,6 +25,9 @@ import {
 import { useAuth } from "../../components/context/AuthContext.jsx";
 import EarningsChart from "../../components/earnings/EarningsChart.jsx";
 
+// 👉 JOUW AXIOS INSTANCE
+import api from "../../lib/api";
+
 export default function HostEarningsPage() {
   // ==============================================
   // = AUTH + STATE                               =
@@ -41,22 +44,13 @@ export default function HostEarningsPage() {
   const cardBg = useColorModeValue("white", "gray.800");
 
   // ==============================================
-  // = DATA OPHALEN                               =
+  // = DATA OPHALEN (AXIOS INSTANCE)              =
   // ==============================================
   useEffect(() => {
     async function fetchEarnings() {
       try {
-        const res = await fetch(
-          `http://localhost:3000/api/hosts/${user.hostId}/earnings`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        const json = await res.json();
-        setData(json);
+        const res = await api.get(`/hosts/${user.hostId}/earnings`);
+        setData(res.data);
       } catch (err) {
         console.error("Error fetching earnings:", err);
       } finally {

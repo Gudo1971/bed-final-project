@@ -21,6 +21,9 @@ import CalendarGrid from "../components/calendar/CalendarGrid";
 import BookingModal from "../components/booking/BookingModal";
 import { useAuth } from "../components/context/AuthContext";
 
+// 👉 jouw axios instance
+import api from "../lib/api";
+
 export default function BookingPage() {
   const { propertyId } = useParams();
   const navigate = useNavigate();
@@ -56,18 +59,16 @@ export default function BookingPage() {
   }, [isAuthenticated, navigate]);
 
   // ============================================================
-  // = DATA LOAD                                                =
+  // = DATA LOAD (AXIOS INSTANCE)                               =
   // ============================================================
   const loadProperty = async () => {
-    const res = await fetch(`http://localhost:3000/api/properties/${propertyId}`);
-    return res.json();
+    const res = await api.get(`/properties/${propertyId}`);
+    return res.data;
   };
 
   const loadDisabled = async () => {
-    const res = await fetch(
-      `http://localhost:3000/api/bookings/disabled-dates/${propertyId}`
-    );
-    return res.json();
+    const res = await api.get(`/bookings/disabled-dates/${propertyId}`);
+    return res.data;
   };
 
   useEffect(() => {
@@ -88,7 +89,7 @@ export default function BookingPage() {
       } catch (err) {
         toast({
           title: "Fout bij laden",
-          description: "Kon de gegevens niet ophalen.",
+          description: err.error || "Kon de gegevens niet ophalen.",
           status: "error",
           duration: 3000,
         });
@@ -201,9 +202,7 @@ export default function BookingPage() {
   return (
     <Box maxW="800px" mx="auto" p={{ base: 4, md: 6 }} pb={10}>
 
-      {/* ============================================================ */}
-      {/* = TERUGKNOP                                                = */}
-      {/* ============================================================ */}
+      {/* TERUGKNOP */}
       <Button
         as={Link}
         to={`/properties/${propertyId}`}
@@ -225,9 +224,7 @@ export default function BookingPage() {
         Selecteer je datums
       </Text>
 
-      {/* ============================================================ */}
-      {/* = MONTH NAVIGATION                                         = */}
-      {/* ============================================================ */}
+      {/* MONTH NAVIGATION */}
       <Flex align="center" justify="space-between" mb={4} flexWrap="wrap" gap={3}>
         <IconButton
           icon={<ChevronLeftIcon />}
@@ -249,9 +246,7 @@ export default function BookingPage() {
         />
       </Flex>
 
-      {/* ============================================================ */}
-      {/* = CALENDAR GRID                                            = */}
-      {/* ============================================================ */}
+      {/* CALENDAR GRID */}
       <Box overflowX="auto">
         <CalendarGrid
           days={days}
@@ -263,9 +258,7 @@ export default function BookingPage() {
         />
       </Box>
 
-      {/* ============================================================ */}
-      {/* = PRICE DISPLAY                                            = */}
-      {/* ============================================================ */}
+      {/* PRICE DISPLAY */}
       {nightCount > 0 && (
         <Box mt={6} textAlign="center">
           <Text fontSize="lg" fontWeight="bold">
@@ -274,9 +267,7 @@ export default function BookingPage() {
         </Box>
       )}
 
-      {/* ============================================================ */}
-      {/* = BOOK BUTTON                                              = */}
-      {/* ============================================================ */}
+      {/* BOOK BUTTON */}
       <Flex justify="center">
         <Button
           mt={6}
@@ -289,9 +280,7 @@ export default function BookingPage() {
         </Button>
       </Flex>
 
-      {/* ============================================================ */}
-      {/* = BOOKING MODAL                                            = */}
-      {/* ============================================================ */}
+      {/* BOOKING MODAL */}
       <BookingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

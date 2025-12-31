@@ -9,12 +9,13 @@ import axios from "axios";
 // = INSTANCE MET baseURL                                      =
 // ============================================================
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,   
+  baseURL: `${import.meta.env.VITE_API_URL}/api`,
   withCredentials: false,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
 
 // ============================================================
 // = REQUEST INTERCEPTOR                                       =

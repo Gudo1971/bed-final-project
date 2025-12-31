@@ -3,19 +3,14 @@
 // = Login & registratie                         =
 // ==============================================
 
-import axios from "axios";
-
-// ==============================================
-// = BASE URL                                    =
-// ==============================================
-const API_URL = "http://localhost:3000";
+import api from "../lib/api"; // <-- jouw axios instance
 
 // ==============================================
 // = LOGIN                                       =
 // = POST /auth/login                            =
 // ==============================================
 export async function login(email, password) {
-  const res = await axios.post(`${API_URL}/auth/login`, {
+  const res = await api.post("/auth/login", {
     email,
     password,
   });
@@ -31,6 +26,6 @@ export async function login(email, password) {
 // = POST /auth/register                         =
 // ==============================================
 export async function registerUser(payload) {
-  const res = await axios.post(`${API_URL}/auth/register`, payload);
+  const res = await api.post("/auth/register", payload);
   return res.data;
 }

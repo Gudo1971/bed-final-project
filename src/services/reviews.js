@@ -3,11 +3,9 @@
 // = GET /reviews/property/:propertyId           =
 // ==============================================
 
-import axios from "axios";
+import api from "../lib/api"; // <-- jouw axios instance
 
 export async function getReviewsByPropertyId(propertyId) {
-  const res = await axios.get(
-    `http://localhost:3000/reviews/property/${propertyId}`
-  );
+  const res = await api.get(`/reviews/property/${propertyId}`);
   return res.data;
 }

@@ -21,7 +21,7 @@ import {
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
-import { getUserBookings } from "../../api/bookings";
+import api from "../../lib/api";
 import BookingEditModal from "../tabs/BookingEditModal";
 
 // ============================================================
@@ -61,18 +61,17 @@ export default function BookingsTab() {
   const userId = getUserIdFromToken();
 
   // ============================================================
-  // = BOOKINGS OPHALEN                                         =
+  // = BOOKINGS OPHALEN (AXIOS INSTANCE)                        =
   // ============================================================
   async function fetchBookings() {
     try {
-      const token = localStorage.getItem("token");
-      if (!token || !userId) {
+      if (!userId) {
         setBookings([]);
         return;
       }
 
-      const data = await getUserBookings(userId, token);
-      setBookings(Array.isArray(data) ? data : []);
+      const res = await api.get(`/bookings/user/${userId}`);
+      setBookings(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error fetching bookings:", err);
       setBookings([]);
@@ -86,12 +85,8 @@ export default function BookingsTab() {
   // ============================================================
   async function loadDisabledDates(propertyId) {
     try {
-      const res = await fetch(
-        `http://localhost:3000/api/bookings/disabled-dates/${propertyId}`
-      );
-
-      const data = await res.json();
-      setDisabledDates(Array.isArray(data) ? data : []);
+      const res = await api.get(`/bookings/disabled-dates/${propertyId}`);
+      setDisabledDates(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error loading disabled dates:", err);
     }
@@ -120,18 +115,9 @@ export default function BookingsTab() {
   // ============================================================
   async function cancelBooking(id) {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`http://localhost:3000/api/bookings/${id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ bookingStatus: "CANCELED" }),
+      await api.patch(`/bookings/${id}`, {
+        bookingStatus: "CANCELED",
       });
-
-      if (!res.ok) throw new Error("Cancel failed");
 
       toast({
         title: "Boeking geannuleerd",
@@ -165,19 +151,7 @@ export default function BookingsTab() {
 
   async function handleDelete() {
     try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(
-        `http://localhost:3000/api/bookings/${bookingToDelete}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!res.ok) throw new Error("Delete failed");
+      await api.delete(`/bookings/${bookingToDelete}`);
 
       toast({
         title: "Boeking verwijderd",
@@ -221,9 +195,7 @@ export default function BookingsTab() {
   return (
     <Box>
 
-      {/* ============================================================ */}
-      {/* = TERUGKNOP                                                = */}
-      {/* ============================================================ */}
+      {/* TERUGKNOP */}
       <Button
         as={Link}
         to="/properties"
@@ -307,9 +279,7 @@ export default function BookingsTab() {
                     €{booking.totalPrice}
                   </Text>
 
-                  {/* ============================================================ */}
-                  {/* = ACTIE KNOPPEN                                            = */}
-                  {/* ============================================================ */}
+                  {/* ACTIE KNOPPEN */}
                   <Stack direction="row" mt={3} flexWrap="wrap" gap={2}>
                     {canEdit && (
                       <Button
@@ -363,9 +333,7 @@ export default function BookingsTab() {
         })}
       </SimpleGrid>
 
-      {/* ============================================================ */}
-      {/* = DELETE CONFIRM MODAL                                     = */}
-      {/* ============================================================ */}
+      {/* DELETE CONFIRM MODAL */}
       <AlertDialog
         isOpen={isConfirmOpen}
         leastDestructiveRef={cancelRef}
@@ -394,9 +362,7 @@ export default function BookingsTab() {
         </AlertDialogOverlay>
       </AlertDialog>
 
-      {/* ============================================================ */}
-      {/* = EDIT MODAL                                               = */}
-      {/* ============================================================ */}
+      {/* EDIT MODAL */}
       {selectedBooking && (
         <BookingEditModal
           isOpen={isModalOpen}

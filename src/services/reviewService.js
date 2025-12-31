@@ -3,69 +3,49 @@
 // = CRUD acties voor reviews                    =
 // ==============================================
 
-import axios from "axios";
-
-// ==============================================
-// = BASE URL                                    =
-// ==============================================
-const API_URL = "http://localhost:3000/api/reviews";
-
-// ==============================================
-// = TOKEN HELPER                                =
-// ==============================================
-function authHeader(token) {
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import api from "../lib/api"; // <-- jouw axios instance
 
 // ==============================================
 // = GET REVIEWS PER PROPERTY                    =
-// = GET /reviews/api/property/:id               =
+// = GET /reviews/property/:id                   =
 // ==============================================
 export async function getReviewsByPropertyId(propertyId) {
-  const res = await axios.get(`${API_URL}/property/${propertyId}`);
+  const res = await api.get(`/reviews/property/${propertyId}`);
   return res.data;
 }
 
 // ==============================================
 // = GET REVIEWS VAN INGELOGDE USER              =
-// = GET /reviews/api/me                         =
+// = GET /reviews/me                             =
 // ==============================================
-export async function getMyReviews(token) {
-  const res = await axios.get(`${API_URL}/me`, {
-    headers: authHeader(token),
-  });
+export async function getMyReviews() {
+  const res = await api.get(`/reviews/me`);
   return res.data;
 }
 
 // ==============================================
 // = CREATE REVIEW                               =
-// = POST /reviews/api                           =
+// = POST /reviews                               =
 // ==============================================
-export async function createReview(data, token) {
-  const res = await axios.post(API_URL, data, {
-    headers: authHeader(token),
-  });
+export async function createReview(data) {
+  const res = await api.post(`/reviews`, data);
   return res.data;
 }
 
 // ==============================================
 // = DELETE REVIEW                               =
-// = DELETE /reviews/api/:id                     =
+// = DELETE /reviews/:id                         =
 // ==============================================
-export async function deleteReview(id, token) {
-  const res = await axios.delete(`${API_URL}/${id}`, {
-    headers: authHeader(token),
-  });
+export async function deleteReview(id) {
+  const res = await api.delete(`/reviews/${id}`);
   return res.data;
 }
 
 // ==============================================
 // = UPDATE REVIEW                               =
-// = PUT /reviews/api/:id                        =
+// = PUT /reviews/:id                            =
 // ==============================================
-export async function updateReview(id, data, token) {
-  const res = await axios.put(`${API_URL}/${id}`, data, {
-    headers: authHeader(token),
-  });
+export async function updateReview(id, data) {
+  const res = await api.put(`/reviews/${id}`, data);
   return res.data;
 }

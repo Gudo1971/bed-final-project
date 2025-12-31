@@ -3,29 +3,14 @@
 // = CRUD acties voor gebruikers                 =
 // ==============================================
 
-import axios from "axios";
-
-// ==============================================
-// = BASE URL                                    =
-// ==============================================
-const API_URL = "http://localhost:3000";
-
-// ==============================================
-// = TOKEN HELPER                                =
-// ==============================================
-function authHeader() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import api from "../lib/api"; // <-- jouw axios instance
 
 // ==============================================
 // = GET ALL USERS                               =
 // = GET /user                                   =
 // ==============================================
 export async function getUsers() {
-  const res = await axios.get(`${API_URL}/user`, {
-    headers: authHeader(),
-  });
+  const res = await api.get("/user");
   return res.data;
 }
 
@@ -34,9 +19,7 @@ export async function getUsers() {
 // = GET /user/:id                               =
 // ==============================================
 export async function getUserById(id) {
-  const res = await axios.get(`${API_URL}/user/${id}`, {
-    headers: authHeader(),
-  });
+  const res = await api.get(`/user/${id}`);
   return res.data;
 }
 
@@ -45,9 +28,7 @@ export async function getUserById(id) {
 // = POST /user                                  =
 // ==============================================
 export async function createUser(payload) {
-  const res = await axios.post(`${API_URL}/user`, payload, {
-    headers: authHeader(),
-  });
+  const res = await api.post("/user", payload);
   return res.data;
 }
 
@@ -56,9 +37,7 @@ export async function createUser(payload) {
 // = PATCH /user/:id                             =
 // ==============================================
 export async function updateUser(id, payload) {
-  const res = await axios.patch(`${API_URL}/user/${id}`, payload, {
-    headers: authHeader(),
-  });
+  const res = await api.patch(`/user/${id}`, payload);
   return res.data;
 }
 
@@ -67,8 +46,6 @@ export async function updateUser(id, payload) {
 // = DELETE /user/:id                            =
 // ==============================================
 export async function deleteUser(id) {
-  const res = await axios.delete(`${API_URL}/user/${id}`, {
-    headers: authHeader(),
-  });
+  const res = await api.delete(`/user/${id}`);
   return res.data;
 }
