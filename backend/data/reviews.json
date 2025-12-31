@@ -1,39 +1,263 @@
-{
-  "reviews": [
-    {
-      "id": "g7890123-45cd-ef01-2345-6789abcdef01",
-      "userId": "a1234567-89ab-cdef-0123-456789abcdef",
-      "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
-      "rating": 5,
-      "comment": "The property was amazing, and the host was very accommodating!"
-    },
-    {
-      "id": "h8901234-56de-f012-3456-789abcdef012",
-      "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
-      "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
-      "rating": 4,
-      "comment": "Lovely place, but the WiFi was a bit slow."
-    },
-    {
-      "id": "i9012345-67ef-0123-4567-89abcdef0123",
-      "userId": "c3456789-01de-f012-3456-789abcdef012",
-      "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
-      "rating": 3,
-      "comment": "Decent place for the price. Would visit again."
-    },
-    {
-      "id": "j0123456-78f0-1234-5678-9abcdef01234",
-      "userId": "d4567890-12ef-0123-4567-89abcdef0123",
-      "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
-      "rating": 4,
-      "comment": "Beautiful view! However, there were some minor issues with the bathroom."
-    },
-    {
-      "id": "k1234567-89f0-1234-5678-9abcdef01234",
-      "userId": "e5678901-23f0-1234-5678-9abcdef01234",
-      "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
-      "rating": 5,
-      "comment": "A perfect stay! Can't wait to come back."
-    }
-  ]
-}
+[
+  {
+    "id": "g7890123-45cd-ef01-2345-6789abcdef01",
+    "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "rating": 5,
+    "comment": "The property was amazing, and the host was very accommodating!",
+    "createdAt": "2025-12-30T18:18:25.081Z",
+    "updatedAt": "2025-12-30T18:18:25.081Z"
+  },
+  {
+    "id": "ed97fa5d-d84a-4b87-a2a0-66c70b5d6285",
+    "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "rating": 3,
+    "comment": "The Cozy doet zijn naam eer aan. Rustige buurt, fijne geur in de kamer, en een zithoek waar je spontaan een boek wilt openslaan. De host reageerde snel en vriendelijk. Het enige minpuntje: ik wilde eigenlijk niet meer weg",
+    "createdAt": "2025-12-30T22:05:24.895Z",
+    "updatedAt": "2025-12-30T22:05:24.895Z"
+  },
+  {
+    "id": "9a8ee190-9d45-4869-9bb7-cf519ecd740a",
+    "userId": "c3456789-01de-f012-3456-789abcdef012",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "rating": 3,
+    "comment": "De foto’s waren al mooi, maar in het echt is het nóg beter. De materialen voelen premium, de kleuren zijn warm en de details van de zachte plaid tot de minimalistische decoratie  maken het helemaal af. Ideaal voor solo‑reizigers of koppels die even willen ontsnappen.",
+    "createdAt": "2025-12-30T22:11:20.380Z",
+    "updatedAt": "2025-12-30T22:11:20.380Z"
+  },
+  {
+    "id": "8f596af9-148d-4c5a-9898-e3509b26f768",
+    "userId": "d4567890-12ef-0123-4567-89abcdef0123",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "rating": 2,
+    "comment": "Modern City is compact, maar slim ingericht. De locatie is fantastisch: cafés, winkels en openbaar vervoer op loopafstand. De kamer voelt fris en professioneel aan, alsof je in een modern hotel verblijft maar dan met meer privacy. Zeker een aanrader voor stedentrips.",
+    "createdAt": "2025-12-30T22:15:00.165Z",
+    "updatedAt": "2025-12-30T22:15:00.165Z"
+  },
+  {
+    "id": "ba824c72-22ee-466c-b7cd-d7457615eb60",
+    "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+    "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+    "rating": 1,
+    "comment": "Ik had nooit gedacht dat een verblijf zo knus kon aanvoelen. De ruimte is compact maar ongelooflijk slim ingericht, met zachte verlichting en een bed dat letterlijk naar me toe leek te glimlachen. Alles was brandschoon en de sfeer was precies wat ik nodig had na een drukke werkweek. Ik kom hier zeker terug.",
+    "createdAt": "2025-12-30T22:20:34.749Z",
+    "updatedAt": "2025-12-30T22:20:34.749Z"
+  },
+  {
+    "id": "5214239c-88b5-4785-88dc-9f35d327df87",
+    "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+    "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
+    "rating": 4,
+    "comment": "Modern City voelt als een boutique‑suite midden in het stadsleven. De inrichting is minimalistisch maar warm, met slimme verlichting en een werkplek waar je écht productief wordt. Alles is nieuw, schoon en logisch ingedeeld. Ideaal voor wie comfort wil zonder afstand te doen van de energie van de stad.",
+    "createdAt": "2025-12-30T21:40:04.634Z",
+    "updatedAt": "2025-12-30T21:40:04.634Z"
+  },
+  {
+    "id": "aa476b0f-5c64-4e0d-9183-fe81f22a91d2",
+    "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+    "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
+    "rating": 5,
+    "comment": "Ondanks dat je midden in de stad zit, is het binnen heerlijk stil. De ramen isoleren goed en het bed slaapt fantastisch. De keuken is compact maar volledig uitgerust, perfect voor een snelle maaltijd. De host gaf duidelijke instructies en reageerde snel. Een fijne uitvalsbasis voor een weekend weg",
+    "createdAt": "2025-12-30T22:07:09.486Z",
+    "updatedAt": "2025-12-30T22:07:09.486Z"
+  },
+  {
+    "id": "28937f33-fbd6-4c9f-9a51-c24a2354f26a",
+    "userId": "c3456789-01de-f012-3456-789abcdef012",
+    "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
+    "rating": 3,
+    "comment": "De ruimte straalt luxe uit: strakke lijnen, moderne meubels en een badkamer die zo uit een designmagazine lijkt te komen. De wifi is snel, de smart‑TV werkt vlekkeloos en de check‑in was super soepel. Dit is precies het soort plek waar je na een lange dag in de stad graag terugkomt.",
+    "createdAt": "2025-12-30T22:11:59.352Z",
+    "updatedAt": "2025-12-30T22:11:59.352Z"
+  },
+  {
+    "id": "7724a797-6052-4e64-89e6-f32e851d27fd",
+    "userId": "d4567890-12ef-0123-4567-89abcdef0123",
+    "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
+    "rating": 2,
+    "comment": "Als je houdt van water, stilte en frisse lucht, dan is dit dé plek. De omgeving is prachtig en nodigt uit tot wandelen of gewoon zitten en kijken naar het meer. Binnen is het knus en goed onderhouden. Een aanrader voor iedereen die even wil vertragen.",
+    "createdAt": "2025-12-30T22:15:25.800Z",
+    "updatedAt": "2025-12-30T22:15:25.800Z"
+  },
+  {
+    "id": "4fc1f27c-20b2-490a-bc84-5653f9e9395e",
+    "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+    "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
+    "rating": 4,
+    "comment": "Modern City is compact, maar slim ingericht. De locatie is fantastisch: cafés, winkels en openbaar vervoer op loopafstand. De kamer voelt fris en professioneel aan, alsof je in een modern hotel verblijft maar dan met meer privacy. Zeker een aanrader voor stedentrips.",
+    "createdAt": "2025-12-30T22:21:40.649Z",
+    "updatedAt": "2025-12-30T22:21:40.649Z"
+  },
+  {
+    "id": "9f0c4e8c-14b6-4228-9392-abfdc05f9770",
+    "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+    "propertyId": "i1234567-89f0-1234-5678-9abcdef01234",
+    "rating": 5,
+    "comment": "Lake Side is precies wat je zoekt als je even wilt ontsnappen aan de drukte. Het uitzicht over het water is adembenemend, vooral in de ochtend wanneer de mist nog boven het meer hangt. De ruimte voelt licht, schoon en ontspannen aan. Een perfecte plek om op te laden.",
+    "createdAt": "2025-12-30T22:00:32.224Z",
+    "updatedAt": "2025-12-30T22:00:32.224Z"
+  },
+  {
+    "id": "fa406424-fe0a-4d0d-8365-5559476ec61d",
+    "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+    "propertyId": "i1234567-89f0-1234-5678-9abcdef01234",
+    "rating": 5,
+    "comment": "De locatie is fantastisch: direct aan het meer, met een klein terras waar je ’s avonds kunt genieten van de zonsondergang. Binnen is alles netjes en comfortabel ingericht. De host gaf duidelijke instructies en check‑in was super soepel. Ideaal voor een weekendje weg.",
+    "createdAt": "2025-12-30T22:07:42.840Z",
+    "updatedAt": "2025-12-30T22:07:42.840Z"
+  },
+  {
+    "id": "d8f6c791-7734-401b-8d09-0b595728fa23",
+    "userId": "c3456789-01de-f012-3456-789abcdef012",
+    "propertyId": "i1234567-89f0-1234-5678-9abcdef01234",
+    "rating": 3,
+    "comment": "Lake Side combineert natuur met comfort. De kamer voelt warm en modern aan, met zachte kleuren en een heerlijk bed. De badkamer is ruim en luxe, en de koffiecorner was een fijne bonus. Ik voelde me meteen thuis en zou zo weer boeken.",
+    "createdAt": "2025-12-30T22:12:27.937Z",
+    "updatedAt": "2025-12-30T22:12:27.937Z"
+  },
+  {
+    "id": "2e46fbbb-2f5b-4ed9-b3c4-5be8ed826c30",
+    "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+    "propertyId": "i1234567-89f0-1234-5678-9abcdef01234",
+    "rating": 4,
+    "comment": "Als je houdt van water, stilte en frisse lucht, dan is dit dé plek. De omgeving is prachtig en nodigt uit tot wandelen of gewoon zitten en kijken naar het meer. Binnen is het knus en goed onderhouden. Een aanrader voor iedereen die even wil vertragen.",
+    "createdAt": "2025-12-30T22:23:22.767Z",
+    "updatedAt": "2025-12-30T22:23:22.767Z"
+  },
+  {
+    "id": "j0123456-78f0-1234-5678-9abcdef01234",
+    "userId": "d4567890-12ef-0123-4567-89abcdef0123",
+    "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
+    "rating": 4,
+    "comment": "Beautiful view! However, there were some minor issues with the bathroom.",
+    "createdAt": "2025-12-30T18:18:25.097Z",
+    "updatedAt": "2025-12-30T18:18:25.097Z"
+  },
+  {
+    "id": "k1234567-89f0-1234-5678-9abcdef01234",
+    "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+    "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
+    "rating": 5,
+    "comment": "A perfect stay! Can't wait to come back.",
+    "createdAt": "2025-12-30T18:18:25.102Z",
+    "updatedAt": "2025-12-30T18:18:25.102Z"
+  },
+  {
+    "id": "87f1975b-73b2-461c-99e9-e445c4704363",
+    "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+    "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
+    "rating": 4,
+    "comment": "Beach Front is een droomplek. Je hoort de golven zachtjes op de achtergrond en het uitzicht is werkelijk fantastisch. De kamer is licht, schoon en modern ingericht. Het voelt alsof je in een luxe strandresort verblijft, maar dan met alle privacy van een eigen plek.\n",
+    "createdAt": "2025-12-30T22:01:19.527Z",
+    "updatedAt": "2025-12-30T22:01:19.527Z"
+  },
+  {
+    "id": "29f54974-538f-4390-863a-4f92d0433d96",
+    "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+    "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
+    "rating": 4,
+    "comment": "De locatie kan niet beter: letterlijk een paar stappen van het strand. Binnen is alles fris en goed onderhouden. De host gaf duidelijke instructies en reageerde snel. Het balkon was mijn favoriete plek — ideaal voor een koffie in de ochtend of een glas wijn bij zonsondergang.",
+    "createdAt": "2025-12-30T22:08:08.151Z",
+    "updatedAt": "2025-12-30T22:08:08.151Z"
+  },
+  {
+    "id": "a916f228-9080-4619-b9a3-6aed072ed786",
+    "userId": "c3456789-01de-f012-3456-789abcdef012",
+    "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
+    "rating": 3,
+    "comment": "Beach Front voelt premium aan zonder overdreven luxe. De kleuren zijn warm en zomers, de meubels comfortabel en de badkamer verrassend ruim. De airco werkt perfect en de wifi is snel. Dit is zo’n plek waar je meteen in vakantiemodus schiet.\n",
+    "createdAt": "2025-12-30T22:12:51.364Z",
+    "updatedAt": "2025-12-30T22:12:51.364Z"
+  },
+  {
+    "id": "h8901234-56de-f012-3456-789abcdef012",
+    "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+    "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
+    "rating": 4,
+    "comment": "Lovely place, but the WiFi was a bit slow.",
+    "createdAt": "2025-12-30T18:18:25.087Z",
+    "updatedAt": "2025-12-30T18:18:25.087Z"
+  },
+  {
+    "id": "i9012345-67ef-0123-4567-89abcdef0123",
+    "userId": "c3456789-01de-f012-3456-789abcdef012",
+    "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
+    "rating": 3,
+    "comment": "Decent place for the price. Would visit again.",
+    "createdAt": "2025-12-30T18:18:25.091Z",
+    "updatedAt": "2025-12-30T18:18:25.091Z"
+  },
+  {
+    "id": "b000d459-ce92-49aa-a91a-973adc53590f",
+    "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+    "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
+    "rating": 4,
+    "comment": "Farmhouse is precies wat je verwacht van een verblijf op het platteland: rust, ruimte en een heerlijk huiselijke sfeer. De houten balken en zachte kleuren geven het een authentieke uitstraling, terwijl alles binnen fris, schoon en modern is. Ideaal om even te ontsnappen aan de drukte.\n",
+    "createdAt": "2025-12-30T22:03:02.901Z",
+    "updatedAt": "2025-12-30T22:03:02.901Z"
+  },
+  {
+    "id": "70a5085d-fc09-4f38-9fa2-59a4b46c8fe5",
+    "userId": "d4567890-12ef-0123-4567-89abcdef0123",
+    "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
+    "rating": 2,
+    "comment": "De stilte en de natuur rondom het huis zijn fantastisch. Je kunt hier wandelen, lezen of gewoon genieten van het uitzicht. Binnen is alles netjes en goed onderhouden. Het is de perfecte plek voor iedereen die even wil vertragen en genieten van het buitenleven",
+    "createdAt": "2025-12-30T22:17:11.164Z",
+    "updatedAt": "2025-12-30T22:17:11.164Z"
+  },
+  {
+    "id": "ef17369a-2595-4b36-a262-7f9e3dcd5761",
+    "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+    "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
+    "rating": 3,
+    "comment": "De Farmhouse‑stijl is tot in de puntjes doorgevoerd: houten details, warme verlichting en een heerlijk comfortabel bed. De badkamer is verrassend luxe en de keuken is volledig uitgerust. Het voelt als een mix van een boerderij en een boutique‑verblijf. Echt een aanrader.",
+    "createdAt": "2025-12-30T22:25:27.265Z",
+    "updatedAt": "2025-12-30T22:25:27.265Z"
+  },
+  {
+    "id": "bc6c0212-c6ff-4c0c-a8a8-b8090ea0c92b",
+    "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+    "propertyId": "a9876543-21dc-4321-ba98-fedcba098765",
+    "rating": 4,
+    "comment": "Charming Chanel voelt als een kleine boutique‑suite met een vleugje luxe. De zachte kleuren, elegante decoratie en rustige sfeer maken het een plek waar je meteen ontspant. Alles is brandschoon en tot in detail verzorgd. Een perfecte hideaway voor wie comfort en stijl zoekt.",
+    "createdAt": "2025-12-30T22:03:28.458Z",
+    "updatedAt": "2025-12-30T22:03:51.259Z"
+  },
+  {
+    "id": "917c7c6f-a60e-4e66-b307-67e03d7ee352",
+    "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+    "propertyId": "a9876543-21dc-4321-ba98-fedcba098765",
+    "rating": 5,
+    "comment": "De naam zegt het al: dit verblijf heeft charme. Van de warme verlichting tot de subtiele geuren in de kamer  alles klopt. De locatie is rustig maar toch dichtbij leuke cafés en winkels. De host was vriendelijk en duidelijk. Een heerlijke plek om even te ontsnappen.",
+    "createdAt": "2025-12-30T22:09:17.359Z",
+    "updatedAt": "2025-12-30T22:09:17.359Z"
+  },
+  {
+    "id": "11a76eec-67ce-4b54-8fd6-854272092450",
+    "userId": "c3456789-01de-f012-3456-789abcdef012",
+    "propertyId": "a9876543-21dc-4321-ba98-fedcba098765",
+    "rating": 3,
+    "comment": "Charming Chanel straalt klasse uit. De meubels voelen premium, de badkamer is modern en de kamer heeft een rustige, elegante uitstraling. Het bed slaapt fantastisch en de kleine details — zoals verse bloemen en een nette koffiecorner — maken het helemaal af. Ik zou zo weer boeken",
+    "createdAt": "2025-12-30T22:13:46.919Z",
+    "updatedAt": "2025-12-30T22:13:46.919Z"
+  },
+  {
+    "id": "7692f20a-db1f-4049-a358-a4c4b7cab6a1",
+    "userId": "d4567890-12ef-0123-4567-89abcdef0123",
+    "propertyId": "a9876543-21dc-4321-ba98-fedcba098765",
+    "rating": 5,
+    "comment": "Charming Chanel straalt klasse uit. De meubels voelen premium, de badkamer is modern en de kamer heeft een rustige, elegante uitstraling. Het bed slaapt fantastisch en de kleine details — zoals verse bloemen en een nette koffiecorner — maken het helemaal af. Ik zou zo weer boeken",
+    "createdAt": "2025-12-30T22:18:13.242Z",
+    "updatedAt": "2025-12-30T22:18:13.242Z"
+  },
+  {
+    "id": "79f5ad57-77f5-4b19-857b-26f1abab4ef5",
+    "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+    "propertyId": "a9876543-21dc-4321-ba98-fedcba098765",
+    "rating": 3,
+    "comment": "Dit verblijf is compact maar prachtig ingericht. De sfeer is warm en uitnodigend, en alles voelt fris en goed onderhouden. Ideaal voor een romantisch weekend of een solo‑trip met een beetje extra comfort. Zeker een aanrader.",
+    "createdAt": "2025-12-30T22:26:16.238Z",
+    "updatedAt": "2025-12-30T22:26:16.238Z"
+  }
+]

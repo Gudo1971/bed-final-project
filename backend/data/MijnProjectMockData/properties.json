@@ -1,76 +1,346 @@
-{
-  "properties": [
-    {
-      "id": "g9012345-67ef-0123-4567-89abcdef0123",
-      "title": "Cozy Mountain Retreat",
-      "description": "Experience tranquility in our cozy cabin situated on a serene mountain peak.",
-      "location": "Rocky Mountains, Colorado",
-      "pricePerNight": 120.5,
-      "bedroomCount": 3,
-      "bathRoomCount": 2,
-      "maxGuestCount": 5,
-      "hostId": "f1234567-89ab-cdef-0123-456789abcdef",
-      "rating": 5
+[
+  {
+    "id": "g9012345-67ef-0123-4567-89abcdef0123",
+    "title": "Cozy Mountain Retreat",
+    "description": "Experience tranquility in our cozy cabin situated on a serene mountain peak.",
+    "location": "Rocky Mountains, Colorado",
+    "pricePerNight": 120.5,
+    "bedroomCount": 3,
+    "bathRoomCount": 2,
+    "maxGuestCount": 5,
+    "rating": 5,
+    "isActive": true,
+    "hostEmail": "johndoe@email.com",
+    "images": [],
+    "host": {
+      "id": "f1234567-89ab-cdef-0123-456789abcdef",
+      "username": "johnDoe",
+      "password": "$2b$10$u.nbQnoxYrT0JvDVrwM27eRxJ//bGegwT.1gJwK5SDMg.qqtdwT8O",
+      "name": "John Doe",
+      "email": "johndoe@email.com",
+      "phoneNumber": "+11234567890",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
+      "aboutMe": "I'm a passionate traveler who loves to share my home with fellow explorers. Welcome!"
     },
-    {
-      "id": "h0123456-78f0-1234-5678-9abcdef01234",
-      "title": "Modern City Apartment",
-      "description": "Stay in our sleek and modern apartment right in the heart of the city.",
-      "location": "New York, NY",
-      "pricePerNight": 150.75,
-      "bedroomCount": 2,
-      "bathRoomCount": 2,
-      "maxGuestCount": 4,
-      "hostId": "e2345678-90bc-def0-0123-456789abcdef",
-      "rating": 4
+    "bookings": [
+      {
+        "id": "f0123456-78ab-cdef-0123-456789abcdef",
+        "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+        "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+        "startDate": "2023-03-10T18:00:00.000Z",
+        "endDate": "2023-03-15T10:00:00.000Z",
+        "numberOfGuests": 2,
+        "totalPrice": 150.25,
+        "bookingStatus": "confirmed"
+      },
+      {
+        "id": "e2345678-90ab-cdef-0123-456789abcdef",
+        "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+        "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+        "startDate": "2023-04-12T16:00:00.000Z",
+        "endDate": "2023-04-19T11:00:00.000Z",
+        "numberOfGuests": 3,
+        "totalPrice": 220,
+        "bookingStatus": "pending"
+      },
+      {
+        "id": "3ddeaa28-6226-46bc-9b51-70ea74d90de5",
+        "userId": "d4567890-12ef-0123-4567-89abcdef0123",
+        "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+        "startDate": "2025-12-29T00:00:00.000Z",
+        "endDate": "2025-12-31T00:00:00.000Z",
+        "numberOfGuests": 1,
+        "totalPrice": 200,
+        "bookingStatus": "PENDING"
+      },
+      {
+        "id": "727f0d07-9e57-43ee-8993-bddf0e714959",
+        "userId": "47b6e2c7-e0e4-48fd-b23b-8f8db52e587f",
+        "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+        "startDate": "2026-01-01T00:00:00.000Z",
+        "endDate": "2026-01-17T00:00:00.000Z",
+        "numberOfGuests": 1,
+        "totalPrice": 1500,
+        "bookingStatus": "PENDING"
+      },
+      {
+        "id": "dc42c3e8-b91c-4760-94ed-fd800ede8360",
+        "userId": "47b6e2c7-e0e4-48fd-b23b-8f8db52e587f",
+        "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+        "startDate": "2026-01-24T00:00:00.000Z",
+        "endDate": "2026-01-26T00:00:00.000Z",
+        "numberOfGuests": 1,
+        "totalPrice": 200,
+        "bookingStatus": "PENDING"
+      },
+      {
+        "id": "0b1de249-6280-4f97-8467-1a54cabcaf8e",
+        "userId": "47b6e2c7-e0e4-48fd-b23b-8f8db52e587f",
+        "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+        "startDate": "2026-01-19T00:00:00.000Z",
+        "endDate": "2026-01-20T00:00:00.000Z",
+        "numberOfGuests": 12,
+        "totalPrice": 100,
+        "bookingStatus": "PENDING"
+      }
+    ],
+    "reviews": [
+      {
+        "id": "g7890123-45cd-ef01-2345-6789abcdef01",
+        "userId": "a1234567-89ab-cdef-0123-456789abcdef",
+        "propertyId": "g9012345-67ef-0123-4567-89abcdef0123",
+        "rating": 5,
+        "comment": "The property was amazing, and the host was very accommodating!",
+        "createdAt": "2025-12-29T20:32:32.880Z",
+        "updatedAt": "2025-12-29T20:32:32.880Z"
+      }
+    ]
+  },
+  {
+    "id": "h0123456-78f0-1234-5678-9abcdef01234",
+    "title": "Modern City Apartment",
+    "description": "Stay in our sleek and modern apartment right in the heart of the city.",
+    "location": "New York, NY",
+    "pricePerNight": 150.75,
+    "bedroomCount": 2,
+    "bathRoomCount": 2,
+    "maxGuestCount": 4,
+    "rating": 4,
+    "isActive": true,
+    "hostEmail": "lindasmith@email.com",
+    "images": [],
+    "host": {
+      "id": "e2345678-90bc-def0-0123-456789abcdef",
+      "username": "lindaSmith",
+      "password": "$2b$10$ahCwDyyudAQAjrGeQjYuIegO7MjqtX7t7b9JqHOUrvLEGbKcBA2dG",
+      "name": "Linda Smith",
+      "email": "lindasmith@email.com",
+      "phoneNumber": "+12234567891",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/lindasmith.jpg",
+      "aboutMe": "A professional chef and a part-time host. I love curating unique experiences for my guests."
     },
-    {
-      "id": "i1234567-89f0-1234-5678-9abcdef01234",
-      "title": "Lakeside Cottage",
-      "description": "Unwind by the lake in our rustic cottage, perfect for weekend getaways.",
-      "location": "Lake Tahoe, California",
-      "pricePerNight": 95.0,
-      "bedroomCount": 1,
-      "bathRoomCount": 1,
-      "maxGuestCount": 3,
-      "hostId": "d3456789-01cd-def0-1234-56789abcdef0",
-      "rating": 5
+    "bookings": [
+      {
+        "id": "d3456789-01bc-def0-0123-456789abcdef",
+        "userId": "c3456789-01de-f012-3456-789abcdef012",
+        "propertyId": "h0123456-78f0-1234-5678-9abcdef01234",
+        "startDate": "2023-05-01T14:00:00.000Z",
+        "endDate": "2023-05-10T12:00:00.000Z",
+        "numberOfGuests": 4,
+        "totalPrice": 290.5,
+        "bookingStatus": "confirmed"
+      }
+    ],
+    "reviews": []
+  },
+  {
+    "id": "i1234567-89f0-1234-5678-9abcdef01234",
+    "title": "Lakeside Cottage",
+    "description": "Unwind by the lake in our rustic cottage, perfect for weekend getaways.",
+    "location": "Lake Tahoe, California",
+    "pricePerNight": 95,
+    "bedroomCount": 1,
+    "bathRoomCount": 1,
+    "maxGuestCount": 3,
+    "rating": 5,
+    "isActive": true,
+    "hostEmail": "mikebrown@email.com",
+    "images": [],
+    "host": {
+      "id": "d3456789-01cd-def0-1234-56789abcdef0",
+      "username": "mikeBrown",
+      "password": "$2b$10$cBHzD03/CuaqOxuCCXYIyOAkEOd/m7w5.YHL/shG0gFlJeyMqkUVO",
+      "name": "Mike Brown",
+      "email": "mikebrown@email.com",
+      "phoneNumber": "+13234567892",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/mikebrown.jpg",
+      "aboutMe": "Nature enthusiast, hiker, and a lover of arts. My home reflects my passions. Stay and enjoy!"
     },
-    {
-      "id": "j2345678-90f1-2345-6789-abcdef012345",
-      "title": "Beachfront Villa",
-      "description": "Experience paradise in our luxurious villa right on the beach.",
-      "location": "Malibu, California",
-      "pricePerNight": 310.25,
-      "bedroomCount": 4,
-      "bathRoomCount": 3,
-      "maxGuestCount": 8,
-      "hostId": "c4567890-12de-f012-3456-789abcdef012",
-      "rating": 5
+    "bookings": [
+      {
+        "id": "b5678901-23de-f012-3456-789abcdef012",
+        "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+        "propertyId": "i1234567-89f0-1234-5678-9abcdef01234",
+        "startDate": "2023-07-20T13:00:00.000Z",
+        "endDate": "2023-07-25T09:00:00.000Z",
+        "numberOfGuests": 2,
+        "totalPrice": 175.5,
+        "bookingStatus": "confirmed"
+      }
+    ],
+    "reviews": []
+  },
+  {
+    "id": "j2345678-90f1-2345-6789-abcdef012345",
+    "title": "Beachfront Villa",
+    "description": "Experience paradise in our luxurious villa right on the beach.",
+    "location": "Malibu, California",
+    "pricePerNight": 310.25,
+    "bedroomCount": 4,
+    "bathRoomCount": 3,
+    "maxGuestCount": 8,
+    "rating": 5,
+    "isActive": true,
+    "hostEmail": "sarahlee@email.com",
+    "images": [],
+    "host": {
+      "id": "c4567890-12de-f012-3456-789abcdef012",
+      "username": "sarahLee",
+      "password": "$2b$10$A7artnlgcjj/vNSCbDxsau5jWdOPwGQIjzvjG1BF9wvW3hogXzRji",
+      "name": "Sarah Lee",
+      "email": "sarahlee@email.com",
+      "phoneNumber": "+14234567893",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/sarahlee.jpg",
+      "aboutMe": "Travel blogger turned host. My home is filled with artifacts from around the world. Feel the global vibe!"
     },
-    {
-      "id": "k3456789-01f2-3456-789a-bcdef0123456",
-      "title": "Country Farmhouse",
-      "description": "Step back in time and enjoy the simple pleasures of our traditional farmhouse.",
-      "location": "Nashville, Tennessee",
-      "pricePerNight": 85.0,
-      "bedroomCount": 3,
-      "bathRoomCount": 2,
-      "maxGuestCount": 6,
-      "hostId": "b5678901-23ef-0123-4567-89abcdef0123",
-      "rating": 4
+    "bookings": [],
+    "reviews": [
+      {
+        "id": "j0123456-78f0-1234-5678-9abcdef01234",
+        "userId": "d4567890-12ef-0123-4567-89abcdef0123",
+        "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
+        "rating": 3,
+        "comment": "Beautiful view! However, there were some minor issues with the bathroom.",
+        "createdAt": "2025-12-29T20:32:32.903Z",
+        "updatedAt": "2025-12-29T22:14:45.386Z"
+      },
+      {
+        "id": "k1234567-89f0-1234-5678-9abcdef01234",
+        "userId": "e5678901-23f0-1234-5678-9abcdef01234",
+        "propertyId": "j2345678-90f1-2345-6789-abcdef012345",
+        "rating": 5,
+        "comment": "A perfect stay! Can't wait to come back.",
+        "createdAt": "2025-12-29T20:32:32.909Z",
+        "updatedAt": "2025-12-29T20:32:32.909Z"
+      }
+    ]
+  },
+  {
+    "id": "k3456789-01f2-3456-789a-bcdef0123456",
+    "title": "Country Farmhouse",
+    "description": "Step back in time and enjoy the simple pleasures of our traditional farmhouse.",
+    "location": "Nashville, Tennessee",
+    "pricePerNight": 85,
+    "bedroomCount": 3,
+    "bathRoomCount": 2,
+    "maxGuestCount": 6,
+    "rating": 4,
+    "isActive": true,
+    "hostEmail": "paulgreen@email.com",
+    "images": [],
+    "host": {
+      "id": "b5678901-23ef-0123-4567-89abcdef0123",
+      "username": "paulGreen",
+      "password": "$2b$10$4nM7esfVAjzK98Z6H6bGrOItUQsT0EIuUyZ.prvADt1X1wYXc79tK",
+      "name": "Paul Green",
+      "email": "paulgreen@email.com",
+      "phoneNumber": "+15234567894",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/paulgreen.jpg",
+      "aboutMe": "Engineer by profession, passionate about history. Stay in my vintage-themed home and relive the past."
     },
-	{
-      "id": "a9876543-21dc-4321-ba98-fedcba098765",
-      "title": "Charming Canal Apartment",
-      "description": "Experience authentic Amsterdam living in this cozy canal-side apartment with classic Dutch architecture and modern comforts.",
-      "location": "Amsterdam, Netherlands",
-      "pricePerNight": 120.0,
-      "bedroomCount": 2,
-      "bathRoomCount": 1,
-      "maxGuestCount": 4,
-      "hostId": "d2345678-90ab-cdef-1234-567890abcdef",
-      "rating": 5
-    }
-  ]
-}
+    "bookings": [],
+    "reviews": [
+      {
+        "id": "h8901234-56de-f012-3456-789abcdef012",
+        "userId": "b2345678-90cd-ef01-2345-6789abcdef01",
+        "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
+        "rating": 4,
+        "comment": "Lovely place, but the WiFi was a bit slow.",
+        "createdAt": "2025-12-29T20:32:32.889Z",
+        "updatedAt": "2025-12-29T20:32:32.889Z"
+      },
+      {
+        "id": "i9012345-67ef-0123-4567-89abcdef0123",
+        "userId": "c3456789-01de-f012-3456-789abcdef012",
+        "propertyId": "k3456789-01f2-3456-789a-bcdef0123456",
+        "rating": 3,
+        "comment": "Decent place for the price. Would visit again.",
+        "createdAt": "2025-12-29T20:32:32.897Z",
+        "updatedAt": "2025-12-29T20:32:32.897Z"
+      }
+    ]
+  },
+  {
+    "id": "a9876543-21dc-4321-ba98-fedcba098765",
+    "title": "Charming Canal Apartment",
+    "description": "Experience authentic Amsterdam living in this cozy canal-side apartment with classic Dutch architecture and modern comforts.",
+    "location": "Amsterdam, Netherlands",
+    "pricePerNight": 120,
+    "bedroomCount": 2,
+    "bathRoomCount": 1,
+    "maxGuestCount": 4,
+    "rating": 5,
+    "isActive": true,
+    "hostEmail": "sofie.jansen@email.com",
+    "images": [],
+    "host": {
+      "id": "d2345678-90ab-cdef-1234-567890abcdef",
+      "username": "sofieJansen",
+      "password": "$2b$10$ab1S0MwwHc/SoopA7hB4zeyn/52lzkawe/snC9sP/HuPLnfg9z3km",
+      "name": "Sofie Jansen",
+      "email": "sofie.jansen@email.com",
+      "phoneNumber": "+31612345678",
+      "pictureUrl": "https://wincacademy.github.io/webpages/media/sofiejansen.jpg",
+      "aboutMe": "Born and raised in Amsterdam. I love sharing hidden gems of the city with travelers from all over the world."
+    },
+    "bookings": [],
+    "reviews": []
+  },
+  {
+    "id": "cef943ca-31fa-421f-adbf-3f7a2fba7d38",
+    "title": "erawg",
+    "description": "ewrgraasv",
+    "location": "gew",
+    "pricePerNight": 50,
+    "bedroomCount": 1,
+    "bathRoomCount": 1,
+    "maxGuestCount": 1,
+    "rating": 0,
+    "isActive": true,
+    "hostEmail": "gbgieles@gmail.com",
+    "images": [
+      {
+        "id": "dee340fc-a7d4-4bde-99aa-0ce17bc62793",
+        "url": "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767111612/staybnb/plbgei5ibhrypnn35jgp.png",
+        "propertyId": "cef943ca-31fa-421f-adbf-3f7a2fba7d38"
+      },
+      {
+        "id": "9bcb55a1-470d-479f-be75-b113b2bda306",
+        "url": "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767111616/staybnb/qx8xbfjr9cp9kv8widuj.png",
+        "propertyId": "cef943ca-31fa-421f-adbf-3f7a2fba7d38"
+      },
+      {
+        "id": "d2de410d-67ff-45cb-9eb8-f97dfb49f737",
+        "url": "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767111615/staybnb/xaqvm5b45nxiqxyt5qv5.png",
+        "propertyId": "cef943ca-31fa-421f-adbf-3f7a2fba7d38"
+      },
+      {
+        "id": "c9134ecc-8d83-442e-a921-fe8f6adfdd87",
+        "url": "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767111616/staybnb/e1frosn508p3ai2uppjj.png",
+        "propertyId": "cef943ca-31fa-421f-adbf-3f7a2fba7d38"
+      },
+      {
+        "id": "ebf3c756-5858-4758-a84b-2413e3ef6ff4",
+        "url": "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767111617/staybnb/ekj1jv0sdlyrevhkija5.png",
+        "propertyId": "cef943ca-31fa-421f-adbf-3f7a2fba7d38"
+      },
+      {
+        "id": "58ceca18-df27-4f10-93ba-80bce8beeb7c",
+        "url": "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767111619/staybnb/pnq03v7vs97iss4pituu.png",
+        "propertyId": "cef943ca-31fa-421f-adbf-3f7a2fba7d38"
+      }
+    ],
+    "host": {
+      "id": "0ed64bfd-f807-4762-9845-6e3ef5465610",
+      "username": "Gudo",
+      "password": "$2b$10$wrGwTeB5FEABCLf2GZPaHOMvdzBsTrSccX20SWxwmdsmEn9y6d28O",
+      "name": "Gudo Gieles",
+      "email": "gbgieles@gmail.com",
+      "phoneNumber": "0649038246",
+      "pictureUrl": null,
+      "aboutMe": null
+    },
+    "bookings": [],
+    "reviews": []
+  }
+]

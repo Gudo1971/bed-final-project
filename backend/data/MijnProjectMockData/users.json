@@ -1,82 +1,122 @@
-{
-  "users": [
-    {
-      "id": "7f3c2c4e-9b0d-4c0e-9f3a-2a4e5f9b1c11",
-      "username": "jdoe",
-      "password": "password123",
-      "name": "John Doe",
-      "email": "johndoe@example.com",
-      "phoneNumber": "123-456-7890",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/johndoe.jpeg"
-    },
-    {
-      "id": "c8a1e3d2-4f6b-4c8e-9d22-1b7f4a9e8c44",
-      "username": "asimpson",
-      "password": "password234",
-      "name": "Anna Simpson",
-      "email": "annasimpson@example.com",
-      "phoneNumber": "123-456-7891",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/article-author.png"
-    },
-    {
-      "id": "f2d9b1a7-3c4e-4f8a-8b77-9d1e2c3f4b55",
-      "username": "rjames",
-      "password": "password345",
-      "name": "Robert James",
-      "email": "robertjames@example.com",
-      "phoneNumber": "123-456-7892",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/robertjames.jpeg"
-    },
-    {
-      "id": "a4e7c9d1-8b2f-4d33-9e11-7c8f2a1b6d66",
-      "username": "klopez",
-      "password": "password456",
-      "name": "Karen Lopez",
-      "email": "karenlopez@example.com",
-      "phoneNumber": "123-456-7893",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/person9.jpeg"
-    },
-    {
-      "id": "d1b8e4f2-7c3a-4e55-8f99-1a2b3c4d5e77",
-      "username": "smiller",
-      "password": "password567",
-      "name": "Steve Miller",
-      "email": "stevemiller@example.com",
-      "phoneNumber": "123-456-7894",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/person6.jpeg"
-    },
-    {
-      "id": "a1234567-89ab-cdef-0123-456789abcdef",
-      "username": "testUser1",
-      "email": "test1@email.com",
-      "password": "test123",
-      "phoneNumber": "145-458-8945",
-      "pictureUrl": "https://wincacademy.github.io/webpages/media/person6.jpeg"
-    },
-    {
-  "id": "b2345678-90cd-ef01-2345-6789abcdef01",
-  "username": "reviewUser_b234",
-  "email": "b234@example.com",
-  "password": "test123"
-},
-{
-  "id": "c3456789-01de-f012-3456-789abcdef012",
-  "username": "reviewUser_c345",
-  "email": "c345@example.com",
-  "password": "test123"
-},
-{
-  "id": "d4567890-12ef-0123-4567-89abcdef0123",
-  "username": "reviewUser_d456",
-  "email": "d456@example.com",
-  "password": "test123"
-},
-{
-  "id": "e5678901-23f0-1234-5678-9abcdef01234",
-  "username": "reviewUser_e567",
-  "email": "e567@example.com",
-  "password": "test123"
-}
-
-  ]
-}
+[
+  {
+    "id": "a1234567-89ab-cdef-0123-456789abcdef",
+    "username": "jdoe",
+    "password": "$2b$10$hOdPoSkXMfM4QzD/cMacNuX0O8Cy0VZQsdl.fx/1MkGKzLfg7Jswy",
+    "name": "John Doe",
+    "email": "johndoe@example.com",
+    "phoneNumber": "123-456-7890",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
+    "aboutMe": null
+  },
+  {
+    "id": "b2345678-90cd-ef01-2345-6789abcdef01",
+    "username": "asimpson",
+    "password": "$2b$10$mu.k6ZTd6vsDC6WcnJoqwOxYMmqHjjz118DrLWCV4FcFQKRDjWBrm",
+    "name": "Anna Simpson",
+    "email": "annasimpson@example.com",
+    "phoneNumber": "123-456-7891",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/article-author.png",
+    "aboutMe": null
+  },
+  {
+    "id": "c3456789-01de-f012-3456-789abcdef012",
+    "username": "rjames",
+    "password": "$2b$10$ZlInZ2nfr2qS1Yw2jkzcHu.uTpH0ALNu9ogmVxIXYdChKU3OyPFlO",
+    "name": "Robert James",
+    "email": "robertjames@example.com",
+    "phoneNumber": "123-456-7892",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/robertjames.jpeg",
+    "aboutMe": null
+  },
+  {
+    "id": "d4567890-12ef-0123-4567-89abcdef0123",
+    "username": "klopez",
+    "password": "$2b$10$qlK9zOdsuKYM0/aEkqHX7.WkTUxL.kNSq64t8SbrD.jkfreI7MrIu",
+    "name": "Karen Lopez",
+    "email": "karenlopez@example.com",
+    "phoneNumber": "123-456-7893",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/person9.jpeg",
+    "aboutMe": null
+  },
+  {
+    "id": "e5678901-23f0-1234-5678-9abcdef01234",
+    "username": "smiller",
+    "password": "$2b$10$LNb7uD8T4E1mkySWB5bGpeWXoGaXQY8f6W2yRGHKyBZuyyfkGLMLS",
+    "name": "Steve Miller",
+    "email": "stevemiller@example.com",
+    "phoneNumber": "123-456-7894",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/person6.jpeg",
+    "aboutMe": null
+  },
+  {
+    "id": "5f03ba86-527d-4406-9075-241bfca89dc7",
+    "username": "johnDoe",
+    "password": "$2b$10$Ff5pBYWhTcy9pvzqferY5.8d9SYYOPpvOe1V.YOqgGYuyUaTPy5RG",
+    "name": "John Doe",
+    "email": "johndoe@email.com",
+    "phoneNumber": "+11234567890",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/johndoe.jpeg",
+    "aboutMe": "I'm a passionate traveler who loves to share my home with fellow explorers. Welcome!"
+  },
+  {
+    "id": "91984bf4-183c-48eb-8c1b-e56c8f83f85b",
+    "username": "lindaSmith",
+    "password": "$2b$10$ILjR4drKk22Iqot5XmN9K.PMUiHzDOG/Ihs/H102bv32ZBzwUvMXC",
+    "name": "Linda Smith",
+    "email": "lindasmith@email.com",
+    "phoneNumber": "+12234567891",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/lindasmith.jpg",
+    "aboutMe": "A professional chef and a part-time host. I love curating unique experiences for my guests."
+  },
+  {
+    "id": "b9b02e2d-56a2-423c-9890-c7755ef1b469",
+    "username": "mikeBrown",
+    "password": "$2b$10$4tfD8VzTIUQBrSQ4cNIDkul9njptdX3yl4Dt8/6qbfU9VUvox27qm",
+    "name": "Mike Brown",
+    "email": "mikebrown@email.com",
+    "phoneNumber": "+13234567892",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/mikebrown.jpg",
+    "aboutMe": "Nature enthusiast, hiker, and a lover of arts. My home reflects my passions. Stay and enjoy!"
+  },
+  {
+    "id": "dccb27c8-d495-4595-b7b4-9ab762ce00f9",
+    "username": "sarahLee",
+    "password": "$2b$10$D8GKgR4Qdj4HXvkipAjLuuuglXUOmMtdqx/e2nWAwlPsusWBKpZAm",
+    "name": "Sarah Lee",
+    "email": "sarahlee@email.com",
+    "phoneNumber": "+14234567893",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/sarahlee.jpg",
+    "aboutMe": "Travel blogger turned host. My home is filled with artifacts from around the world. Feel the global vibe!"
+  },
+  {
+    "id": "915a092f-60e1-4cea-9cc7-78a20037d3e9",
+    "username": "paulGreen",
+    "password": "$2b$10$rE/wBbRdq5ui1h4ThEwSEOHU.rss550vbUpXCNMXIl69HmZxssFDO",
+    "name": "Paul Green",
+    "email": "paulgreen@email.com",
+    "phoneNumber": "+15234567894",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/paulgreen.jpg",
+    "aboutMe": "Engineer by profession, passionate about history. Stay in my vintage-themed home and relive the past."
+  },
+  {
+    "id": "b29d3b3a-8c37-4937-b88a-d415c8c64114",
+    "username": "sofieJansen",
+    "password": "$2b$10$TvVLisI3OxV2r/NmF8lDGuzEczV.gImGmG00CTFrum57bEh9JMuzi",
+    "name": "Sofie Jansen",
+    "email": "sofie.jansen@email.com",
+    "phoneNumber": "+31612345678",
+    "pictureUrl": "https://wincacademy.github.io/webpages/media/sofiejansen.jpg",
+    "aboutMe": "Born and raised in Amsterdam. I love sharing hidden gems of the city with travelers from all over the world."
+  },
+  {
+    "id": "47b6e2c7-e0e4-48fd-b23b-8f8db52e587f",
+    "username": "Gudo",
+    "password": "$2b$10$JAiOJNBMobnPraw8K710I.ePMjxhJ/kvEyqcUu5QyDaY1YRuqvDQW",
+    "name": "Gudo Gieles",
+    "email": "gbgieles@gmail.com",
+    "phoneNumber": "0649038246",
+    "pictureUrl": "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767115073/yudlpeaviirxkro7xhfs.png",
+    "aboutMe": null
+  }
+]
