@@ -9,8 +9,11 @@ import {
   Text,
   Image,
   useColorModeValue,
+  Flex,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
+
+import StarDisplay from "../components/stars/StarDisplay.jsx";
 
 // ============================================================
 // = COMPONENT                                                 =
@@ -27,6 +30,15 @@ export default function PropertyCard({ property }) {
     property?.images?.[0]?.url ??
     "https://placehold.co/400x250?text=Geen+afbeelding";
 
+  // ============================================================
+  // = GEMIDDELDE RATING OP BASIS VAN REVIEWS                   =
+  // ============================================================
+  const averageRating =
+    property.reviews?.length > 0
+      ? property.reviews.reduce((sum, r) => sum + r.rating, 0) /
+        property.reviews.length
+      : 0;
+
   return (
     <Link to={`/properties/${property.id}`}>
       <Box
@@ -40,6 +52,9 @@ export default function PropertyCard({ property }) {
           shadow: "lg",
           transform: "translateY(-3px)",
         }}
+        h="520px"
+        display="flex"
+        flexDirection="column"
       >
         {/* ============================================== */}
         {/* = AFBEELDING                                  = */}
@@ -48,47 +63,51 @@ export default function PropertyCard({ property }) {
           src={imageUrl}
           alt={property.title}
           w="100%"
-          h="200px"
+          h="220px"
           objectFit="cover"
           fallbackSrc="https://placehold.co/400x250?text=Geen+afbeelding"
         />
 
-        <Box p={5}>
-          {/* ============================================== */}
-          {/* = TITEL                                       = */}
-          {/* ============================================== */}
-          <Heading size="md" color={textColor}>
+        {/* ============================================== */}
+        {/* = CONTENT (BOVENSTE DEEL)                     = */}
+        {/* ============================================== */}
+        <Box p={5} flex="1" display="flex" flexDirection="column">
+          
+          {/*  PRIJS BOVENAAN */}
+          <Text mb ={6} fontWeight="bold" fontSize="lg" color={textColor}>
+            €{property.pricePerNight} / nacht
+          </Text>
+
+          <Heading size="md" mt={1} color={textColor}>
             {property.title}
           </Heading>
 
-          {/* ============================================== */}
-          {/* = BESCHRIJVING                                = */}
-          {/* ============================================== */}
           <Text mt={2} color={subTextColor} noOfLines={2}>
             {property.description}
           </Text>
 
-          {/* ============================================== */}
-          {/* = PRIJS                                       = */}
-          {/* ============================================== */}
-          <Text fontWeight="bold" mt={3} color={textColor}>
-            €{property.pricePerNight} / nacht
-          </Text>
-
-          {/* ============================================== */}
-          {/* = DETAILS                                     = */}
-          {/* ============================================== */}
           <Text mt={2} color={subTextColor}>
             🛏 {property.bedroomCount} | 🛁 {property.bathRoomCount} | 👥{" "}
             {property.maxGuestCount}
           </Text>
+        </Box>
 
-          {/* ============================================== */}
-          {/* = RATING                                      = */}
-          {/* ============================================== */}
-          <Text mt={2} color={textColor}>
-            ⭐ {property.rating}
-          </Text>
+        {/* ============================================== */}
+        {/* = ONDERBALK (ALLEEN RATING)                   = */}
+        {/* ============================================== */}
+        <Box
+          px={5}
+          py={3}
+          mt="auto"
+          borderTop="1px solid"
+          borderColor={useColorModeValue("gray.200", "gray.600")}
+        >
+          <Flex align="center" gap={2}>
+            <StarDisplay rating={averageRating} size="20px" />
+            <Text fontSize="sm" color={textColor}>
+              {averageRating.toFixed(1)} ({property.reviews?.length || 0})
+            </Text>
+          </Flex>
         </Box>
       </Box>
     </Link>

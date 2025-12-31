@@ -10,7 +10,6 @@ import {
   Text,
   Spinner,
   VStack,
-  HStack,
   Stat,
   StatLabel,
   StatNumber,
@@ -33,6 +32,13 @@ export default function HostEarningsPage() {
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // ==============================================
+  // = FIX: ALLE HOOKS BOVENAAN                   =
+  // ==============================================
+  const introColor = useColorModeValue("gray.600", "gray.300");
+  const statBg = useColorModeValue("gray.50", "gray.700");
+  const cardBg = useColorModeValue("white", "gray.800");
 
   // ==============================================
   // = DATA OPHALEN                               =
@@ -116,7 +122,7 @@ export default function HostEarningsPage() {
         fontSize="lg"
         mb={6}
         textAlign={{ base: "center", sm: "left" }}
-        color={useColorModeValue("gray.600", "gray.300")}
+        color={introColor}
       >
         Overzicht van je inkomsten en prestaties als host.
       </Text>
@@ -131,12 +137,7 @@ export default function HostEarningsPage() {
         spacing={6}
         mb={10}
       >
-        <Stat
-          p={4}
-          borderWidth="1px"
-          borderRadius="lg"
-          bg={useColorModeValue("gray.50", "gray.700")}
-        >
+        <Stat p={4} borderWidth="1px" borderRadius="lg" bg={statBg}>
           <StatLabel>Verdiend tot nu toe</StatLabel>
           <StatNumber>
             € {(data.totalEarningsToDate ?? 0).toFixed(2)}
@@ -144,12 +145,7 @@ export default function HostEarningsPage() {
           <StatHelpText>Afgeronde verblijven</StatHelpText>
         </Stat>
 
-        <Stat
-          p={4}
-          borderWidth="1px"
-          borderRadius="lg"
-          bg={useColorModeValue("gray.50", "gray.700")}
-        >
+        <Stat p={4} borderWidth="1px" borderRadius="lg" bg={statBg}>
           <StatLabel>Verwachte inkomsten</StatLabel>
           <StatNumber>
             € {(data.expectedEarnings ?? 0).toFixed(2)}
@@ -157,12 +153,7 @@ export default function HostEarningsPage() {
           <StatHelpText>Inclusief toekomstige boekingen</StatHelpText>
         </Stat>
 
-        <Stat
-          p={4}
-          borderWidth="1px"
-          borderRadius="lg"
-          bg={useColorModeValue("gray.50", "gray.700")}
-        >
+        <Stat p={4} borderWidth="1px" borderRadius="lg" bg={statBg}>
           <StatLabel>Totaal boekingen</StatLabel>
           <StatNumber>{data.totalBookings ?? 0}</StatNumber>
           <StatHelpText>Alle accommodaties</StatHelpText>
@@ -192,7 +183,7 @@ export default function HostEarningsPage() {
             p={5}
             borderWidth="1px"
             borderRadius="lg"
-            bg={useColorModeValue("white", "gray.800")}
+            bg={cardBg}
             _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
             transition="all 0.2s"
           >

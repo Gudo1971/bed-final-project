@@ -89,6 +89,7 @@ export default function PropertyPage() {
         columns={{ base: 1, sm: 2, md: 3 }}
         spacing={6}
         mt={properties.length === 0 ? 0 : 4}
+        alignItems="start"     // ⭐ FIX: voorkomt oprekken van kaarten
       >
         {properties.map((property) => (
           <PropertyCard key={property.id} property={property} />

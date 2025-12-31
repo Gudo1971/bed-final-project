@@ -60,6 +60,8 @@ export default function App() {
         <Route path="/host/bookings" element={<HostBookings />} />
         <Route path="/host/earnings" element={<HostEarningsPage />} />
         <Route path="/add-property" element={<PropertyForm />} />
+        
+
       </Route>
 
     </Routes>

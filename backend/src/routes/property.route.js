@@ -47,6 +47,9 @@ router.get(
         include: {
           images: true,
           bookings: true,
+          reviews: {
+            select: { rating: true }
+          }
         },
       });
 
@@ -61,8 +64,53 @@ router.get(
 /* ============================================================
    PUBLIC ROUTES
 ============================================================ */
-router.get("/", getProperties);
-router.get("/:id", getProperty);
+
+/* ------------------------------------------------------------
+   ⭐ GET ALL PROPERTIES (MET REVIEWS)
+------------------------------------------------------------ */
+router.get("/", async (req, res) => {
+  try {
+    const properties = await prisma.property.findMany({
+      include: {
+        images: true,
+        reviews: {
+          select: { rating: true }
+        }
+      }
+    });
+
+    return res.json(properties);
+  } catch (err) {
+    console.error("❌ Properties ophalen error:", err);
+    return res.status(500).json({ error: "Kon properties niet ophalen" });
+  }
+});
+
+/* ------------------------------------------------------------
+   ⭐ GET PROPERTY BY ID (MET REVIEWS)
+------------------------------------------------------------ */
+router.get("/:id", async (req, res) => {
+  try {
+    const property = await prisma.property.findUnique({
+      where: { id: req.params.id },
+      include: {
+        images: true,
+        host: true,
+        reviews: true,
+        bookings: true
+      }
+    });
+
+    if (!property) {
+      return res.status(404).json({ error: "Property niet gevonden" });
+    }
+
+    return res.json(property);
+  } catch (err) {
+    console.error("❌ Property ophalen error:", err);
+    return res.status(500).json({ error: "Kon property niet ophalen" });
+  }
+});
 
 /* ============================================================
    HOST‑ONLY MUTATION ROUTES

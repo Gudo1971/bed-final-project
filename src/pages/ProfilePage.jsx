@@ -63,6 +63,8 @@ export default function ProfilePage() {
       py={{ base: 6, md: 10 }}
       centerContent
     >
+
+      
       <Heading
         mb={6}
         fontSize={{ base: "2xl", md: "3xl" }}
@@ -78,8 +80,8 @@ export default function ProfilePage() {
         variant="enclosed"
         colorScheme="teal"
         width="100%"
-        index={tabIndex}          // ⭐ controlled, reageert op URL
-        onChange={handleTabChange} // ⭐ kliks updaten URL
+        index={tabIndex}          
+        onChange={handleTabChange} 
       >
         <TabList
           flexWrap={{ base: "wrap", md: "wrap", lg: "nowrap" }}

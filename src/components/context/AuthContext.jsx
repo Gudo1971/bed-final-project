@@ -71,12 +71,42 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = LOGOUT                                     =
+  // = LOGOUT (EDGE-PROOF)                        =
   // ==============================================
-  const logout = () => {
-    clearToken();
-    localStorage.removeItem("user");
-    setUser(null);
+  const logout = async () => {
+    try {
+      // 1. Token + user verwijderen
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.clear();
+      setUser(null);
+      setToken(null);
+
+      // 2. Cookies verwijderen (Edge houdt ze soms vast)
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/");
+      });
+
+      // 3. Service workers uitschakelen (Edge cached auth state)
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          await reg.unregister();
+        }
+      }
+
+      // 4. Hard cache flush (Edge)
+      if ("caches" in window) {
+        const cacheNames = await caches.keys();
+        for (const name of cacheNames) {
+          await caches.delete(name);
+        }
+      }
+    } catch (err) {
+      console.error("❌ Logout error:", err);
+    }
   };
 
   // ==============================================

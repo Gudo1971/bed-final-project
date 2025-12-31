@@ -83,10 +83,13 @@ export const LandingPage = () => {
   // SCREENSHOTS (VUL LATER IN)
   // ==============================
   const screenshots = [
-    "https://via.placeholder.com/800x500?text=Screenshot+1",
-    "https://via.placeholder.com/800x500?text=Screenshot+2",
-    "https://via.placeholder.com/800x500?text=Screenshot+3",
-    "https://via.placeholder.com/800x500?text=Screenshot+4",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767126786/vvnrcd7pkvoge59rkkgd.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127671/e6aonunake3kgkefgssf.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127833/yegsmsxko4z5jwjjpcpg.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127880/ldnlracaj0s2jlcluzpo.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767128017/skxe53uqycc7sitcq1wj.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767128095/otvif6h8spbhcosx8bs4.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767128155/utgoqawj6d1ehftj8jvv.png",
   ];
 
   return (
@@ -229,7 +232,7 @@ export const LandingPage = () => {
         >
           {/* LEFT — PHOTO + QUOTE */}
           <Stack spacing={6} align="center">
-            <Avatar name="Gudo" src="/me.png" size="2xl" />
+            <Avatar name="Gudo" src="https://res.cloudinary.com/dkpp5c90a/image/upload/v1767116876/uj753emjxnqdxedg4drx.png" size="2xl" />
 
             <Text
               fontSize="lg"
@@ -290,7 +293,7 @@ export const LandingPage = () => {
                 fontSize="md"
                 color={textColor}
                 as="a"
-                href="https://github.com/DIT_IS_JOUW_GITHUB"
+                href="https://github.com/Gudo1971/bed-final-project"
                 target="_blank"
                 rel="noopener noreferrer"
               >

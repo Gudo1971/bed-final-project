@@ -226,13 +226,13 @@ export default function BookingsTab() {
       {/* ============================================================ */}
       <Button
         as={Link}
-        to="/dashboard"
+        to="/properties"
         variant="ghost"
         colorScheme="teal"
         size="sm"
         mb={4}
       >
-        ← Terug naar overzicht
+        ← Terug naar Properties
       </Button>
 
       <Heading size="lg" mb={4}>

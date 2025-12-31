@@ -1,6 +1,5 @@
 // ==============================================
 // = REVIEW CAROUSEL                             =
-// = Automatisch roterende reviews + modal       =
 // ==============================================
 
 import { useState, useEffect } from "react";
@@ -17,29 +16,25 @@ import {
 import AddReviewModal from "./AddreviewModal";
 import { useAuth } from "../context/AuthContext";
 
-// ==============================================
-// = COMPONENT                                   =
-// ==============================================
-export default function ReviewCarousel({ reviews, onRefresh }) {
-  // ==============================================
-  // = STATE                                      =
-  // ==============================================
+export default function ReviewCarousel({ reviews, propertyId, onRefresh }) {
+  // ----------------------------------------------
+  // HOOKS — moeten ALTIJD bovenaan staan
+  // ----------------------------------------------
   const [index, setIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // ==============================================
-  // = AUTH                                       =
-  // ==============================================
   const { user, token } = useAuth();
   const isAuthenticated = !!user && !!token;
 
-  // ==============================================
-  // = AUTO CAROUSEL                              =
-  // ==============================================
+  const cardBg = useColorModeValue("gray.100", "gray.700");
+
+  // ----------------------------------------------
+  // AUTO CAROUSEL
+  // ----------------------------------------------
   useEffect(() => {
-    if (isPaused || !reviews || reviews.length === 0) return;
+    if (isPaused || reviews.length === 0) return;
 
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % reviews.length);
@@ -48,16 +43,14 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
     return () => clearInterval(interval);
   }, [isPaused, reviews]);
 
-  // ==============================================
-  // = GEEN REVIEWS                               =
-  // ==============================================
-  if (!reviews || reviews.length === 0) {
+  // ----------------------------------------------
+  // GEEN REVIEWS
+  // ----------------------------------------------
+  if (reviews.length === 0) {
     return (
       <>
         <HStack justify="space-between" w="100%" mb={3}>
-          <Text fontSize="xl" fontWeight="bold">
-            Reviews
-          </Text>
+          <Text fontSize="xl" fontWeight="bold">Reviews</Text>
 
           {isAuthenticated && (
             <Button colorScheme="blue" size="sm" onClick={onOpen}>
@@ -71,30 +64,22 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
         <AddReviewModal
           isOpen={isOpen}
           onClose={onClose}
-          propertyId={null}
+          propertyId={propertyId}   // <-- FIXED
           onReviewAdded={onRefresh}
         />
       </>
     );
   }
 
-  // ==============================================
-  // = ACTIEVE REVIEW                             =
-  // ==============================================
+  // ----------------------------------------------
+  // ACTIEVE REVIEW
+  // ----------------------------------------------
   const review = reviews[index];
 
-  // ==============================================
-  // = RENDER                                      =
-  // ==============================================
   return (
     <>
-      {/* ============================================== */}
-      {/* = HEADER                                      = */}
-      {/* ============================================== */}
       <HStack justify="space-between" w="100%" mb={3}>
-        <Text fontSize="xl" fontWeight="bold">
-          Reviews
-        </Text>
+        <Text fontSize="xl" fontWeight="bold">Reviews</Text>
 
         {isAuthenticated && (
           <Button colorScheme="blue" size="sm" onClick={onOpen}>
@@ -103,28 +88,19 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
         )}
       </HStack>
 
-      {/* ============================================== */}
-      {/* = REVIEW CARD                                = */}
-      {/* ============================================== */}
       <VStack
         spacing={4}
         p={6}
         w="100%"
         borderRadius="md"
-        bg={useColorModeValue("gray.100", "gray.700")}
+        bg={cardBg}
         boxShadow="md"
-        transition="all 0.2s ease"
-        _hover={{ boxShadow: "lg", transform: "translateY(-2px)" }}
       >
-        <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold">
+        <Text fontSize="xl" fontWeight="bold">
           ⭐ {review.rating} / 5
         </Text>
 
-        <Text
-          fontSize={{ base: "md", md: "lg" }}
-          textAlign="center"
-          fontStyle="italic"
-        >
+        <Text fontSize="lg" textAlign="center" fontStyle="italic">
           “{review.comment}”
         </Text>
 
@@ -132,9 +108,6 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
           — {review.user?.name || "Anonieme gast"}
         </Text>
 
-        {/* ============================================== */}
-        {/* = CAROUSEL CONTROLS                           = */}
-        {/* ============================================== */}
         <HStack spacing={4} pt={4}>
           <Button
             size="sm"
@@ -164,13 +137,10 @@ export default function ReviewCarousel({ reviews, onRefresh }) {
         </HStack>
       </VStack>
 
-      {/* ============================================== */}
-      {/* = ADD REVIEW MODAL                            = */}
-      {/* ============================================== */}
       <AddReviewModal
         isOpen={isOpen}
         onClose={onClose}
-        propertyId={review.propertyId}
+        propertyId={propertyId}   // <-- FIXED
         onReviewAdded={onRefresh}
       />
     </>

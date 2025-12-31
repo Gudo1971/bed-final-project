@@ -30,6 +30,7 @@ import CalendarGrid from "../components/calendar/CalendarGrid.jsx";
 import ImageCarousel from "../components/images/ImageCarousel.jsx";
 import ReviewCarousel from "../components/reviews/Reviewcarousel.jsx";
 
+import StarDisplay from "../components/stars/StarDisplay.jsx";
 import { useAuth } from "../components/context/AuthContext.jsx";
 
 // ============================================================
@@ -162,6 +163,14 @@ export default function PropertyDetailPage() {
   const host = property.host;
 
   // ============================================================
+  // = GEMIDDELDE RATING OP BASIS VAN REVIEWS                   =
+  // ============================================================
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : 0;
+
+  // ============================================================
   // = RENDER                                                   =
   // ============================================================
   return (
@@ -171,7 +180,7 @@ export default function PropertyDetailPage() {
       {/* = TERUG NAAR OVERZICHT                                     = */}
       {/* ============================================================ */}
       <Text
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/properties")}
         cursor="pointer"
         textDecoration="underline"
         mb={4}
@@ -182,7 +191,7 @@ export default function PropertyDetailPage() {
       </Text>
 
       {/* ============================================================ */}
-      {/* = TITEL                                                    = */}
+      {/* = TITEL + RATING                                            = */}
       {/* ============================================================ */}
       <Heading
         mb={2}
@@ -195,9 +204,17 @@ export default function PropertyDetailPage() {
       </Heading>
 
       {/* LOCATIE */}
-      <Text mb={6} fontSize="md" color={locationColor}>
+      <Text mb={2} fontSize="md" color={locationColor}>
         📍 {property.location}
       </Text>
+
+      {/* DYNAMISCHE RATING */}
+      <Flex align="center" gap={2} mb={6}>
+        <StarDisplay rating={averageRating} size="26px" />
+        <Text fontSize="md" color="gray.600">
+          {averageRating.toFixed(1)} ({reviews.length})
+        </Text>
+      </Flex>
 
       {/* ============================================================ */}
       {/* = AFBEELDINGEN                                             = */}
@@ -267,7 +284,14 @@ export default function PropertyDetailPage() {
           <Text>🛏 <b>Slaapkamers:</b> {property.bedroomCount}</Text>
           <Text>🛁 <b>Badkamers:</b> {property.bathRoomCount}</Text>
           <Text>👥 <b>Max gasten:</b> {property.maxGuestCount}</Text>
-          <Text>⭐ <b>Rating:</b> {property.rating}</Text>
+
+          {/* Dynamische rating ook hier */}
+          <Flex align="center" gap={2}>
+            <StarDisplay rating={averageRating} size="22px" />
+            <Text fontSize="sm" color="gray.600">
+              {averageRating.toFixed(1)} ({reviews.length})
+            </Text>
+          </Flex>
         </Flex>
       </Box>
 
@@ -309,6 +333,7 @@ export default function PropertyDetailPage() {
       <Box mb={10}>
         <ReviewCarousel
           reviews={reviews}
+          propertyId={id}
           onRefresh={() =>
             getReviewsByPropertyId(id)
               .then(setReviews)

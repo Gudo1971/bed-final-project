@@ -23,17 +23,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 
-// Profielfoto upload component
 import ProfileImageUpload from "../images/upload/ProfielfotoUpload.jsx";
 
 export default function EditPersonalInfoModal({ isOpen, onClose }) {
+  // 🔹 ALLE HOOKS EERST
   const toast = useToast();
   const navigate = useNavigate();
   const { user, updateProfile, logout } = useAuth();
 
-  // ==============================================
-  // = FORM STATE                                 =
-  // ==============================================
   const [form, setForm] = useState({
     name: "",
     phoneNumber: "",
@@ -41,7 +38,6 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
     pictureUrl: "",
   });
 
-  // Prefill wanneer modal opent
   useEffect(() => {
     if (user && isOpen) {
       setForm({
@@ -57,14 +53,12 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ==============================================
-  // = SAVE HANDLER                                =
-  // ==============================================
   const handleSave = async () => {
+    if (!user) return; // extra safety
+
     try {
       const emailChanged = form.email !== user.email;
 
-      // Update profiel via AuthContext
       await updateProfile(form);
 
       toast({
@@ -78,12 +72,10 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
 
       onClose();
 
-      // Als email is gewijzigd → direct uitloggen + redirect
       if (emailChanged) {
         logout();
         navigate("/login");
       }
-
     } catch (err) {
       toast({
         title: "Fout bij opslaan",
@@ -93,6 +85,9 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
       });
     }
   };
+
+  // 🔹 PAS NA ALLE HOOKS: CONDITIONEEL RENDEREN
+  if (!user) return null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -104,14 +99,11 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
 
         <ModalBody>
           <VStack spacing={4}>
-
-            {/* Profielfoto upload */}
             <ProfileImageUpload
               pictureUrl={form.pictureUrl}
               setPictureUrl={(url) => setForm({ ...form, pictureUrl: url })}
             />
 
-            {/* Email (editable) */}
             <FormControl>
               <FormLabel>E‑mail</FormLabel>
               <Input
@@ -122,7 +114,6 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
               />
             </FormControl>
 
-            {/* Naam */}
             <FormControl>
               <FormLabel>Naam</FormLabel>
               <Input
@@ -132,7 +123,6 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
               />
             </FormControl>
 
-            {/* Telefoonnummer */}
             <FormControl>
               <FormLabel>Telefoonnummer</FormLabel>
               <Input
@@ -142,13 +132,11 @@ export default function EditPersonalInfoModal({ isOpen, onClose }) {
               />
             </FormControl>
 
-            {/* Waarschuwing */}
-            {form.email !== user.email && (
+            {user && form.email !== user.email && (
               <Text fontSize="sm" color="orange.500" mt={2}>
                 ⚠️ Als je je e‑mail wijzigt, moet je voortaan inloggen met je nieuwe adres.
               </Text>
             )}
-
           </VStack>
         </ModalBody>
 
