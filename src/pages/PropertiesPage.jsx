@@ -1,7 +1,7 @@
-// ==============================================
+// ===============================================
 // = PROPERTIES PAGE                             =
 // = Nieuwe property aanmaken                    =
-// ==============================================
+// ===============================================
 
 import { Box, Heading, Container, useColorModeValue } from "@chakra-ui/react";
 import PropertyForm from "../components/properties/PropertyForm";
