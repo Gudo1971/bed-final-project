@@ -21,8 +21,8 @@ import CalendarGrid from "../components/calendar/CalendarGrid";
 import BookingModal from "../components/booking/BookingModal";
 import { useAuth } from "../components/context/AuthContext";
 
-// 👉 jouw axios instance
-import api from "../lib/api";
+
+import api from "../lib/api.js";
 
 export default function BookingPage() {
   const { propertyId } = useParams();
