@@ -37,6 +37,7 @@ async function main() {
   const users = loadJson("data/users.json");
   const hosts = loadJson("data/hosts.json");
   const properties = loadJson("data/properties.json");
+  const propertyImages = loadJson("data/propertyImages.json");
   const reviews = loadJson("data/reviews.json");
   const bookings = loadJson("data/bookings.json");
 
@@ -107,6 +108,13 @@ async function main() {
       continue;
     }
 
+    // Zoek alle images die bij deze property horen
+    const imagesForProperty = propertyImages
+      .filter((img) => img.propertyId === property.id)
+      .map((img) => ({
+        url: img.url.replace(/:$/, ""), // trailing ":" fix
+      }));
+
     await prisma.property.create({
       data: {
         id: property.id,
@@ -120,16 +128,15 @@ async function main() {
         rating: property.rating,
         hostEmail: property.hostEmail,
         isActive: true,
+
         images: {
-          create: Array.isArray(property.images)
-            ? property.images.map((url) => ({ url }))
-            : [],
+          create: imagesForProperty,
         },
       },
     });
   }
 
-  // 5. Seed Bookings (FIXED: startDate + endDate)
+  // 5. Seed Bookings
   for (const booking of bookings) {
     await prisma.booking.create({
       data: {
