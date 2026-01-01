@@ -1,30 +1,21 @@
 // ==============================================
 // = API CLIENT (FETCH WRAPPER)                  =
-// = JWT injectie + error handling + JSON parse  =
 // ==============================================
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 export async function apiClient(url, options = {}) {
-  // ==============================================
-  // = TOKEN                                      =
-  // ==============================================
   const token = localStorage.getItem("token");
 
-  // ==============================================
-  // = HEADERS                                    =
-  // ==============================================
   const headers = {
     ...(options.headers || {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  // Alleen JSON header toevoegen als body geen FormData is
   if (!(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
 
-  // ==============================================
-  // = FINAL OPTIONS                              =
-  // ==============================================
   const finalOptions = {
     method: options.method || "GET",
     headers,
@@ -36,13 +27,10 @@ export async function apiClient(url, options = {}) {
         : undefined,
   };
 
-  // ==============================================
-  // = FETCH REQUEST                              =
-  // ==============================================
   let res;
 
   try {
-    res = await fetch(url, finalOptions);
+    res = await fetch(`${BASE_URL}${url}`, finalOptions);
   } catch (err) {
     throw {
       error: "Kan geen verbinding maken met de server",
@@ -50,13 +38,9 @@ export async function apiClient(url, options = {}) {
     };
   }
 
-  // ==============================================
-  // = JSON PARSING (safe)                        =
-  // ==============================================
   let data = null;
 
   try {
-    // 204 No Content → geen JSON
     if (res.status === 204) {
       data = {};
     } else {
@@ -66,9 +50,6 @@ export async function apiClient(url, options = {}) {
     data = { error: "Onbekende fout" };
   }
 
-  // ==============================================
-  // = ERROR HANDLING                             =
-  // ==============================================
   if (!res.ok) {
     if (res.status === 401) {
       localStorage.removeItem("token");
@@ -81,8 +62,5 @@ export async function apiClient(url, options = {}) {
     };
   }
 
-  // ==============================================
-  // = SUCCESS                                    =
-  // ==============================================
   return data;
 }
