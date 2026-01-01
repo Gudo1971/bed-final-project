@@ -84,7 +84,7 @@ export const LandingPage = () => {
   // SCREENSHOTS (VUL LATER IN)
   // ==============================
   const screenshots = [
-    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767126786/vvnrcd7pkvoge59rkkgd.png",
+    
     "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127671/e6aonunake3kgkefgssf.png",
     "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127833/yegsmsxko4z5jwjjpcpg.png",
     "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127880/ldnlracaj0s2jlcluzpo.png",
