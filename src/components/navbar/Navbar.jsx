@@ -1,5 +1,5 @@
 // ============================================================
-// = NAVBAR                                                    =
+// = NAVBAR (RESPONSIVE + MATCHING DROPDOWNS)                 =
 // ============================================================
 
 import {
@@ -15,26 +15,36 @@ import {
   Text,
   Spacer,
   Image,
+  IconButton,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  DrawerHeader,
+  DrawerBody,
+  VStack,
+  Collapse,
+  useDisclosure,
   useColorMode,
   useColorModeValue,
 } from "@chakra-ui/react";
 
-import { MoonIcon, SunIcon } from "@chakra-ui/icons";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { HamburgerIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/context/AuthContext.jsx";
 
-// ============================================================
-// = LOGO                                                      =
-// ============================================================
+import { useState } from "react";
 import logo from "../../assets/StayBnBLogoTransparant.png";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
-  const { pathname, search } = location;
 
   const { colorMode, toggleColorMode } = useColorMode();
+  const mobileMenu = useDisclosure();
+
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [hostOpen, setHostOpen] = useState(false);
 
   const bg = useColorModeValue("white", "gray.800");
   const linkColor = useColorModeValue("gray.800", "gray.100");
@@ -45,38 +55,9 @@ export default function Navbar() {
     fontWeight: isActive ? "700" : "500",
   });
 
-  // ============================================================
-  // = PROFIEL STATUS                                            =
-  // ============================================================
-  const isProfileRoot =
-    pathname === "/profile" && (!search || search === "");
-
-  const isProfileBookings =
-    pathname === "/profile" && search?.includes("tab=bookings");
-
-  const isProfileReviews =
-    pathname === "/profile" && search?.includes("tab=reviews");
-
-  const isProfileAccount =
-    pathname === "/profile" && search?.includes("tab=account");
-
-  const isAnyProfilePage = pathname.startsWith("/profile");
-
-  // ============================================================
-  // = HOST STATUS                                               =
-  // ============================================================
-  const isHostDashboard = pathname === "/host/dashboard";
-  const isHostProperties = pathname === "/host/properties";
-  const isHostBookings = pathname === "/host/bookings";
-  const isHostEarnings = pathname === "/host/earnings";
-
-  const isAnyHostPage = pathname.startsWith("/host");
-
-  // ============================================================
-  // = HELPER                                                    =
-  // ============================================================
   function goTo(path) {
     navigate(path);
+    mobileMenu.onClose();
   }
 
   return (
@@ -92,9 +73,7 @@ export default function Navbar() {
     >
       <HStack spacing={8} align="center" width="100%">
 
-        {/* ============================================================
-            LOGO → LANDING PAGE
-        ============================================================ */}
+        {/* LOGO */}
         <Image
           src={logo}
           alt="StayBnB logo"
@@ -104,12 +83,8 @@ export default function Navbar() {
           _hover={{ opacity: 0.8 }}
         />
 
-        {/* ============================================================
-            NAV LINKS
-        ============================================================ */}
-        <HStack spacing={6}>
-
-          {/* Home */}
+        {/* DESKTOP NAV LINKS */}
+        <HStack spacing={6} display={{ base: "none", md: "flex" }}>
           <Link
             as={NavLink}
             to="/properties"
@@ -121,7 +96,6 @@ export default function Navbar() {
             Home
           </Link>
 
-          {/* Profiel Dropdown */}
           {user && (
             <Menu>
               <MenuButton
@@ -129,54 +103,18 @@ export default function Navbar() {
                 variant="ghost"
                 color={linkColor}
                 _hover={{ color: hoverColor }}
-                fontWeight={isAnyProfilePage ? "700" : "500"}
               >
                 Mijn Profiel
               </MenuButton>
-
               <MenuList zIndex={6000}>
-                <MenuItem
-                  onClick={() => !isProfileRoot && goTo("/profile")}
-                  isDisabled={isProfileRoot}
-                  fontWeight={isProfileRoot ? "700" : "500"}
-                >
-                  Mijn Profiel
-                </MenuItem>
-
-                <MenuItem
-                  onClick={() =>
-                    !isProfileBookings && goTo("/profile?tab=bookings")
-                  }
-                  isDisabled={isProfileBookings}
-                  fontWeight={isProfileBookings ? "700" : "500"}
-                >
-                  Mijn Boekingen
-                </MenuItem>
-
-                <MenuItem
-                  onClick={() =>
-                    !isProfileReviews && goTo("/profile?tab=reviews")
-                  }
-                  isDisabled={isProfileReviews}
-                  fontWeight={isProfileReviews ? "700" : "500"}
-                >
-                  Mijn Reviews
-                </MenuItem>
-
-                <MenuItem
-                  onClick={() =>
-                    !isProfileAccount && goTo("/profile?tab=account")
-                  }
-                  isDisabled={isProfileAccount}
-                  fontWeight={isProfileAccount ? "700" : "500"}
-                >
-                  Mijn Account
-                </MenuItem>
+                <MenuItem onClick={() => goTo("/profile")}>Mijn Profiel</MenuItem>
+                <MenuItem onClick={() => goTo("/profile?tab=bookings")}>Mijn Boekingen</MenuItem>
+                <MenuItem onClick={() => goTo("/profile?tab=reviews")}>Mijn Reviews</MenuItem>
+                <MenuItem onClick={() => goTo("/profile?tab=account")}>Mijn Account</MenuItem>
               </MenuList>
             </Menu>
           )}
 
-          {/* Host Dashboard Dropdown */}
           {user?.isHost && (
             <Menu>
               <MenuButton
@@ -184,84 +122,152 @@ export default function Navbar() {
                 variant="ghost"
                 color={linkColor}
                 _hover={{ color: hoverColor }}
-                fontWeight={isAnyHostPage ? "700" : "500"}
               >
                 Host Dashboard
               </MenuButton>
-
               <MenuList zIndex={6000}>
-                <MenuItem
-                  onClick={() => goTo("/host/dashboard")}
-                  isDisabled={isHostDashboard}
-                  fontWeight={isHostDashboard ? "700" : "500"}
-                >
-                  Host Dashboard
-                </MenuItem>
-
-                <MenuItem
-                  onClick={() => goTo("/host/properties")}
-                  isDisabled={isHostProperties}
-                  fontWeight={isHostProperties ? "700" : "500"}
-                >
-                  Accommodaties
-                </MenuItem>
-
-                <MenuItem
-                  onClick={() => goTo("/host/bookings")}
-                  isDisabled={isHostBookings}
-                  fontWeight={isHostBookings ? "700" : "500"}
-                >
-                  Boekingen
-                </MenuItem>
-
-                <MenuItem
-                  onClick={() => goTo("/host/earnings")}
-                  isDisabled={isHostEarnings}
-                  fontWeight={isHostEarnings ? "700" : "500"}
-                >
-                  Verdiensten
-                </MenuItem>
+                <MenuItem onClick={() => goTo("/host/dashboard")}>Dashboard</MenuItem>
+                <MenuItem onClick={() => goTo("/host/properties")}>Accommodaties</MenuItem>
+                <MenuItem onClick={() => goTo("/host/bookings")}>Boekingen</MenuItem>
+                <MenuItem onClick={() => goTo("/host/earnings")}>Verdiensten</MenuItem>
               </MenuList>
             </Menu>
           )}
-
         </HStack>
 
         <Spacer />
 
-        {/* ============================================================
-            USER INFO + ICON TOGGLE
-        ============================================================ */}
-        {user && (
-          <HStack spacing={4} align="center">
-            <Avatar name={user.name} size="sm" />
-            <Text fontWeight="medium">{user.name}</Text>
+        {/* DESKTOP USER INFO */}
+        <HStack spacing={4} align="center" display={{ base: "none", md: "flex" }}>
+          {user && (
+            <>
+              <Avatar name={user.name} size="sm" />
+              <Text fontWeight="medium">{user.name}</Text>
+              <Button size="sm" variant="outline" onClick={logout}>Logout</Button>
+            </>
+          )}
 
-            <Button size="sm" variant="outline" onClick={logout}>
-              Logout
+          {!user && (
+            <Button size="sm" colorScheme="teal" onClick={() => navigate("/login")}>
+              Login
             </Button>
+          )}
 
-            <Button size="sm" variant="ghost" onClick={toggleColorMode}>
-              {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-            </Button>
-          </HStack>
-        )}
-
-        {/* ============================================================
-            LOGIN BUTTON (when no user)
-        ============================================================ */}
-        {!user && (
-          <Button
-            size="sm"
-            variant="solid"
-            colorScheme="teal"
-            onClick={() => navigate("/login")}
-          >
-            Login
+          <Button size="sm" variant="ghost" onClick={toggleColorMode}>
+            {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
           </Button>
-        )}
+        </HStack>
 
+        {/* MOBILE HAMBURGER BUTTON */}
+        <IconButton
+          display={{ base: "flex", md: "none" }}
+          icon={<HamburgerIcon />}
+          variant="ghost"
+          onClick={mobileMenu.onOpen}
+        />
       </HStack>
+
+      {/* MOBILE DRAWER MENU */}
+      <Drawer placement="right" onClose={mobileMenu.onClose} isOpen={mobileMenu.isOpen}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>Menu</DrawerHeader>
+
+          <DrawerBody>
+            <VStack align="stretch" spacing={3}>
+
+              {/* HOME */}
+              <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/properties")}>
+                Home
+              </Button>
+
+              {/* PROFIEL DROPDOWN */}
+              {user && (
+                <Box>
+                  <Button
+                    variant="ghost"
+                    justifyContent="space-between"
+                    width="100%"
+                    onClick={() => setProfileOpen((prev) => !prev)}
+                  >
+                    Mijn Profiel
+                  </Button>
+
+                  <Collapse in={profileOpen} animateOpacity>
+                    <VStack align="stretch" pl={4} mt={2} spacing={2}>
+                      <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/profile")}>
+                        Mijn Profiel
+                      </Button>
+                      <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/profile?tab=bookings")}>
+                        Mijn Boekingen
+                      </Button>
+                      <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/profile?tab=reviews")}>
+                        Mijn Reviews
+                      </Button>
+                      <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/profile?tab=account")}>
+                        Mijn Account
+                      </Button>
+                    </VStack>
+                  </Collapse>
+                </Box>
+              )}
+
+              {/* HOST DROPDOWN */}
+              {user?.isHost && (
+                <Box>
+                  <Button
+                    variant="ghost"
+                    justifyContent="space-between"
+                    width="100%"
+                    onClick={() => setHostOpen((prev) => !prev)}
+                  >
+                    Host Dashboard
+                  </Button>
+
+                  <Collapse in={hostOpen} animateOpacity>
+                    <VStack align="stretch" pl={4} mt={2} spacing={2}>
+                      <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/host/dashboard")}>
+                        Dashboard
+                      </Button>
+                      <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/host/properties")}>
+                        Accommodaties
+                      </Button>
+                      <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/host/bookings")}>
+                        Boekingen
+                      </Button>
+                      <Button variant="ghost" justifyContent="flex-start" onClick={() => goTo("/host/earnings")}>
+                        Verdiensten
+                      </Button>
+                    </VStack>
+                  </Collapse>
+                </Box>
+              )}
+
+              {/* DARK MODE */}
+              <Button
+                variant="ghost"
+                justifyContent="flex-start"
+                leftIcon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+                onClick={toggleColorMode}
+              >
+                {colorMode === "light" ? "Dark Mode" : "Light Mode"}
+              </Button>
+
+              {/* AUTH */}
+              {user ? (
+                <Button colorScheme="red" justifyContent="flex-start" onClick={logout} mt={2}>
+                  Logout
+                </Button>
+              ) : (
+                <Button colorScheme="teal" justifyContent="flex-start" onClick={() => goTo("/login")} mt={2}>
+                  Login
+                </Button>
+              )}
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     </Box>
   );
 }

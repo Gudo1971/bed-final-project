@@ -28,7 +28,7 @@ import EditPropertyModal from "../../components/properties/EditPropertyModal.jsx
 
 // 👉 axios‑based API calls
 import { getHostProperties, toggleProperty } from "../../api/host.js";
-import api from "../../lib/api";
+import api from "../../api/axios.js";
 
 export default function HostProperties() {
   const toast = useToast();

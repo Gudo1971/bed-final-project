@@ -1,6 +1,5 @@
 // ============================================================
-// = PROPERTY DETAIL PAGE                                      =
-// = Detailweergave van één property                           =
+// = PROPERTY DETAIL PAGE (MET AIRBNB-STYLE SKELETON)          =
 // ============================================================
 
 import {
@@ -9,11 +8,13 @@ import {
   Text,
   VStack,
   Button,
-  Spinner,
   Center,
   Flex,
   Avatar,
   IconButton,
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
   useColorModeValue,
 } from "@chakra-ui/react";
 
@@ -150,21 +151,56 @@ export default function PropertyDetailPage() {
   };
 
   // ============================================================
-  // = LOADING STATE                                            =
+  // = LOADING STATE (SKELETON)                                 =
   // ============================================================
-  if (!property) {
+  const isLoading = !property;
+
+  if (isLoading) {
     return (
-      <Center py={20}>
-        <Spinner size="xl" thickness="4px" speed="0.65s" />
-      </Center>
+      <Box px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
+        <VStack align="stretch" spacing={6}>
+
+          {/* HERO IMAGE */}
+          <Skeleton height="300px" borderRadius="lg" />
+
+          {/* TITLE */}
+          <Skeleton height="28px" width="60%" />
+          <Skeleton height="20px" width="40%" />
+
+          {/* RATING */}
+          <Skeleton height="20px" width="30%" />
+
+          {/* CALENDAR */}
+          <Skeleton height="40px" width="50%" />
+          <Skeleton height="300px" borderRadius="lg" />
+
+          {/* DETAILS */}
+          <Skeleton height="24px" width="30%" />
+          <SkeletonText noOfLines={4} spacing="3" />
+
+          {/* HOST */}
+          <Skeleton height="24px" width="20%" />
+          <Flex align="center" gap={4}>
+            <SkeletonCircle size="12" />
+            <SkeletonText noOfLines={2} spacing="3" width="40%" />
+          </Flex>
+
+          {/* REVIEWS */}
+          <Skeleton height="200px" borderRadius="lg" />
+
+          {/* BOOK BUTTON */}
+          <Skeleton height="50px" width="200px" borderRadius="md" />
+
+        </VStack>
+      </Box>
     );
   }
 
+  // ============================================================
+  // = DATA NA LOADING                                          =
+  // ============================================================
   const host = property.host;
 
-  // ============================================================
-  // = GEMIDDELDE RATING OP BASIS VAN REVIEWS                   =
-  // ============================================================
   const averageRating =
     reviews.length > 0
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
@@ -176,9 +212,7 @@ export default function PropertyDetailPage() {
   return (
     <Box px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
 
-      {/* ============================================================ */}
-      {/* = TERUG NAAR OVERZICHT                                     = */}
-      {/* ============================================================ */}
+      {/* TERUG NAAR OVERZICHT */}
       <Text
         onClick={() => navigate("/properties")}
         cursor="pointer"
@@ -190,9 +224,7 @@ export default function PropertyDetailPage() {
         ← Terug naar overzicht
       </Text>
 
-      {/* ============================================================ */}
-      {/* = TITEL + RATING                                            = */}
-      {/* ============================================================ */}
+      {/* TITEL */}
       <Heading
         mb={2}
         fontSize="2xl"
@@ -208,7 +240,7 @@ export default function PropertyDetailPage() {
         📍 {property.location}
       </Text>
 
-      {/* DYNAMISCHE RATING */}
+      {/* RATING */}
       <Flex align="center" gap={2} mb={6}>
         <StarDisplay rating={averageRating} size="26px" />
         <Text fontSize="md" color="gray.600">
@@ -216,24 +248,19 @@ export default function PropertyDetailPage() {
         </Text>
       </Flex>
 
-      {/* ============================================================ */}
-      {/* = AFBEELDINGEN                                             = */}
-      {/* ============================================================ */}
+      {/* AFBEELDINGEN */}
       {property.images?.length > 0 && (
         <Box mb={8} width="100%">
           <ImageCarousel images={property.images} />
         </Box>
       )}
 
-      {/* ============================================================ */}
-      {/* = KALENDER                                                 = */}
-      {/* ============================================================ */}
+      {/* KALENDER */}
       <Box mb={10}>
         <Heading size="md" mb={3} color={sectionTitleColor}>
           Beschikbaarheid
         </Heading>
 
-        {/* MONTH NAVIGATION */}
         <Flex
           align="center"
           justify="space-between"
@@ -271,9 +298,7 @@ export default function PropertyDetailPage() {
         />
       </Box>
 
-      {/* ============================================================ */}
-      {/* = DETAILS                                                  = */}
-      {/* ============================================================ */}
+      {/* DETAILS */}
       <Box mb={8}>
         <Heading size="md" mb={3} color={sectionTitleColor}>
           Details
@@ -285,7 +310,6 @@ export default function PropertyDetailPage() {
           <Text>🛁 <b>Badkamers:</b> {property.bathRoomCount}</Text>
           <Text>👥 <b>Max gasten:</b> {property.maxGuestCount}</Text>
 
-          {/* Dynamische rating ook hier */}
           <Flex align="center" gap={2}>
             <StarDisplay rating={averageRating} size="22px" />
             <Text fontSize="sm" color="gray.600">
@@ -295,9 +319,7 @@ export default function PropertyDetailPage() {
         </Flex>
       </Box>
 
-      {/* ============================================================ */}
-      {/* = HOST                                                     = */}
-      {/* ============================================================ */}
+      {/* HOST */}
       {host && (
         <Box mb={10}>
           <Heading size="md" mb={4} color={sectionTitleColor}>
@@ -327,9 +349,7 @@ export default function PropertyDetailPage() {
         </Box>
       )}
 
-      {/* ============================================================ */}
-      {/* = REVIEWS                                                  = */}
-      {/* ============================================================ */}
+      {/* REVIEWS */}
       <Box mb={10}>
         <ReviewCarousel
           reviews={reviews}
@@ -344,9 +364,7 @@ export default function PropertyDetailPage() {
         />
       </Box>
 
-      {/* ============================================================ */}
-      {/* = BOEK NU                                                  = */}
-      {/* ============================================================ */}
+      {/* BOEK NU */}
       <VStack align="start" spacing={6} w="100%" mt={10}>
         <Button
           as={Link}

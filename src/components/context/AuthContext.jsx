@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = FETCH USER (/auth/me)                  =
+  // = FETCH USER (/auth/me)                      =
   // ==============================================
   const fetchUser = async () => {
     if (!token) return;
@@ -46,7 +46,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(res.data));
     } catch (err) {
       console.error("❌ Fout bij ophalen /auth/me:", err);
-      logout();
+
+      clearToken();
+      setUser(null);
+      localStorage.removeItem("user");
     }
   };
 
@@ -55,41 +58,24 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   // ==============================================
-  // = LOGIN (/auth/login)                    =
-  // ==============================================
-  const login = async (email, password) => {
-    try {
-      const res = await api.post("/auth/login", { email, password });
-
-      saveToken(res.data.token);
-      await fetchUser();
-    } catch (err) {
-      const backendError =
-        err.response?.data?.error || "Login mislukt. Probeer opnieuw.";
-      throw new Error(backendError);
-    }
-  };
-
-  // ==============================================
   // = LOGOUT (EDGE-PROOF)                        =
   // ==============================================
   const logout = async () => {
     try {
-      // 1. Token + user verwijderen
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       sessionStorage.clear();
       setUser(null);
       setToken(null);
 
-      // 2. Cookies verwijderen (Edge houdt ze soms vast)
+      // Cookies verwijderen
       document.cookie.split(";").forEach((c) => {
         document.cookie = c
           .replace(/^ +/, "")
           .replace(/=.*/, "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/");
       });
 
-      // 3. Service workers uitschakelen (Edge cached auth state)
+      // Service workers verwijderen
       if ("serviceWorker" in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
         for (const reg of regs) {
@@ -97,7 +83,7 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
-      // 4. Hard cache flush (Edge)
+      // Cache leegmaken
       if ("caches" in window) {
         const cacheNames = await caches.keys();
         for (const name of cacheNames) {
@@ -110,15 +96,24 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ==============================================
-  // = REGISTER (/auth/register)              =
+  // = LOGIN (/auth/login)                        =
   // ==============================================
-  const registerUser = async (
-    username,
-    email,
-    password,
-    name,
-    phoneNumber
-  ) => {
+  const login = async (email, password) => {
+    try {
+      const res = await api.post("/auth/login", { email, password });
+
+      saveToken(res.data.token);
+      await fetchUser();
+    } catch (err) {
+      // ⭐ BELANGRIJK: laat de originele Axios error intact
+      throw err;
+    }
+  };
+
+  // ==============================================
+  // = REGISTER (/auth/register)                  =
+  // ==============================================
+  const registerUser = async (username, email, password, name, phoneNumber) => {
     try {
       await api.post("/auth/register", {
         username,
@@ -130,14 +125,12 @@ export const AuthProvider = ({ children }) => {
 
       return true;
     } catch (err) {
-      const backendError =
-        err.response?.data?.error || "Registratie mislukt.";
-      throw new Error(backendError);
+      throw err;
     }
   };
 
   // ==============================================
-  // = UPDATE PROFILE (PUT /users/:id)        =
+  // = UPDATE PROFILE (PUT /users/:id)            =
   // ==============================================
   const updateProfile = async (form) => {
     try {
@@ -146,25 +139,21 @@ export const AuthProvider = ({ children }) => {
       const updatedUser = res.data;
       const emailChanged = form.email && form.email !== user.email;
 
-      // Update local user
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      // Als email is gewijzigd → direct uitloggen
       if (emailChanged) {
-        logout();
+        logout(); // ← werkt nu correct
       }
 
       return updatedUser;
     } catch (err) {
-      const backendError =
-        err.response?.data?.error || "Kon profiel niet bijwerken.";
-      throw new Error(backendError);
+      throw err;
     }
   };
 
   // ==============================================
-  // = BECOME HOST (/account/become-host)     =
+  // = BECOME HOST (/account/become-host)         =
   // ==============================================
   const becomeHost = async () => {
     try {
@@ -173,14 +162,12 @@ export const AuthProvider = ({ children }) => {
       saveToken(res.data.token);
       await fetchUser();
     } catch (err) {
-      const backendError =
-        err.response?.data?.error || "Kon geen host worden.";
-      throw new Error(backendError);
+      throw err;
     }
   };
 
   // ==============================================
-  // = STOP HOST (/account/stop-host)         =
+  // = STOP HOST (/account/stop-host)             =
   // ==============================================
   const stopHost = async () => {
     try {
@@ -189,9 +176,7 @@ export const AuthProvider = ({ children }) => {
       saveToken(res.data.token);
       await fetchUser();
     } catch (err) {
-      const backendError =
-        err.response?.data?.error || "Kon host account niet stoppen.";
-      throw new Error(backendError);
+      throw err;
     }
   };
 

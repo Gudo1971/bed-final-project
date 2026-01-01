@@ -22,7 +22,7 @@ import BookingModal from "../components/booking/BookingModal";
 import { useAuth } from "../components/context/AuthContext";
 
 
-import api from "../lib/api.js";
+import api from "../api/axios";
 
 export default function BookingPage() {
   const { propertyId } = useParams();

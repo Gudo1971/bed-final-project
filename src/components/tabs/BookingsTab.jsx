@@ -7,7 +7,7 @@ import {
   Box,
   Heading,
   Text,
-  Spinner,
+  Skeleton,
   Stack,
   Button,
   useToast,
@@ -21,7 +21,7 @@ import {
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
-import api from "../../lib/api";
+import api from "../../api/axios";
 import BookingEditModal from "../tabs/BookingEditModal";
 
 // ============================================================
@@ -185,10 +185,45 @@ export default function BookingsTab() {
   }, []);
 
   // ============================================================
-  // = LOADING STATE                                            =
+  // = LOADING STATE (SKELETON)                                 =
   // ============================================================
-  if (loading) return <Spinner size="xl" />;
+  if (loading) {
+    return (
+      <Stack spacing={6} mt={4}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Box
+            key={i}
+            p={4}
+            borderWidth="1px"
+            borderRadius="lg"
+            boxShadow="sm"
+          >
+            <Stack direction={{ base: "column", md: "row" }} spacing={4}>
+              <Skeleton
+                w={{ base: "100%", md: "150px" }}
+                h={{ base: "180px", md: "120px" }}
+                borderRadius="md"
+              />
 
+              <Stack spacing={2} flex="1">
+                <Skeleton height="20px" width="70%" />
+                <Skeleton height="16px" width="50%" />
+                <Skeleton height="16px" width="40%" />
+                <Skeleton height="16px" width="60%" />
+                <Skeleton height="20px" width="30%" mt={2} />
+
+                <Stack direction="row" mt={3} gap={2}>
+                  <Skeleton height="32px" width="80px" borderRadius="md" />
+                  <Skeleton height="32px" width="80px" borderRadius="md" />
+                  <Skeleton height="32px" width="80px" borderRadius="md" />
+                </Stack>
+              </Stack>
+            </Stack>
+          </Box>
+        ))}
+      </Stack>
+    );
+  }
   // ============================================================
   // = RENDER                                                   =
   // ============================================================
@@ -215,7 +250,7 @@ export default function BookingsTab() {
         <Text>Je hebt nog geen boekingen.</Text>
       )}
 
-      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mt={4}>
+      <Stack spacing={6} mt={4}>
         {bookings.map((booking) => {
           const status = booking.bookingStatus?.toLowerCase();
 
@@ -331,7 +366,7 @@ export default function BookingsTab() {
             </Box>
           );
         })}
-      </SimpleGrid>
+      </Stack>
 
       {/* DELETE CONFIRM MODAL */}
       <AlertDialog
@@ -358,7 +393,7 @@ export default function BookingsTab() {
                 Ja, verwijderen
               </Button>
             </AlertDialogFooter>
-          </AlertDialogContent>
+          </AlertDialogContent> 
         </AlertDialogOverlay>
       </AlertDialog>
 

@@ -1,8 +1,8 @@
-// ==============================================
-// = IMAGE CAROUSEL (compact container + taller) =
-// ==============================================
+// ============================================================
+// = IMAGE CAROUSEL (optimistic skeleton + instant render)    =
+// ============================================================
 
-import { Box, IconButton, Flex, Text, Image } from "@chakra-ui/react";
+import { Box, IconButton, Flex, Text, Image, Skeleton } from "@chakra-ui/react";
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import FullscreenGallery from "./FullscreenGallery";
@@ -18,6 +18,14 @@ export default function ImageCarousel({ images }) {
   const [fade, setFade] = useState(false);
   const [paused, setPaused] = useState(false);
 
+  // NEW: optimistic loading — skeleton only shown for 200ms
+  const [showCarousel, setShowCarousel] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowCarousel(true), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
   const containerRef = useRef(null);
   const thumbRefs = useRef([]);
   thumbRefs.current = [];
@@ -28,7 +36,28 @@ export default function ImageCarousel({ images }) {
     }
   };
 
-  if (!safeImages.length) {
+  // ============================================================
+  // = SKELETON STATE (optimistic)                              =
+  // ============================================================
+  if (!showCarousel) {
+    return (
+      <Box w="100%" maxW="600px" mx="auto">
+        <Skeleton height="300px" borderRadius="10px" mb={3} />
+
+        <Flex gap={2}>
+          <Skeleton w="55px" h="55px" borderRadius="6px" />
+          <Skeleton w="55px" h="55px" borderRadius="6px" />
+          <Skeleton w="55px" h="55px" borderRadius="6px" />
+          <Skeleton w="55px" h="55px" borderRadius="6px" />
+        </Flex>
+      </Box>
+    );
+  }
+
+  // ============================================================
+  // = GEEN AFBEELDINGEN                                        =
+  // ============================================================
+  if (safeImages.length === 0) {
     return (
       <Box
         w="100%"
@@ -48,6 +77,9 @@ export default function ImageCarousel({ images }) {
     );
   }
 
+  // ============================================================
+  // = CAROUSEL LOGIC                                            =
+  // ============================================================
   const next = () => {
     setFade(true);
     setTimeout(() => {
@@ -86,11 +118,12 @@ export default function ImageCarousel({ images }) {
 
   const currentUrl = getImageUrl(safeImages[index]);
 
+  // ============================================================
+  // = RENDER CAROUSEL                                           =
+  // ============================================================
   return (
     <Box w="100%" maxW="600px" mx="auto" position="relative">
-      {/* ============================================== */}
-      {/* = HOOFDAFBEELDING (taller: 300px)             = */}
-      {/* ============================================== */}
+      {/* HOOFDAFBEELDING */}
       <Box
         w="100%"
         h="300px"
@@ -149,9 +182,7 @@ export default function ImageCarousel({ images }) {
         )}
       </Box>
 
-      {/* ============================================== */}
-      {/* = THUMBNAILS                                  = */}
-      {/* ============================================== */}
+      {/* THUMBNAILS */}
       {safeImages.length > 1 && (
         <Flex
           ref={containerRef}
@@ -190,9 +221,7 @@ export default function ImageCarousel({ images }) {
         </Flex>
       )}
 
-      {/* ============================================== */}
-      {/* = FULLSCREEN GALLERY                          = */}
-      {/* ============================================== */}
+      {/* FULLSCREEN */}
       {fullscreen && (
         <FullscreenGallery
           images={safeImages.map((img) =>

@@ -3,7 +3,7 @@
 // = Ophalen van één property via ID             =
 // ==============================================
 
-import api from "../lib/api"; // <-- jouw axios instance
+import api from "../api/axios"; // <-- jouw axios instance
 
 // ==============================================
 // = GET PROPERTY BY ID                          =

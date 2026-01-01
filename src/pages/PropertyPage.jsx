@@ -1,16 +1,16 @@
 // ============================================================
-// = PROPERTY PAGE                                             =
-// = Overzicht van alle beschikbare properties                =
+// = PROPERTY PAGE (MET AIRBNB-STYLE SKELETON GRID)           =
 // ============================================================
 
 import { useEffect, useState } from "react";
 import {
   Box,
   Heading,
-  Spinner,
   Text,
   SimpleGrid,
   Center,
+  Skeleton,
+  SkeletonText,
   useColorModeValue,
 } from "@chakra-ui/react";
 
@@ -43,14 +43,40 @@ export default function PropertyPage() {
   }, []);
 
   // ==============================================
-  // = LOADING STATE                              =
+  // = LOADING STATE (SKELETON GRID)              =
   // ==============================================
-  if (loading)
+  if (loading) {
     return (
-      <Center py={20}>
-        <Spinner size="xl" thickness="4px" speed="0.65s" />
-      </Center>
+      <Box px={{ base: 4, md: 6 }} py={{ base: 6, md: 10 }}>
+        <Heading mb={8} color={textColor}>
+          Properties
+        </Heading>
+
+        <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={6}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Box
+              key={i}
+              borderRadius="lg"
+              overflow="hidden"
+              boxShadow="md"
+              bg={useColorModeValue("white", "gray.700")}
+              p={0}
+            >
+              {/* IMAGE SKELETON */}
+              <Skeleton height="180px" width="100%" />
+
+              {/* TEXT SKELETON */}
+              <Box p={4}>
+                <Skeleton height="20px" width="70%" mb={3} />
+                <Skeleton height="16px" width="50%" mb={2} />
+                <SkeletonText noOfLines={2} spacing="3" />
+              </Box>
+            </Box>
+          ))}
+        </SimpleGrid>
+      </Box>
     );
+  }
 
   // ==============================================
   // = ERROR STATE                                =
@@ -73,23 +99,19 @@ export default function PropertyPage() {
         Properties
       </Heading>
 
-      {/* ============================================== */}
-      {/* = EMPTY STATE                                 = */}
-      {/* ============================================== */}
+      {/* EMPTY STATE */}
       {properties.length === 0 && (
         <Text fontSize="lg" color={textColor}>
           No properties found.
         </Text>
       )}
 
-      {/* ============================================== */}
-      {/* = PROPERTY GRID                               = */}
-      {/* ============================================== */}
+      {/* PROPERTY GRID */}
       <SimpleGrid
         columns={{ base: 1, sm: 2, md: 3 }}
         spacing={6}
         mt={properties.length === 0 ? 0 : 4}
-        alignItems="start"     // ⭐ FIX: voorkomt oprekken van kaarten
+        alignItems="start"
       >
         {properties.map((property) => (
           <PropertyCard key={property.id} property={property} />

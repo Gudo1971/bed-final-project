@@ -1,6 +1,5 @@
 // ============================================================
 // = LOGIN PAGE                                                =
-// = Inloggen bij StayBnB                                      =
 // ============================================================
 
 import { useState } from "react";
@@ -21,9 +20,7 @@ import {
 
 import { useAuth } from "../../components/context/AuthContext.jsx";
 import { useNavigate, Link } from "react-router-dom";
-
-// 👉 JOUW AXIOS INSTANCE
-import api from "../../lib/api";
+import api from "../../api/axios.js";
 
 // ============================================================
 // = API CALL: CHECK EMAIL BESTAAT?                           =
@@ -47,9 +44,6 @@ export default function LoginPage() {
   const [errorField, setErrorField] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // ============================================================
-  // = EMAIL SYNTAX VALIDATIE                                   =
-  // ============================================================
   function validateEmailFormat(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
@@ -61,31 +55,29 @@ export default function LoginPage() {
     _placeholder: { color: useColorModeValue("gray.500", "gray.400") },
   };
 
-  // ============================================================
-  // = SUBMIT HANDLER                                           =
-  // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorField("");
     setErrorMessage("");
 
-    // 1. Syntactische check
     if (!validateEmailFormat(email)) {
       setErrorField("email");
       setErrorMessage("Voer een geldig e-mailadres in");
       return;
     }
 
-    // 2. Backend check
     try {
       await checkEmailExists(email);
     } catch (err) {
       setErrorField("email");
-      setErrorMessage(err.error || "We hebben geen account gevonden met dit email adres");
+      setErrorMessage(
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "We hebben geen account gevonden met dit email adres"
+      );
       return;
     }
 
-    // 3. Inloggen
     try {
       await login(email, password);
 
@@ -97,27 +89,34 @@ export default function LoginPage() {
 
       navigate("/");
     } catch (err) {
-      const backendError = err.error || err.message || "";
+     
+  console.log("RAW ERROR:", err); // ← voeg deze toe
+  console.log("ERR.MESSAGE:", err.error); // ← en deze
+  console.log("ERR RESPONSE:", err.response?.data); // ← en deze
+
+
+
+      const backendError = err.error || "Inloggen mislukt";
       const msg = backendError.toLowerCase();
 
-      if (msg.includes("email")) {
-        setErrorField("email");
-        setErrorMessage(backendError);
-      } 
-      else if (msg.includes("wachtwoord")) {
+      if (
+        msg.includes("wachtwoord") ||
+        msg.includes("password") ||
+        msg.includes("incorrect") ||
+        msg.includes("onjuist")
+      ) {
         setErrorField("password");
         setErrorMessage(backendError);
-      } 
-      else {
+      } else if (msg.includes("email")) {
+        setErrorField("email");
+        setErrorMessage(backendError);
+      } else {
         setErrorField("form");
         setErrorMessage(backendError || "Inloggen mislukt");
       }
     }
   };
 
-  // ============================================================
-  // = RENDER                                                   =
-  // ============================================================
   return (
     <Box
       maxW="420px"
@@ -140,8 +139,6 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">
-
-          {/* EMAIL */}
           <FormControl isRequired isInvalid={errorField === "email"}>
             <FormLabel>Email</FormLabel>
             <Input
@@ -156,7 +153,6 @@ export default function LoginPage() {
             )}
           </FormControl>
 
-          {/* PASSWORD */}
           <FormControl isRequired isInvalid={errorField === "password"}>
             <FormLabel>Wachtwoord</FormLabel>
             <Input
@@ -179,7 +175,11 @@ export default function LoginPage() {
                   }
                 } catch (err) {
                   setErrorField("email");
-                  setErrorMessage(err.error || "We hebben geen account gevonden met dit email adres");
+                  setErrorMessage(
+                    err.response?.data?.error ||
+                    err.response?.data?.message ||
+                    "We hebben geen account gevonden met dit email adres"
+                  );
                 }
               }}
               {...inputStyle}
@@ -189,14 +189,12 @@ export default function LoginPage() {
             )}
           </FormControl>
 
-          {/* ALGEMENE FOUT */}
           {errorField === "form" && (
             <Text color="red.400" fontSize="sm" textAlign="center">
               {errorMessage}
             </Text>
           )}
 
-          {/* KNOPPEN */}
           <Button colorScheme="teal" type="submit" width="100%" size="lg">
             Inloggen
           </Button>

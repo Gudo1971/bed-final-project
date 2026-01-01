@@ -26,7 +26,7 @@ import { useState } from "react";
 import ImageUpload from "../images/upload/ImageUpload.jsx";
 
 // 👉 JOUW AXIOS INSTANCE
-import api from "../../lib/api";
+import api from "../../api/axios.js";
 
 export default function PropertyForm({ isOpen, onClose, onSuccess }) {
   const toast = useToast();

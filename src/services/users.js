@@ -3,7 +3,7 @@
 // = CRUD acties voor gebruikers                 =
 // ==============================================
 
-import api from "../lib/api"; // <-- jouw axios instance
+import api from "../api/axios"; // <-- jouw axios instance
 
 // ==============================================
 // = GET ALL USERS                               =

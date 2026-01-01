@@ -95,7 +95,11 @@ export default function CalendarGrid({
       {/* ============================================== */}
       {/* = DAYS GRID                                   = */}
       {/* ============================================== */}
-      <Grid templateColumns="repeat(7, 1fr)" gap={0.5}>
+      <Grid
+        key={`${checkIn}-${checkOut}-${days.length}`}   // ⭐ FIX: force re-render
+        templateColumns="repeat(7, 1fr)"
+        gap={0.5}
+      >
         {days.map((date) => {
           const dateStr = formatDate(date);
 
