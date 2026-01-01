@@ -23,6 +23,13 @@ function loadJson(relativePath) {
   return parsed;
 }
 
+// Helper: detect if password is already hashed
+function resolvePassword(password) {
+  return password.startsWith("$2b$")
+    ? password
+    : bcrypt.hash(password, 10);
+}
+
 async function main() {
   console.log("🌱 Seeding database...");
 
@@ -47,7 +54,7 @@ async function main() {
       data: {
         id: user.id,
         username: user.username,
-        password: await bcrypt.hash(user.password, 10),
+        password: await resolvePassword(user.password),
         name: user.name,
         email: user.email,
         phoneNumber: user.phoneNumber,
@@ -59,19 +66,17 @@ async function main() {
 
   // 3. Seed Hosts — ensure every host has a matching user
   for (const host of hosts) {
-    // 3A — check if user exists
     let user = await prisma.user.findUnique({
       where: { email: host.email },
     });
 
-    // 3B — if no user exists → create one
     if (!user) {
       user = await prisma.user.create({
         data: {
           email: host.email,
           username: host.username,
           name: host.name,
-          password: await bcrypt.hash(host.password, 10),
+          password: await resolvePassword(host.password),
           phoneNumber: host.phoneNumber,
           pictureUrl: host.pictureUrl,
           aboutMe: host.aboutMe,
@@ -79,12 +84,11 @@ async function main() {
       });
     }
 
-    // 3C — create host record
     await prisma.host.create({
       data: {
         id: host.id,
         username: host.username,
-        password: await bcrypt.hash(host.password, 10),
+        password: await resolvePassword(host.password),
         name: host.name,
         email: host.email,
         phoneNumber: host.phoneNumber,
@@ -96,11 +100,10 @@ async function main() {
 
   // 4. Seed Properties + PropertyImages
   for (const property of properties) {
-    // Find host by old hostId
-    const host = hosts.find((h) => h.id === property.hostId);
+    const host = hosts.find((h) => h.email === property.hostEmail);
 
     if (!host) {
-      console.warn(`⚠️ Property ${property.id} has no matching hostId`);
+      console.warn(`⚠️ Property ${property.id} has no matching hostEmail`);
       continue;
     }
 
@@ -115,7 +118,7 @@ async function main() {
         bathRoomCount: property.bathRoomCount,
         maxGuestCount: property.maxGuestCount,
         rating: property.rating,
-        hostEmail: host.email, // ⭐ NEW RELATION
+        hostEmail: property.hostEmail,
         isActive: true,
         images: {
           create: Array.isArray(property.images)
@@ -126,18 +129,18 @@ async function main() {
     });
   }
 
-  // 5. Seed Bookings
+  // 5. Seed Bookings (FIXED: startDate + endDate)
   for (const booking of bookings) {
     await prisma.booking.create({
       data: {
         id: booking.id,
         userId: booking.userId,
         propertyId: booking.propertyId,
-        startDate: new Date(booking.checkinDate),
-        endDate: new Date(booking.checkoutDate),
+        startDate: new Date(booking.startDate),
+        endDate: new Date(booking.endDate),
         numberOfGuests: booking.numberOfGuests,
         totalPrice: booking.totalPrice,
-        bookingStatus: booking.bookingStatus,
+        bookingStatus: booking.bookingStatus.toLowerCase(),
       },
     });
   }
