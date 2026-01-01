@@ -112,7 +112,7 @@ export async function stopHost(req, res) {
 }
 
 /* ===========================================================
-   CHECK EMAIL BESTAAT?
+   CHECK EMAIL BESTAAT?  (GEFIXT)
 =========================================================== */
 export async function checkEmailExists(req, res) {
   try {
@@ -127,13 +127,9 @@ export async function checkEmailExists(req, res) {
       select: { id: true },
     });
 
-    if (!user) {
-      return res.status(404).json({
-        error: "We hebben geen account gevonden met dit email adres",
-      });
-    }
+    // ALTIJD 200 TERUG — frontend verwacht exists: true/false
+    return res.status(200).json({ exists: Boolean(user) });
 
-    return res.status(200).json({ exists: true });
   } catch (err) {
     console.error("❌ Error in checkEmailExists:", err);
     return res.status(500).json({
