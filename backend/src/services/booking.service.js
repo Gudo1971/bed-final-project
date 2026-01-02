@@ -3,9 +3,13 @@ import prisma from "../lib/prisma.js";
 export const createBooking = async (data) => {
   return await prisma.booking.create({
     data: {
-      ...data,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
+      userId: data.userId,
+      propertyId: data.propertyId,
+      startDate: new Date(data.checkinDate),
+      endDate: new Date(data.checkoutDate),
+      numberOfGuests: Number(data.numberOfGuests),
+      totalPrice: Number(data.totalPrice),
+      bookingStatus: data.bookingStatus || "CONFIRMED",
     },
     include: {
       user: true,
@@ -25,7 +29,7 @@ export const getAllBookings = async () => {
 
 export const getBookingById = async (id) => {
   return await prisma.booking.findUnique({
-    where: { id }, // ❗ geen Number()
+    where: { id },
     include: {
       user: true,
       property: true,
@@ -35,7 +39,7 @@ export const getBookingById = async (id) => {
 
 export const getBookingsByUserId = async (userId) => {
   return await prisma.booking.findMany({
-    where: { userId }, // ❗ geen Number()
+    where: { userId },
     include: {
       user: true,
       property: true,
@@ -45,7 +49,7 @@ export const getBookingsByUserId = async (userId) => {
 
 export const getBookingsByPropertyId = async (propertyId) => {
   return await prisma.booking.findMany({
-    where: { propertyId }, // ❗ geen Number()
+    where: { propertyId },
     include: {
       user: true,
       property: true,
@@ -55,8 +59,15 @@ export const getBookingsByPropertyId = async (propertyId) => {
 
 export const updateBooking = async (id, data) => {
   return await prisma.booking.update({
-    where: { id }, // ❗ geen Number()
-    data,
+    where: { id },
+    data: {
+      startDate: data.checkinDate ? new Date(data.checkinDate) : undefined,
+      endDate: data.checkoutDate ? new Date(data.checkoutDate) : undefined,
+      numberOfGuests: data.numberOfGuests !== undefined ? Number(data.numberOfGuests) : undefined,
+      totalPrice: data.totalPrice !== undefined ? Number(data.totalPrice) : undefined,
+      bookingStatus: data.bookingStatus !== undefined ? data.bookingStatus : undefined,
+      propertyId: data.propertyId !== undefined ? data.propertyId : undefined,
+    },
     include: {
       user: true,
       property: true,
@@ -66,6 +77,6 @@ export const updateBooking = async (id, data) => {
 
 export const deleteBooking = async (id) => {
   return await prisma.booking.delete({
-    where: { id }, // ❗ geen Number()
+    where: { id },
   });
 };
