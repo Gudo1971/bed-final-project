@@ -1,6 +1,7 @@
 // ============================================================
 // = APP ROUTER                                                =
 // ============================================================
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 
 // Layouts
@@ -30,6 +31,14 @@ import HostEarningsPage from "./pages/host/HostEarningsPage.jsx";
 import PropertyForm from "./components/properties/PropertyForm.jsx";
 
 export default function App() {
+
+  // ============================================================
+  // = GLOBAL BACKEND WARM-UP                                   =
+  // ============================================================
+  useEffect(() => {
+    fetch(import.meta.env.VITE_API_URL + "/health").catch(() => {});
+  }, []);
+
   return (
     <Routes>
 

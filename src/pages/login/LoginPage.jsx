@@ -2,7 +2,7 @@
 // = LOGIN PAGE                                                =
 // ============================================================
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -44,6 +44,13 @@ export default function LoginPage() {
   const [errorField, setErrorField] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  // ============================================================
+  // = BACKEND WARM-UP                                           =
+  // ============================================================
+  useEffect(() => {
+    fetch(import.meta.env.VITE_API_URL + "/health").catch(() => {});
+  }, []);
+
   function validateEmailFormat(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
@@ -72,8 +79,8 @@ export default function LoginPage() {
       setErrorField("email");
       setErrorMessage(
         err.response?.data?.error ||
-        err.response?.data?.message ||
-        "We hebben geen account gevonden met dit email adres"
+          err.response?.data?.message ||
+          "We hebben geen account gevonden met dit email adres"
       );
       return;
     }
@@ -89,12 +96,9 @@ export default function LoginPage() {
 
       navigate("/");
     } catch (err) {
-     
-  console.log("RAW ERROR:", err); // ← voeg deze toe
-  console.log("ERR.MESSAGE:", err.error); // ← en deze
-  console.log("ERR RESPONSE:", err.response?.data); // ← en deze
-
-
+      console.log("RAW ERROR:", err);
+      console.log("ERR.MESSAGE:", err.error);
+      console.log("ERR RESPONSE:", err.response?.data);
 
       const backendError = err.error || "Inloggen mislukt";
       const msg = backendError.toLowerCase();
@@ -177,8 +181,8 @@ export default function LoginPage() {
                   setErrorField("email");
                   setErrorMessage(
                     err.response?.data?.error ||
-                    err.response?.data?.message ||
-                    "We hebben geen account gevonden met dit email adres"
+                      err.response?.data?.message ||
+                      "We hebben geen account gevonden met dit email adres"
                   );
                 }
               }}

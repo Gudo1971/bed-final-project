@@ -28,7 +28,14 @@ app.use(express.json());
 app.use(logger);
 
 /* ============================================================
-   HEALTH CHECK
+   HEALTH CHECK (warm-up route)
+============================================================ */
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
+/* ============================================================
+   ROOT CHECK
 ============================================================ */
 app.get("/", (req, res) => {
   res.json({ message: "Booking API is running" });
