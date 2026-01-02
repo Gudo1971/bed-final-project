@@ -21,14 +21,24 @@ export default function ImageCarousel({ images }) {
   // NEW: optimistic loading — skeleton only shown for 200ms
   const [showCarousel, setShowCarousel] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowCarousel(true), 200);
-    return () => clearTimeout(timer);
-  }, []);
-
   const containerRef = useRef(null);
   const thumbRefs = useRef([]);
-  thumbRefs.current = [];
+
+  const next = () => {
+    setFade(true);
+    setTimeout(() => {
+      setIndex((i) => (i === safeImages.length - 1 ? 0 : i + 1));
+      setFade(false);
+    }, 150);
+  };
+
+  const prev = () => {
+    setFade(true);
+    setTimeout(() => {
+      setIndex((i) => (i === 0 ? safeImages.length - 1 : i - 1));
+      setFade(false);
+    }, 150);
+  };
 
   const addToRefs = (el) => {
     if (el && !thumbRefs.current.includes(el)) {
@@ -37,8 +47,44 @@ export default function ImageCarousel({ images }) {
   };
 
   // ============================================================
-  // = SKELETON STATE (optimistic)                              =
+  // = HOOKS                                                     =
   // ============================================================
+
+  // skeleton timer
+  useEffect(() => {
+    const timer = setTimeout(() => setShowCarousel(true), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // auto slide
+  useEffect(() => {
+    if (paused || safeImages.length <= 1) return;
+    const interval = setInterval(() => next(), 4000);
+    return () => clearInterval(interval);
+  }, [paused, safeImages.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // scroll active thumbnail into view
+  useEffect(() => {
+    if (!containerRef.current || !thumbRefs.current[index]) return;
+
+    const container = containerRef.current;
+    const activeThumb = thumbRefs.current[index];
+
+    const scrollPosition =
+      activeThumb.offsetLeft -
+      container.offsetWidth / 2 +
+      activeThumb.offsetWidth / 2;
+
+    container.scrollTo({ left: scrollPosition, behavior: "smooth" });
+  }, [index]);
+
+  const currentUrl = safeImages.length > 0 ? getImageUrl(safeImages[index]) : "";
+
+  // ============================================================
+  // = EARLY RETURNS (NA ALLE HOOKS)                            =
+  // ============================================================
+
+  // SKELETON STATE (optimistic)
   if (!showCarousel) {
     return (
       <Box w="100%" maxW="600px" mx="auto">
@@ -54,9 +100,7 @@ export default function ImageCarousel({ images }) {
     );
   }
 
-  // ============================================================
-  // = GEEN AFBEELDINGEN                                        =
-  // ============================================================
+  // GEEN AFBEELDINGEN
   if (safeImages.length === 0) {
     return (
       <Box
@@ -76,47 +120,6 @@ export default function ImageCarousel({ images }) {
       </Box>
     );
   }
-
-  // ============================================================
-  // = CAROUSEL LOGIC                                            =
-  // ============================================================
-  const next = () => {
-    setFade(true);
-    setTimeout(() => {
-      setIndex((i) => (i === safeImages.length - 1 ? 0 : i + 1));
-      setFade(false);
-    }, 150);
-  };
-
-  const prev = () => {
-    setFade(true);
-    setTimeout(() => {
-      setIndex((i) => (i === 0 ? safeImages.length - 1 : i - 1));
-      setFade(false);
-    }, 150);
-  };
-
-  useEffect(() => {
-    if (paused || safeImages.length <= 1) return;
-    const interval = setInterval(() => next(), 4000);
-    return () => clearInterval(interval);
-  }, [paused, safeImages.length]);
-
-  useEffect(() => {
-    if (!containerRef.current || !thumbRefs.current[index]) return;
-
-    const container = containerRef.current;
-    const activeThumb = thumbRefs.current[index];
-
-    const scrollPosition =
-      activeThumb.offsetLeft -
-      container.offsetWidth / 2 +
-      activeThumb.offsetWidth / 2;
-
-    container.scrollTo({ left: scrollPosition, behavior: "smooth" });
-  }, [index]);
-
-  const currentUrl = getImageUrl(safeImages[index]);
 
   // ============================================================
   // = RENDER CAROUSEL                                           =

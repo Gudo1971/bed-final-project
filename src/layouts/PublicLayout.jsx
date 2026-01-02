@@ -5,6 +5,7 @@
 import { Outlet } from "react-router-dom";
 import { Box } from "@chakra-ui/react";
 import Navbar from "../components/navbar/Navbar.jsx";
+import { Footer } from "../components/layout/Footer.jsx";
 
 export default function PublicLayout() {
   return (
@@ -19,6 +20,8 @@ export default function PublicLayout() {
       >
         <Outlet />
       </Box>
+
+      <Footer />
     </>
   );
 }
