@@ -35,14 +35,11 @@ export default function App() {
 
       {/* PUBLIC ROUTES */}
       <Route element={<PublicLayout />}>
-      <Route path="/" element={<LandingPage />} />
-
+        <Route path="/" element={<LandingPage />} />
         <Route path="/properties" element={<PropertyPage />} />
         <Route path="/properties/:id" element={<PropertyDetailPage />} />
         <Route path="/booking/:propertyId" element={<BookingPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-
-        {/*  HOST PROFIEL PAGINA */}
         <Route path="/host-profile/:id" element={<HostProfilePage />} />
       </Route>
 
@@ -60,8 +57,6 @@ export default function App() {
         <Route path="/host/bookings" element={<HostBookings />} />
         <Route path="/host/earnings" element={<HostEarningsPage />} />
         <Route path="/add-property" element={<PropertyForm />} />
-        
-
       </Route>
 
     </Routes>

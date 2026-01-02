@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 
 import { LanguageToggle } from "../components/landing/LanguageToggle";
+import DisclaimerBanner  from "../components/banner/DisclaimerBanner";
 
 import nl from "../content/landing/nl";
 import en from "../content/landing/en";
@@ -81,16 +82,18 @@ export const LandingPage = () => {
   const textColor = useColorModeValue("gray.800", "gray.100");
 
   // ==============================
-  // SCREENSHOTS (VUL LATER IN)
+  // SCREENSHOTS
   // ==============================
   const screenshots = [
-    
-    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127671/e6aonunake3kgkefgssf.png",
-    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127833/yegsmsxko4z5jwjjpcpg.png",
-    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767127880/ldnlracaj0s2jlcluzpo.png",
-    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767128017/skxe53uqycc7sitcq1wj.png",
-    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767128095/otvif6h8spbhcosx8bs4.png",
-    
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324879/wggyanofggnpnszj3vfg.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324876/skkqyegck7iiyodzqifw.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324892/jnqliaviqqiconhrdsxy.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324884/tqhb4t4qtne1eshmdevl.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324888/uygcxw7r5e3bt5gwsqkq.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324896/vg4ubtmezwdbgdfbbwjf.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324896/vg4ubtmezwdbgdfbbwjf.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324896/vg4ubtmezwdbgdfbbwjf.png",
+    "https://res.cloudinary.com/dkpp5c90a/image/upload/v1767324877/jsbobgodq6pyijadoass.png",
   ];
 
   return (
@@ -104,6 +107,9 @@ export const LandingPage = () => {
         boxShadow="xl"
       >
         <LanguageToggle language={language} setLanguage={setLanguage} />
+
+        {/* DISCLAIMER BANNER */}
+        <DisclaimerBanner />
 
         {/* ============================== */}
         {/* HERO + CAROUSEL */}
@@ -233,7 +239,11 @@ export const LandingPage = () => {
         >
           {/* LEFT — PHOTO + QUOTE */}
           <Stack spacing={6} align="center">
-            <Avatar name="Gudo" src="https://res.cloudinary.com/dkpp5c90a/image/upload/v1767116876/uj753emjxnqdxedg4drx.png" size="2xl" />
+            <Avatar
+              name="Gudo"
+              src="https://res.cloudinary.com/dkpp5c90a/image/upload/v1767116876/uj753emjxnqdxedg4drx.png"
+              size="2xl"
+            />
 
             <Text
               fontSize="lg"
@@ -305,13 +315,7 @@ export const LandingPage = () => {
         </SimpleGrid>
 
         {/* TEKST BLOK ONDER FOTO + CONTACT */}
-        <Stack
-          spacing={4}
-          maxW="600px"
-          mx="auto"
-          mt={10}
-          textAlign="center"
-        >
+        <Stack spacing={4} maxW="600px" mx="auto" mt={10} textAlign="center">
           {content.aboutMeParagraphs.map((p, i) => (
             <Text key={i} fontSize="md" color={textColor}>
               {p}

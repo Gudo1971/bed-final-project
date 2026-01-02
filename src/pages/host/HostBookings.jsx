@@ -43,12 +43,13 @@ export default function HostBookings() {
   const [filter, setFilter] = useState("all");
 
   // ==============================================
-  // = REDIRECT ALS USER GEEN HOST IS              =
+  // = REDIRECT ALS USER GEEN HOST IS (HOOK SAFE) =
   // ==============================================
-  if (user && !user.isHost) {
-    window.location.href = "/profile";
-    return null;
-  }
+  useEffect(() => {
+    if (user && !user.isHost) {
+      window.location.href = "/profile";
+    }
+  }, [user]);
 
   // ==============================================
   // = BOEKINGEN OPHALEN                           =
@@ -162,6 +163,13 @@ export default function HostBookings() {
   }
 
   // ==============================================
+  // = RENDER GUARD (HOOK SAFE)                    =
+  // ==============================================
+  if (user && !user.isHost) {
+    return null;
+  }
+
+  // ==============================================
   // = RENDER                                      =
   // ==============================================
   return (
@@ -189,7 +197,7 @@ export default function HostBookings() {
       </Heading>
 
       {/* ============================================== */}
-      {/* = FILTER KNOPPEN (RESPONSIVE)                 = */}
+      {/* = FILTER KNOPPEN                              = */}
       {/* ============================================== */}
       <Stack
         direction={{ base: "column", sm: "row" }}
@@ -236,7 +244,7 @@ export default function HostBookings() {
       </Stack>
 
       {/* ============================================== */}
-      {/* = SORTEER KNOPPEN (RESPONSIVE)                = */}
+      {/* = SORTEER KNOPPEN                             = */}
       {/* ============================================== */}
       <Stack
         direction={{ base: "column", sm: "row" }}
@@ -280,7 +288,7 @@ export default function HostBookings() {
       )}
 
       {/* ============================================== */}
-      {/* = BOEKINGEN LIJST (THUMBNAIL CARDS)           = */}
+      {/* = BOEKINGEN LIJST                             = */}
       {/* ============================================== */}
       <VStack align="stretch" spacing={5}>
         {sortedBookings.map((booking) => {
