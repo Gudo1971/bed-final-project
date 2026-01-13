@@ -5,23 +5,56 @@ import {
   createUserController,
   updateUserController,
   deleteUserController,
+  getUserByUsernameController,
+  getUserByEmailController,
 } from "../controllers/user.controller.js";
+
+import { authenticateToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// GET all users (public)
-router.get("/", getAllUsersController);
+/* ---------------------------------------------------------
+   GET ALL USERS OR FILTER BY QUERY
+   /users
+   /users?username=jdoe
+   /users?email=john@example.com
+   --------------------------------------------------------- */
+router.get("/", (req, res, next) => {
+  const { username, email } = req.query;
 
-// GET user by ID (public)
+  if (username) {
+    return getUserByUsernameController(req, res, next);
+  }
+
+  if (email) {
+    return getUserByEmailController(req, res, next);
+  }
+
+  return getAllUsersController(req, res, next);
+});
+
+/* ---------------------------------------------------------
+   GET USER BY ID
+   /users/:id
+   --------------------------------------------------------- */
 router.get("/:id", getUserByIdController);
 
-// CREATE user (public)
+/* ---------------------------------------------------------
+   CREATE USER (requires token)
+   /users
+   --------------------------------------------------------- */
 router.post("/", createUserController);
 
-// UPDATE user (public - Winc expects PUT)
+/* ---------------------------------------------------------
+   UPDATE USER (requires token)
+   /users/:id
+   --------------------------------------------------------- */
 router.put("/:id", updateUserController);
 
-// DELETE user (public)
+/* ---------------------------------------------------------
+   DELETE USER (requires token)
+   /users/:id
+   --------------------------------------------------------- */
 router.delete("/:id", deleteUserController);
 
 export default router;

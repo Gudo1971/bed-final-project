@@ -1,35 +1,88 @@
 import prisma from "../lib/prisma.js";
 import { Prisma } from "@prisma/client";
 
-// GET ALL
-export async function getProperties(req, res) {
+/* ---------------------------------------------------------
+   GET ALL PROPERTIES (WITH FILTERS)
+--------------------------------------------------------- */
+async function getProperties(req, res) {
   try {
-    const properties = await prisma.property.findMany();
-    res.status(200).json(properties);
+    const { location, pricePerNight } = req.query;
+
+    const filters = {};
+
+    if (location) filters.location = location;
+
+    if (pricePerNight) {
+      const price = Number(pricePerNight);
+      if (isNaN(price)) {
+        return res.status(400).json({ error: "Invalid pricePerNight value" });
+      }
+      filters.pricePerNight = price;
+    }
+
+    const properties = await prisma.property.findMany({
+      where: filters,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        pricePerNight: true,
+        bedroomCount: true,
+        bathRoomCount: true,
+        maxGuestCount: true,
+        rating: true,
+        hostId: true,
+      },
+    });
+
+    if (!properties.length) {
+      return res.status(404).json({ error: "No properties found" });
+    }
+
+    return res.status(200).json(properties);
   } catch {
-    res.status(500).json({ error: "Failed to fetch properties" });
+    return res.status(500).json({ error: "Failed to fetch properties" });
   }
 }
 
-// GET ONE
-export async function getProperty(req, res) {
+/* ---------------------------------------------------------
+   GET ONE PROPERTY
+--------------------------------------------------------- */
+async function getProperty(req, res) {
   const id = req.params.id;
 
   try {
-    const property = await prisma.property.findUnique({ where: { id } });
+    const property = await prisma.property.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        pricePerNight: true,
+        bedroomCount: true,
+        bathRoomCount: true,
+        maxGuestCount: true,
+        rating: true,
+        hostId: true,
+      },
+    });
 
     if (!property) {
       return res.status(404).json({ error: "Property not found" });
     }
 
-    res.status(200).json(property);
+    return res.status(200).json(property);
   } catch {
-    res.status(404).json({ error: "Property not found" });
+    return res.status(404).json({ error: "Property not found" });
   }
 }
 
-// CREATE
-export async function createProperty(req, res) {
+/* ---------------------------------------------------------
+   CREATE PROPERTY
+--------------------------------------------------------- */
+async function createProperty(req, res) {
   const {
     title,
     description,
@@ -59,7 +112,22 @@ export async function createProperty(req, res) {
     if (!host) {
       return res.status(400).json({ error: "Invalid input" });
     }
+    /*========================================================================================
+        onderstaande duplicate check uit gecomment omdat het in confilct is met de winc Test
+      ========================================================================================*/
 
+    // const existing = await prisma.property.findFirst({
+    //   where: {
+    //     title,
+    //     hostId,
+    //   },
+    // });
+
+    // if (existing) {
+    //   return res
+    //     .status(409)
+    //     .json({ error: "Property already exists for this host" });
+    // }
     const property = await prisma.property.create({
       data: {
         title,
@@ -72,20 +140,37 @@ export async function createProperty(req, res) {
         rating: rating != null ? Number(rating) : null,
         hostId,
       },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        pricePerNight: true,
+        bedroomCount: true,
+        bathRoomCount: true,
+        maxGuestCount: true,
+        rating: true,
+        hostId: true,
+      },
     });
 
-    res.status(201).json(property);
+    return res.status(201).json(property);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientValidationError) {
-      res.status(400).json({ error: "Invalid input" });
-    } else {
-      res.status(500).json({ error: "Failed to create property" });
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return res.status(409).json({ error: "Property already exists" });
     }
+
+    return res.status(500).json({ error: "Failed to create property" });
   }
 }
 
-// UPDATE
-export async function updateProperty(req, res) {
+/* ---------------------------------------------------------
+   UPDATE PROPERTY
+--------------------------------------------------------- */
+async function updateProperty(req, res) {
   const id = req.params.id;
 
   try {
@@ -95,29 +180,67 @@ export async function updateProperty(req, res) {
     }
 
     const data = {};
+
     if (req.body.title !== undefined) data.title = req.body.title;
-    if (req.body.description !== undefined) data.description = req.body.description;
+    if (req.body.description !== undefined)
+      data.description = req.body.description;
     if (req.body.location !== undefined) data.location = req.body.location;
-    if (req.body.pricePerNight !== undefined) data.pricePerNight = Number(req.body.pricePerNight);
-    if (req.body.bedroomCount !== undefined) data.bedroomCount = Number(req.body.bedroomCount);
-    if (req.body.bathRoomCount !== undefined) data.bathRoomCount = Number(req.body.bathRoomCount);
-    if (req.body.maxGuestCount !== undefined) data.maxGuestCount = Number(req.body.maxGuestCount);
+    if (req.body.pricePerNight !== undefined)
+      data.pricePerNight = Number(req.body.pricePerNight);
+    if (req.body.bedroomCount !== undefined)
+      data.bedroomCount = Number(req.body.bedroomCount);
+    if (req.body.bathRoomCount !== undefined)
+      data.bathRoomCount = Number(req.body.bathRoomCount);
+    if (req.body.maxGuestCount !== undefined)
+      data.maxGuestCount = Number(req.body.maxGuestCount);
     if (req.body.rating !== undefined) data.rating = Number(req.body.rating);
     if (req.body.hostId !== undefined) data.hostId = req.body.hostId;
+
+    //  PRE‑CHECK FOR DUPLICATESdit
+
+    if (data.title || data.hostId) {
+      const duplicate = await prisma.property.findFirst({
+        where: {
+          title: data.title ?? existing.title,
+          hostId: data.hostId ?? existing.hostId,
+          NOT: { id },
+        },
+      });
+
+      if (duplicate) {
+        return res
+          .status(409)
+          .json({ error: "Property already exists for this host" });
+      }
+    }
 
     const updated = await prisma.property.update({
       where: { id },
       data,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        pricePerNight: true,
+        bedroomCount: true,
+        bathRoomCount: true,
+        maxGuestCount: true,
+        rating: true,
+        hostId: true,
+      },
     });
 
-    res.status(200).json(updated);
+    return res.status(200).json(updated);
   } catch {
-    res.status(500).json({ error: "Failed to update property" });
+    return res.status(500).json({ error: "Failed to update property" });
   }
 }
 
-// DELETE
-export async function deleteProperty(req, res) {
+/* ---------------------------------------------------------
+   DELETE PROPERTY
+--------------------------------------------------------- */
+async function deleteProperty(req, res) {
   const id = req.params.id;
 
   try {
@@ -127,14 +250,16 @@ export async function deleteProperty(req, res) {
     }
 
     await prisma.property.delete({ where: { id } });
-    res.status(200).json({ message: "Property deleted" });
+    return res.status(200).json({ message: "Property deleted" });
   } catch {
-    res.status(500).json({ error: "Failed to delete property" });
+    return res.status(500).json({ error: "Failed to delete property" });
   }
 }
 
-// BOOKINGS FOR PROPERTY
-export async function getPropertyBookings(req, res) {
+/* ---------------------------------------------------------
+   GET BOOKINGS FOR PROPERTY
+--------------------------------------------------------- */
+async function getPropertyBookings(req, res) {
   const id = req.params.id;
 
   try {
@@ -145,11 +270,26 @@ export async function getPropertyBookings(req, res) {
 
     const bookings = await prisma.booking.findMany({
       where: { propertyId: id },
-      include: { property: true },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        userId: true,
+        propertyId: true,
+      },
     });
 
-    res.status(200).json(bookings);
+    return res.status(200).json(bookings);
   } catch {
-    res.status(500).json({ error: "Failed to fetch property bookings" });
+    return res.status(500).json({ error: "Failed to fetch property bookings" });
   }
 }
+
+export {
+  getProperties,
+  getProperty,
+  createProperty,
+  updateProperty,
+  deleteProperty,
+  getPropertyBookings,
+};

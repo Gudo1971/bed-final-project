@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import { errorHandler } from "../backend/src/middleware/error.middleware.js";
+import { errorHandler } from "./src/middleware/error.middleware.js";
 
 import { login } from "./src/controllers/auth.controller.js";
 import userRoutes from "./src/routes/user.route.js";

@@ -9,38 +9,53 @@ import {
   updateBookingController,
   getDisabledDatesByPropertyIdController,
 } from "../controllers/booking.controller.js";
+
 import { authenticateToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
+/* ---------------------------------------------------------
+   GET DISABLED DATES FOR PROPERTY
+--------------------------------------------------------- */
 router.get(
   "/disabled-dates/:propertyId",
   getDisabledDatesByPropertyIdController
 );
 
-// GET all bookings
+/* ---------------------------------------------------------
+   GET ALL BOOKINGS
+--------------------------------------------------------- */
 router.get("/", getAllBookingsController);
 
-// GET bookings by userId
+/* ---------------------------------------------------------
+   GET BOOKINGS BY USER ID
+--------------------------------------------------------- */
 router.get("/user/:userId", getBookingsByUserIdController);
 
-// GET bookings by propertyId
+/* ---------------------------------------------------------
+   GET BOOKINGS BY PROPERTY ID
+--------------------------------------------------------- */
 router.get("/property/:propertyId", getBookingsByPropertyIdController);
 
-// GET booking by ID (dynamic route LAST)
+/* ---------------------------------------------------------
+   GET BOOKING BY ID
+--------------------------------------------------------- */
 router.get("/:id", getBookingByIdController);
 
-// PATCH booking
-router.patch("/:id",  updateBookingController);
-router.put("/:id",  updateBookingController);
+/* ---------------------------------------------------------
+   UPDATE BOOKING (requires token)
+--------------------------------------------------------- */
+router.patch("/:id", updateBookingController);
+router.put("/:id", updateBookingController);
 
-
-// POST create booking
+/* ---------------------------------------------------------
+   CREATE BOOKING (requires token)
+--------------------------------------------------------- */
 router.post("/", createBookingController);
 
-// DELETE booking
+/* ---------------------------------------------------------
+   DELETE BOOKING (requires token)
+--------------------------------------------------------- */
 router.delete("/:id", deleteBookingController);
-
-
 
 export default router;

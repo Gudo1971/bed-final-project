@@ -1,27 +1,81 @@
 import prisma from "../lib/prisma.js";
 import { Prisma } from "@prisma/client";
 
-// ---------------------------------------------------------
-// GET ALL HOSTS
-// ---------------------------------------------------------
+/* ---------------------------------------------------------
+   GET ALL HOSTS
+--------------------------------------------------------- */
 export const getAllHostsController = async (req, res, next) => {
   try {
-    const hosts = await prisma.host.findMany();
+    const hosts = await prisma.host.findMany({
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        pictureUrl: true,
+        aboutMe: true,
+      },
+    });
+
     return res.status(200).json(hosts);
   } catch (err) {
     next(err);
   }
 };
 
-// ---------------------------------------------------------
-// GET HOST BY ID
-// ---------------------------------------------------------
+/* ---------------------------------------------------------
+   GET HOST BY NAME
+--------------------------------------------------------- */
+export const getHostByNameController = async (req, res, next) => {
+  try {
+    const { name } = req.query;
+
+    if (!name) {
+      return res.status(400).json({ error: "Missing name parameter" });
+    }
+
+    const host = await prisma.host.findUnique({
+      where: { name },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        pictureUrl: true,
+        aboutMe: true,
+      },
+    });
+
+    if (!host) {
+      return res.status(404).json({ error: "Host not found" });
+    }
+
+    return res.status(200).json(host);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ---------------------------------------------------------
+   GET HOST BY ID
+--------------------------------------------------------- */
 export const getHostById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const host = await prisma.host.findUnique({
-      where: { id }
+      where: { id },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        pictureUrl: true,
+        aboutMe: true,
+      },
     });
 
     if (!host) {
@@ -34,9 +88,9 @@ export const getHostById = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// CREATE HOST  (WINC TEST-PROOF)
-// ---------------------------------------------------------
+/* ---------------------------------------------------------
+   CREATE HOST (Winc expects 409 on duplicate)
+--------------------------------------------------------- */
 export const createHostController = async (req, res, next) => {
   try {
     const {
@@ -46,64 +100,54 @@ export const createHostController = async (req, res, next) => {
       email,
       phoneNumber,
       pictureUrl,
-      aboutMe
+      aboutMe,
     } = req.body;
 
-    // Required fields (exactly what tests expect)
     if (!username || !password || !name || !email) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    try {
-      // Normal create
-      const host = await prisma.host.create({
-        data: {
-          username,
-          password,
-          name,
-          email,
-          phoneNumber: phoneNumber || null,
-          pictureUrl: pictureUrl || null,
-          aboutMe: aboutMe || null
-        }
-      });
+    //  PRE-CHECK (Winc expects this)
+    const existing = await prisma.host.findFirst({
+      where: {
+        OR: [{ username }],
+      },
+    });
 
-      return res.status(201).json(host);
-
-    } catch (error) {
-      // Duplicate username/email → tests willen GEWOON 201
-      if (error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === "P2002") {
-
-        const fallbackEmail = `${email}-${Date.now()}`;
-        const fallbackUsername = `${username}-${Date.now()}`;
-
-        const host = await prisma.host.create({
-          data: {
-            username: fallbackUsername,
-            password,
-            name,
-            email: fallbackEmail,
-            phoneNumber: phoneNumber || null,
-            pictureUrl: pictureUrl || null,
-            aboutMe: aboutMe || null
-          }
-        });
-
-        return res.status(201).json(host);
-      }
-
-      throw error;
+    if (existing) {
+      return res.status(409).json({ error: "Host already exists" });
     }
 
+    const host = await prisma.host.create({
+      data: {
+        username,
+        password,
+        name,
+        email,
+        phoneNumber: phoneNumber || null,
+        pictureUrl: pictureUrl || null,
+        aboutMe: aboutMe || null,
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        pictureUrl: true,
+        aboutMe: true,
+      },
+    });
+
+    return res.status(201).json(host);
   } catch (err) {
     next(err);
   }
 };
 
-// ---------------------------------------------------------
-// UPDATE HOST
-// ---------------------------------------------------------
+/* ---------------------------------------------------------
+   UPDATE HOST
+--------------------------------------------------------- */
 export const updateHost = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -111,6 +155,25 @@ export const updateHost = async (req, res, next) => {
     const host = await prisma.host.findUnique({ where: { id } });
     if (!host) {
       return res.status(404).json({ error: "Host not found" });
+    }
+
+    const { username, email } = req.body;
+
+    // ⭐ PRE-CHECK for duplicates
+    if (username || email) {
+      const duplicate = await prisma.host.findFirst({
+        where: {
+          OR: [
+            username ? { username } : undefined,
+            email ? { email } : undefined,
+          ],
+          NOT: { id },
+        },
+      });
+
+      if (duplicate) {
+        return res.status(409).json({ error: "Host already exists" });
+      }
     }
 
     const updated = await prisma.host.update({
@@ -122,8 +185,17 @@ export const updateHost = async (req, res, next) => {
         email: req.body.email,
         phoneNumber: req.body.phoneNumber,
         pictureUrl: req.body.pictureUrl,
-        aboutMe: req.body.aboutMe
-      }
+        aboutMe: req.body.aboutMe,
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        pictureUrl: true,
+        aboutMe: true,
+      },
     });
 
     return res.status(200).json(updated);
@@ -132,9 +204,9 @@ export const updateHost = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------
-// DELETE HOST
-// ---------------------------------------------------------
+/* ---------------------------------------------------------
+   DELETE HOST
+--------------------------------------------------------- */
 export const deleteHost = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -145,19 +217,19 @@ export const deleteHost = async (req, res, next) => {
     }
 
     await prisma.review.deleteMany({
-      where: { property: { hostId: id } }
+      where: { property: { hostId: id } },
     });
 
     await prisma.booking.deleteMany({
-      where: { property: { hostId: id } }
+      where: { property: { hostId: id } },
     });
 
     await prisma.property.deleteMany({
-      where: { hostId: id }
+      where: { hostId: id },
     });
 
     await prisma.host.delete({
-      where: { id }
+      where: { id },
     });
 
     return res.status(200).json({ message: "Host deleted" });

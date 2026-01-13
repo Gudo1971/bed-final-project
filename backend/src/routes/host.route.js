@@ -5,23 +5,50 @@ import {
   createHostController,
   updateHost,
   deleteHost,
+  getHostByNameController,
 } from "../controllers/host.controller.js";
+
+import { authenticateToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// GET all hosts
-router.get("/", getAllHostsController);
+/* ---------------------------------------------------------
+   GET ALL HOSTS OR FILTER BY NAME
+   /hosts
+   /hosts?name=John+Doe
+--------------------------------------------------------- */
+router.get("/", (req, res, next) => {
+  const { name } = req.query;
 
-// GET host by ID
+  if (name) {
+    return getHostByNameController(req, res, next);
+  }
+
+  return getAllHostsController(req, res, next);
+});
+
+/* ---------------------------------------------------------
+   GET HOST BY ID
+   /hosts/:id
+--------------------------------------------------------- */
 router.get("/:id", getHostById);
 
-// CREATE host
+/* ---------------------------------------------------------
+   CREATE HOST (requires token)
+   /hosts
+--------------------------------------------------------- */
 router.post("/", createHostController);
 
-// UPDATE host
+/* ---------------------------------------------------------
+   UPDATE HOST (requires token)
+   /hosts/:id
+--------------------------------------------------------- */
 router.put("/:id", updateHost);
 
-// DELETE host
+/* ---------------------------------------------------------
+   DELETE HOST (requires token)
+   /hosts/:id
+--------------------------------------------------------- */
 router.delete("/:id", deleteHost);
 
 export default router;

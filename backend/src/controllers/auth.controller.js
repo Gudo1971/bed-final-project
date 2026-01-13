@@ -1,42 +1,36 @@
 import prisma from "../lib/prisma.js";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = "supersecretkey";
-
 export const login = async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    console.log("LOGIN START", req.body);
 
-    // Accept BOTH email and username
-    const identifier = email || username;
+    const { username, password } = req.body;
 
-    if (!identifier || !password) {
-      return res.status(400).json({ error: "Missing credentials" });
-    }
-
-    // Find user by email OR username
     const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: identifier },
-          { username: identifier }
-        ]
-      }
+      where: { username },
     });
 
-    if (!user || user.password !== password) {
+    console.log("USER RESULT", user);
+
+    if (!user) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    if (password !== user.password) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // ⭐ DIT is wat de test wil
     const token = jwt.sign(
-      { userId: user.id },
-      JWT_SECRET,
+      { id: user.id, username: user.username },
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
     return res.status(200).json({ token });
-
   } catch (error) {
+    console.error("LOGIN ERROR >>>", error);
     return res.status(500).json({ error: "Something went wrong" });
   }
 };

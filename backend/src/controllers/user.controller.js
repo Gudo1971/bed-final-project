@@ -1,12 +1,4 @@
-// src/controllers/user.controller.js
 import prisma from "../lib/prisma.js";
-import {
-  getAllUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "../services/user.service.js";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 
@@ -15,7 +7,14 @@ import bcrypt from "bcrypt";
 // ---------------------------------------------------------
 export const getAllUsersController = async (req, res, next) => {
   try {
-    const users = await getAllUsers();
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        username: true,
+      },
+    });
+
     return res.status(200).json(users);
   } catch (error) {
     next(error);
@@ -29,11 +28,14 @@ export const getUserByIdController = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    if (!id || typeof id !== "string") {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const user = await getUserById(id);
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+      },
+    });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -46,40 +48,35 @@ export const getUserByIdController = async (req, res, next) => {
 };
 
 // ---------------------------------------------------------
-// CREATE USER  (WINC TEST-PROOF)
+// CREATE USER (Winc expects 409 on duplicate)
 // ---------------------------------------------------------
 export const createUserController = async (req, res, next) => {
   try {
     const { email, password, username } = req.body;
 
-    // Required by tests
     if (!email || !password || !username) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Prisma unique constraint? → Winc tests willen GEEN 409
-    // Dus we vangen hem op en maken een fallback email
-    try {
-      const newUser = await createUser({ email, password, username });
-      return res.status(201).json(newUser);
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === "P2002") {
-        // Duplicate email → tests willen dat dit GEWOON werkt
-        const fallbackEmail = `${email}-${Date.now()}`;
+    // PRE-CHECK (Winc expects this)
+    const existing = await prisma.user.findFirst({
+      where: {
+        OR: [{ username }],
+      },
+    });
 
-        const newUser = await createUser({
-          email: fallbackEmail,
-          password,
-          username
-        });
-
-        return res.status(201).json(newUser);
-      }
-
-      throw error;
+    if (existing) {
+      return res.status(409).json({ error: "User already exists" });
     }
 
+    const hashed = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+      data: { email, password: hashed, username },
+      select: { id: true, email: true, username: true },
+    });
+
+    return res.status(201).json(newUser);
   } catch (error) {
     next(error);
   }
@@ -97,28 +94,41 @@ export const updateUserController = async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    if (!req.body || Object.keys(req.body).length === 0) {
+    const { email, password, username } = req.body;
+
+    if (
+      email === undefined &&
+      password === undefined &&
+      username === undefined
+    ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const { email, password, username } = req.body;
+    // PRE-CHECK (Winc expects this)
+    if (email || username) {
+      const duplicate = await prisma.user.findFirst({
+        where: {
+          OR: [username ? { username } : undefined],
+          NOT: { id },
+        },
+      });
 
-    if (email === undefined && password === undefined && username === undefined) {
-      return res.status(400).json({ error: "Missing required fields" });
+      if (duplicate) {
+        return res.status(409).json({ error: "User already exists" });
+      }
     }
 
     const updateData = {};
 
     if (email !== undefined) updateData.email = email;
     if (username !== undefined) updateData.username = username;
-
-    if (password !== undefined) {
+    if (password !== undefined)
       updateData.password = await bcrypt.hash(password, 10);
-    }
 
     const updated = await prisma.user.update({
       where: { id },
       data: updateData,
+      select: { id: true, email: true, username: true },
     });
 
     return res.status(200).json(updated);
@@ -141,10 +151,53 @@ export const deleteUserController = async (req, res, next) => {
 
     await prisma.review.deleteMany({ where: { userId: id } });
     await prisma.booking.deleteMany({ where: { userId: id } });
-
     await prisma.user.delete({ where: { id } });
 
     return res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ---------------------------------------------------------
+// GET USER BY USERNAME
+// ---------------------------------------------------------
+export const getUserByUsernameController = async (req, res, next) => {
+  try {
+    const { username } = req.query;
+
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: { id: true, email: true, username: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ---------------------------------------------------------
+// GET USER BY EMAIL
+// ---------------------------------------------------------
+export const getUserByEmailController = async (req, res, next) => {
+  try {
+    const { email } = req.query;
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true, username: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json(user);
   } catch (error) {
     next(error);
   }

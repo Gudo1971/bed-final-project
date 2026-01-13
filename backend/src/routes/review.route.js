@@ -1,21 +1,23 @@
 import express from "express";
 import {
-  getReviews,
+  getAllReviews,
   getReview,
   createReview,
   updateReview,
   deleteReview,
-  getAllReviews,
 } from "../controllers/review.controller.js";
+
+import { authenticateToken } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
 router.get("/", getAllReviews);
-router.get("/property/:propertyId", getReviews);
 router.get("/:id", getReview);
+
 router.post("/", createReview);
-router.patch("/:id", updateReview);
+
 router.put("/:id", updateReview);
+router.patch("/:id", updateReview);
 
 router.delete("/:id", deleteReview);
 

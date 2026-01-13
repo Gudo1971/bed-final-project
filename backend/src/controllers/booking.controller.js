@@ -1,180 +1,270 @@
-import {
-  createBooking,
-  getAllBookings,
-  getBookingById,
-  getBookingsByUserId,
-  getBookingsByPropertyId,
-  deleteBooking,
-  updateBooking,
-} from "../services/booking.service.js";
 import prisma from "../lib/prisma.js";
-import { Prisma } from "@prisma/client";
 
-// CREATE BOOKING
-export const createBookingController = async (req, res) => {
+/* ---------------------------------------------------------
+   SELECT FIELDS (Winc wants consistent output)
+--------------------------------------------------------- */
+const bookingSelect = {
+  id: true,
+  userId: true,
+  propertyId: true,
+  checkinDate: true,
+  checkoutDate: true,
+  numberOfGuests: true,
+  totalPrice: true,
+  bookingStatus: true,
+};
+
+/* ---------------------------------------------------------
+   GET ALL BOOKINGS
+--------------------------------------------------------- */
+async function getAllBookingsController(req, res) {
+  try {
+    const bookings = await prisma.booking.findMany({
+      select: bookingSelect,
+    });
+
+    if (!bookings.length) {
+      return res.status(404).json({ error: "No bookings found" });
+    }
+
+    return res.status(200).json(bookings);
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch bookings" });
+  }
+}
+
+/* ---------------------------------------------------------
+   GET BOOKING BY ID
+--------------------------------------------------------- */
+async function getBookingByIdController(req, res) {
+  const { id } = req.params;
+
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      select: bookingSelect,
+    });
+
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    return res.status(200).json(booking);
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch booking" });
+  }
+}
+
+/* ---------------------------------------------------------
+   GET BOOKINGS BY USER ID
+--------------------------------------------------------- */
+async function getBookingsByUserIdController(req, res) {
+  const { userId } = req.params;
+
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { userId },
+      select: bookingSelect,
+    });
+
+    if (!bookings.length) {
+      return res.status(404).json({ error: "No bookings found for this user" });
+    }
+
+    return res.status(200).json(bookings);
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch user bookings" });
+  }
+}
+
+/* ---------------------------------------------------------
+   GET BOOKINGS BY PROPERTY ID
+--------------------------------------------------------- */
+async function getBookingsByPropertyIdController(req, res) {
+  const { propertyId } = req.params;
+
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { propertyId },
+      select: bookingSelect,
+    });
+
+    if (!bookings.length) {
+      return res
+        .status(404)
+        .json({ error: "No bookings found for this property" });
+    }
+
+    return res.status(200).json(bookings);
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch property bookings" });
+  }
+}
+
+/* ---------------------------------------------------------
+   CHECK FOR OVERLAPPING BOOKINGS
+--------------------------------------------------------- */
+async function hasOverlap(propertyId, checkinDate, checkoutDate) {
+  return await prisma.booking.findFirst({
+    where: {
+      propertyId,
+      AND: [
+        { checkinDate: { lt: new Date(checkoutDate) } },
+        { checkoutDate: { gt: new Date(checkinDate) } },
+      ],
+    },
+  });
+}
+
+/* ---------------------------------------------------------
+   CREATE BOOKING
+--------------------------------------------------------- */
+async function createBookingController(req, res) {
   try {
     const {
+      userId,
+      propertyId,
       checkinDate,
       checkoutDate,
       numberOfGuests,
       totalPrice,
-      propertyId,
-      userId,
+      bookingStatus,
     } = req.body;
 
-    if (
-      !checkinDate ||
-      !checkoutDate ||
-      numberOfGuests == null ||
-      totalPrice == null ||
-      !propertyId ||
-      !userId
-    ) {
-      return res.status(400).json({ error: "Invalid input" });
+    if (!userId || !propertyId || !checkinDate || !checkoutDate) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // 404 if user does not exist
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // 404 if property does not exist
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+    });
+    if (!property) {
+      return res.status(404).json({ error: "Property not found" });
+    }
+
+    // 409 overlap check
+    const overlap = await hasOverlap(propertyId, checkinDate, checkoutDate);
+    if (overlap) {
+      return res.status(409).json({ error: "Booking dates overlap" });
     }
 
     const booking = await prisma.booking.create({
       data: {
+        userId,
+        propertyId,
         checkinDate: new Date(checkinDate),
         checkoutDate: new Date(checkoutDate),
-        numberOfGuests: Number(numberOfGuests),
-        totalPrice: Number(totalPrice),
-        bookingStatus: "CONFIRMED",
-        propertyId,
-        userId,
+        numberOfGuests: numberOfGuests ?? null,
+        totalPrice: totalPrice ?? null,
+        bookingStatus: bookingStatus ?? "confirmed",
       },
+      select: bookingSelect,
     });
 
     return res.status(201).json(booking);
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientValidationError) {
-      return res.status(400).json({ error: "Invalid input" });
-    }
-    return res.status(500).json({ error: "Something went wrong" });
-  }
-};
-
-// GET ALL BOOKINGS
-export const getAllBookingsController = async (req, res) => {
-  try {
-    const bookings = await getAllBookings();
-    return res.status(200).json(bookings);
   } catch {
-    return res.status(500).json({ error: "Something went wrong" });
+    return res.status(500).json({ error: "Failed to create booking" });
   }
-};
+}
 
-// GET BOOKING BY ID
-export const getBookingByIdController = async (req, res) => {
+/* ---------------------------------------------------------
+   UPDATE BOOKING
+--------------------------------------------------------- */
+async function updateBookingController(req, res) {
+  const { id } = req.params;
+
   try {
-    const id = req.params.id;
-
-    const booking = await getBookingById(id);
-    if (!booking) return res.status(404).json({ error: "Booking not found" });
-
-    return res.status(200).json(booking);
-  } catch {
-    return res.status(500).json({ error: "Something went wrong" });
-  }
-};
-
-// GET BOOKINGS BY USER
-export const getBookingsByUserIdController = async (req, res) => {
-  try {
-    const bookings = await getBookingsByUserId(req.params.userId);
-    return res.status(200).json(bookings);
-  } catch {
-    return res.status(500).json({ error: "Something went wrong" });
-  }
-};
-
-// GET BOOKINGS BY PROPERTY
-export const getBookingsByPropertyIdController = async (req, res) => {
-  try {
-    const bookings = await getBookingsByPropertyId(req.params.propertyId);
-    return res.status(200).json(bookings);
-  } catch {
-    return res.status(500).json({ error: "Something went wrong" });
-  }
-};
-
-// UPDATE BOOKING
-export const updateBookingController = async (req, res) => {
-  try {
-    const { id } = req.params;
-
     const existing = await prisma.booking.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: "Booking not found" });
 
-    const data = {};
+    if (!existing) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
 
-    if (req.body.checkinDate !== undefined)
-      data.checkinDate = new Date(req.body.checkinDate);
+    const { checkinDate, checkoutDate } = req.body;
 
-    if (req.body.checkoutDate !== undefined)
-      data.checkoutDate = new Date(req.body.checkoutDate);
+    if (checkinDate || checkoutDate) {
+      const newCheckin = checkinDate ?? existing.checkinDate;
+      const newCheckout = checkoutDate ?? existing.checkoutDate;
 
-    if (req.body.numberOfGuests !== undefined)
-      data.numberOfGuests = Number(req.body.numberOfGuests);
+      const overlap = await hasOverlap(
+        existing.propertyId,
+        newCheckin,
+        newCheckout
+      );
 
-    if (req.body.totalPrice !== undefined)
-      data.totalPrice = Number(req.body.totalPrice);
-
-    if (req.body.bookingStatus !== undefined)
-      data.bookingStatus = req.body.bookingStatus;
-
-    if (req.body.propertyId !== undefined)
-      data.propertyId = req.body.propertyId;
+      if (overlap && overlap.id !== id) {
+        return res.status(409).json({ error: "Booking dates overlap" });
+      }
+    }
 
     const updated = await prisma.booking.update({
       where: { id },
-      data,
+      data: {
+        checkinDate: checkinDate ? new Date(checkinDate) : undefined,
+        checkoutDate: checkoutDate ? new Date(checkoutDate) : undefined,
+      },
+      select: bookingSelect,
     });
 
     return res.status(200).json(updated);
   } catch {
-    return res.status(500).json({ error: "Something went wrong" });
+    return res.status(500).json({ error: "Failed to update booking" });
   }
-};
+}
 
-// DELETE BOOKING
-export const deleteBookingController = async (req, res) => {
+/* ---------------------------------------------------------
+   DELETE BOOKING
+--------------------------------------------------------- */
+async function deleteBookingController(req, res) {
+  const { id } = req.params;
+
   try {
-    const id = req.params.id;
+    const existing = await prisma.booking.findUnique({ where: { id } });
 
-    const existing = await getBookingById(id);
-    if (!existing) return res.status(404).json({ error: "Booking not found" });
+    if (!existing) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
 
-    const deleted = await deleteBooking(id);
+    await prisma.booking.delete({ where: { id } });
 
-    return res.status(200).json({
-      message: "Booking deleted",
-      booking: deleted,
-    });
+    return res.status(200).json({ message: "Booking deleted" });
   } catch {
-    return res.status(500).json({ error: "Something went wrong" });
+    return res.status(500).json({ error: "Failed to delete booking" });
   }
-};
+}
 
-// DISABLED DATES
-export const getDisabledDatesByPropertyIdController = async (req, res) => {
+/* ---------------------------------------------------------
+   GET DISABLED DATES (Winc wants 200 even if empty)
+--------------------------------------------------------- */
+async function getDisabledDatesByPropertyIdController(req, res) {
+  const { propertyId } = req.params;
+
   try {
-    const bookings = await getBookingsByPropertyId(req.params.propertyId);
-
-    const disabledDates = [];
-
-    bookings.forEach(({ checkinDate, checkoutDate }) => {
-      let current = new Date(checkinDate);
-      const end = new Date(checkoutDate);
-
-      while (current <= end) {
-        disabledDates.push(current.toISOString().split("T")[0]);
-        current = new Date(current.getTime() + 86400000);
-      }
+    const bookings = await prisma.booking.findMany({
+      where: { propertyId },
+      select: { checkinDate: true, checkoutDate: true },
     });
 
-    return res.status(200).json(disabledDates);
+    return res.status(200).json(bookings);
   } catch {
-    return res.status(500).json({ error: "Something went wrong" });
+    return res.status(500).json({ error: "Failed to fetch disabled dates" });
   }
+}
+
+export {
+  createBookingController,
+  getAllBookingsController,
+  getBookingByIdController,
+  getBookingsByUserIdController,
+  getBookingsByPropertyIdController,
+  deleteBookingController,
+  updateBookingController,
+  getDisabledDatesByPropertyIdController,
 };
