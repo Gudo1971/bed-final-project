@@ -21,7 +21,6 @@ export const login = async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // ⭐ DIT is wat de test wil
     const token = jwt.sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET,

@@ -59,7 +59,11 @@ async function getBookingByIdController(req, res) {
    GET BOOKINGS BY USER ID
 --------------------------------------------------------- */
 async function getBookingsByUserIdController(req, res) {
-  const { userId } = req.params;
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Missing userId parameter" });
+  }
 
   try {
     const bookings = await prisma.booking.findMany({

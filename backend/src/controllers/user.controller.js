@@ -1,6 +1,41 @@
 import prisma from "../lib/prisma.js";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { authenticateToken } from "../middleware/auth.middleware.js";
+
+// ---------------------------------------------------------
+// REGISTER USER (open route)
+// ---------------------------------------------------------
+export const registerUserController = async (req, res, next) => {
+  try {
+    const { email, password, username } = req.body;
+
+    if (!email || !password || !username) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { username }],
+      },
+    });
+
+    if (existing) {
+      return res.status(409).json({ error: "User already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+      data: { email, password: hashed, username },
+      select: { id: true, email: true, username: true },
+    });
+
+    return res.status(201).json(newUser);
+  } catch (error) {
+    next(error);
+  }
+};
 
 // ---------------------------------------------------------
 // GET ALL USERS
@@ -14,6 +49,10 @@ export const getAllUsersController = async (req, res, next) => {
         username: true,
       },
     });
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: "No users found" });
+    }
 
     return res.status(200).json(users);
   } catch (error) {

@@ -35,7 +35,7 @@ export const getHostByNameController = async (req, res, next) => {
       return res.status(400).json({ error: "Missing name parameter" });
     }
 
-    const host = await prisma.host.findUnique({
+    const host = await prisma.host.findFirst({
       where: { name },
       select: {
         id: true,

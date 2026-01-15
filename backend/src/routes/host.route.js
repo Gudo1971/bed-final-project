@@ -37,7 +37,7 @@ router.get("/:id", getHostById);
    CREATE HOST (requires token)
    /hosts
 --------------------------------------------------------- */
-router.post("/", createHostController);
+router.post("/", authenticateToken, createHostController);
 
 /* ---------------------------------------------------------
    UPDATE HOST (requires token)

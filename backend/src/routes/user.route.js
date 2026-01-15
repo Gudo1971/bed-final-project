@@ -7,6 +7,7 @@ import {
   deleteUserController,
   getUserByUsernameController,
   getUserByEmailController,
+  registerUserController,
 } from "../controllers/user.controller.js";
 
 import { authenticateToken } from "../middleware/auth.middleware.js";
@@ -22,6 +23,13 @@ const router = Router();
 router.get("/", (req, res, next) => {
   const { username, email } = req.query;
 
+  // Prevent multiple filters at once (Winc expects one at a time)
+  if (username && email) {
+    return res.status(400).json({
+      error: "Please filter by either username OR email, not both",
+    });
+  }
+
   if (username) {
     return getUserByUsernameController(req, res, next);
   }
@@ -34,6 +42,13 @@ router.get("/", (req, res, next) => {
 });
 
 /* ---------------------------------------------------------
+Register USER ( open routes)
+   /users/register
+   --------------------------------------------------------- */
+
+router.post("/register", registerUserController);
+
+/* ---------------------------------------------------------
    GET USER BY ID
    /users/:id
    --------------------------------------------------------- */
@@ -43,7 +58,7 @@ router.get("/:id", getUserByIdController);
    CREATE USER (requires token)
    /users
    --------------------------------------------------------- */
-router.post("/", createUserController);
+router.post("/", authenticateToken, createUserController);
 
 /* ---------------------------------------------------------
    UPDATE USER (requires token)

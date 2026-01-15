@@ -25,7 +25,12 @@ router.get(
 /* ---------------------------------------------------------
    GET ALL BOOKINGS
 --------------------------------------------------------- */
-router.get("/", getAllBookingsController);
+router.get("/", (req, res, next) => {
+  if (req.query.userId) {
+    return getBookingsByUserIdController(req, res, next);
+  }
+  return getAllBookingsController(req, res, next);
+});
 
 /* ---------------------------------------------------------
    GET BOOKINGS BY USER ID
@@ -51,7 +56,7 @@ router.put("/:id", updateBookingController);
 /* ---------------------------------------------------------
    CREATE BOOKING (requires token)
 --------------------------------------------------------- */
-router.post("/", createBookingController);
+router.post("/", authenticateToken, createBookingController);
 
 /* ---------------------------------------------------------
    DELETE BOOKING (requires token)

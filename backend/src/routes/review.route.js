@@ -14,7 +14,7 @@ const router = express.Router();
 router.get("/", getAllReviews);
 router.get("/:id", getReview);
 
-router.post("/", createReview);
+router.post("/", authenticateToken, createReview);
 
 router.put("/:id", updateReview);
 router.patch("/:id", updateReview);

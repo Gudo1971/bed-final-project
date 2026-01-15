@@ -42,9 +42,11 @@ export async function getReview(req, res) {
 // ---------------------------------------------------------
 export async function createReview(req, res) {
   try {
-    const { rating, comment, propertyId, userId } = req.body;
+    const { rating, comment, propertyId } = req.body;
 
-    if (!rating || !propertyId || !userId) {
+    const userId = req.user?.id || req.user?.sub;
+
+    if (!rating || !propertyId) {
       return res.status(400).json({ error: "Invalid input" });
     }
 

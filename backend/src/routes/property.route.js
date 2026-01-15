@@ -37,7 +37,7 @@ router.get("/:id", getProperty);
    CREATE PROPERTY (requires token)
    /properties
    --------------------------------------------------------- */
-router.post("/", createProperty);
+router.post("/", authenticateToken, createProperty);
 
 /* ---------------------------------------------------------
    UPDATE PROPERTY (requires token)
