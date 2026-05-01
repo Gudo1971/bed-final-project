@@ -9,10 +9,11 @@
     "clean-start": "npm run reset-db && npm run dev",
     "test-positive": "newman run \"./postman/collections/Bookings API.json\" -e \"./postman/environments/Local.postman_environment.json\"",
     "test-negative": "newman run \"./postman/collections/Bookings API Negative.json\" -e \"./postman/environments/Local.postman_environment.json\"",
-    "test": "npm run test-positive && npm run test-negative"
+    "test": "npm run test-positive && npm run test-negative",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^5.14.0",
+    "@prisma/client": "^5.22.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
@@ -23,7 +24,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
-    "prisma": "^5.14.0",
+    "prisma": "^5.22.0",
     "react-icons": "^5.5.0",
     "uuid": "^13.0.0"
   },
