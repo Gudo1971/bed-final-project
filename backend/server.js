@@ -16,6 +16,7 @@ import accountRoutes from "./src/routes/account.route.js";
 import { loginController } from "./src/controllers/auth.controller.js";
 
 dotenv.config();
+console.log("DATABASE_URL used by Render:", process.env.DATABASE_URL);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
