@@ -1,71 +1,68 @@
-import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
+import pkg from "@prisma/client";
+import fs from "fs";
+import path from "path";
 
-// Load JSON manually (works in all Node versions)
-const users = JSON.parse(fs.readFileSync('./data/users.json', 'utf8'));
-const properties = JSON.parse(fs.readFileSync('./data/properties.json', 'utf8'));
-const propertyImages = JSON.parse(fs.readFileSync('./data/propertyImages.json', 'utf8'));
-const bookings = JSON.parse(fs.readFileSync('./data/bookings.json', 'utf8'));
-const reviews = JSON.parse(fs.readFileSync('./data/reviews.json', 'utf8'));
-
+const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('🌱 Seeding StayBnB database...');
-
-  // GOLDEN DB SAFETY
-  const maybeGolden = await prisma.user.findUnique({
-    where: { email: 'gbgieles@gmail.com' },
-  });
-
-  // if (maybeGolden) {
-  //   console.log('❌ ABORT: This looks like your GOLDEN database.');
-  //   process.exit(1);
-  // }
-
-  console.log('📊 Counts:');
-  console.log(`   users:          ${users.length}`);
-  console.log(`   properties:     ${properties.length}`);
-  console.log(`   images:         ${propertyImages.length}`);
-  console.log(`   bookings:       ${bookings.length}`);
-  console.log(`   reviews:        ${reviews.length}`);
-
-  await prisma.$transaction(async (tx) => {
-    console.log('🧹 Clearing existing data...');
-    await tx.review.deleteMany({});
-    await tx.booking.deleteMany({});
-    await tx.propertyImage.deleteMany({});
-    await tx.property.deleteMany({});
-    await tx.user.deleteMany({});
-
-    console.log('👤 Seeding users...');
-    await tx.user.createMany({ data: users });
-
-    console.log('🏡 Seeding properties...');
-    await tx.property.createMany({ data: properties });
-
-    console.log('🖼️ Seeding property images...');
-    await tx.propertyImage.createMany({ data: propertyImages });
-
-    console.log('📅 Seeding bookings...');
-    if (bookings.length > 0) {
-      await tx.booking.createMany({ data: bookings });
-    }
-
-    console.log('⭐ Seeding reviews...');
-    if (reviews.length > 0) {
-      await tx.review.createMany({ data: reviews });
-    }
-  });
-
-  console.log('✅ Seeding completed successfully.');
+function loadJSON(filename) {
+  const filePath = path.join(process.cwd(), "data", "MijnProjectMockData", filename);
+  return JSON.parse(fs.readFileSync(filePath, "utf-8"));
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Seeding failed:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
+async function run() {
+  console.log("🌱 Seeding StayBnB database...");
+
+  try {
+    // Load JSON
+    const users = loadJSON("users.json");
+    const hosts = loadJSON("hosts.json");
+    const properties = loadJSON("properties.json");
+    const propertyImages = loadJSON("propertyImages.json");
+    const reviews = loadJSON("reviews.json");
+    const bookings = loadJSON("bookings.json");
+
+    // Clear DB
+    await prisma.review.deleteMany();
+    await prisma.booking.deleteMany();
+    await prisma.propertyImage.deleteMany();
+    await prisma.property.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.host.deleteMany();
+
+    console.log("✔ Database cleared");
+
+    // Insert flat tables
+    await prisma.user.createMany({ data: users });
+    await prisma.host.createMany({ data: hosts });
+
+    // Properties must be flattened (remove nested arrays)
+    const flatProperties = properties.map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      location: p.location,
+      pricePerNight: p.pricePerNight,
+      bedroomCount: p.bedroomCount,
+      bathRoomCount: p.bathRoomCount,
+      maxGuestCount: p.maxGuestCount,
+      rating: p.rating,
+      isActive: p.isActive,
+      hostEmail: p.hostEmail
+    }));
+
+    await prisma.property.createMany({ data: flatProperties });
+
+    await prisma.propertyImage.createMany({ data: propertyImages });
+    await prisma.review.createMany({ data: reviews });
+    await prisma.booking.createMany({ data: bookings });
+
+    console.log("🎉 Seeding complete!");
+  } catch (error) {
+    console.error("❌ Seeding failed:", error);
+  } finally {
     await prisma.$disconnect();
-  });
+  }
+}
+
+run();
